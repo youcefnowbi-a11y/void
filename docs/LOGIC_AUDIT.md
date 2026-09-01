@@ -167,4 +167,4 @@
 ---
 
 ## Contre-vérifications ENI (ancres recoupées par lecture directe)
-A1 ✓ · A2 ✓ · A3 ✓ · A6 ✓ · A8 ✓ · H2 ✓ · H5 ✓ — **7/7 confirmées**.
+A1 ✓ · A2 ✓ · A3 ✓ · A4 ✓ (substring pur 938 + nudge auto-référentiel 1350) · A5 ✓ (continue sans compteur 1346-1351) · A6 ✓ · A8 ✓ · H2 ✓ · H3 ✓ (load hors lock 10-17, open("w") en place 21) · H4 ✓ (premier http(s) quelconque 98, suffixe .js forcé 102) · H5 ✓ · M1 ✓ (kind non-slugifié 259) · H-LOW2 ✓ (NETWORK aliasing 93) — **13/13 confirmées**.
