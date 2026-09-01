@@ -1,0 +1,157 @@
+"""VOIDFORGE :: engagement report generator.
+Transforms a raw agent transcript into a professional engagement deliverable:
+ROE/scope header (from config/engagement.yaml), tool ledger, severity-ranked
+findings, then the full transcript for evidence."""
+import json, os, re, datetime
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ENGAGEMENT_FILE = os.path.join(ROOT, "config", "engagement.yaml")
+
+SEVERITY_RULES = [
+    ("CRITICAL", re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----|sk_live_[A-Za-z0-9]{16,}|service_role", re.I)),
+    ("CRITICAL", re.compile(r"(?:postgres|mysql|mongodb(?:\+srv)?|redis)://[^\s'\"]{8,}", re.I)),
+    ("HIGH",     re.compile(r"eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,}(\.[A-Za-z0-9_-]{10,})?")),  # JWT (2 ou 3 segments)
+    ("HIGH",     re.compile(r"(?:anon[_\s-]?key|api[_\s-]?key|access[_\s-]?token|webhook[_\s-]?secret)\s*[:=]\s*['\"]?[A-Za-z0-9_\-/+=]{12,}", re.I)),
+    ("HIGH",     re.compile(r"AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|xoxb-[A-Za-z0-9\-]{10,}|AIza[A-Za-z0-9_\-]{35}")),
+    ("MEDIUM",   re.compile(r"\.r2\.dev|\.s3\.amazonaws\.com|storage/v1/bucket|supabase\.co", re.I)),
+    ("MEDIUM",   re.compile(r"(?:/rest/v1/|/auth/v1/(?:signup|anonymous-signin)|/functions/v1/)[^\s]*\s*[-–]\s*(?:200|201|307)", re.I)),
+    ("MEDIUM",   re.compile(r"(?:waf|cloudflare|edge function|redirect)[:,]", re.I)),
+]
+
+def _load_engagement():
+    try:
+        import yaml
+        with open(ENGAGEMENT_FILE, encoding="utf-8") as f:
+            return yaml.safe_load(f) or {}
+    except Exception:
+        return {}
+
+def _extract_findings(transcript):
+    """Scan transcript text, dedupe matches, rank by severity."""
+    seen, findings = set(), []
+    for kind, text in transcript:
+        for sev, pat in SEVERITY_RULES:
+            for m in pat.finditer(text or ""):
+                key = (sev, m.group(0)[:80])
+                if key in seen:
+                    continue
+                seen.add(key)
+                snippet = m.group(0)
+                # contexte : la ligne qui contient le match
+                line = next((ln.strip()[:160] for ln in (text or "").splitlines() if m.group(0) in ln), snippet)
+                cap = 400 if any(p in snippet for p in ("eyJ", "sk_", "AKIA")) else 120
+                findings.append({"severity": sev, "evidence": snippet[:cap], "context": line})
+    order = {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2}
+    findings.sort(key=lambda f: order.get(f["severity"], 3))
+    return findings[:40]
+
+def _tool_ledger(transcript):
+    """Aggregate tool usage: counts per module, order of first appearance.
+    Swarm transcripts use kinds like 'recon:tool' — count those too."""
+    ledger, order = {}, []
+    for kind, text in transcript:
+        if not (kind == "tool" or kind.endswith(":tool")):
+            continue
+        name = (text or "").split(":", 1)[0].strip()
+        if not name:
+            continue
+        if name not in ledger:
+            ledger[name] = 0
+            order.append(name)
+        ledger[name] += 1
+    return [(n, ledger[n]) for n in order]
+
+def write_report(mission, transcript, folder, board=None):
+    ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    path = os.path.join(folder, f"report_{ts}.md")
+    eng = (_load_engagement() or {}).get("engagement", {}) or {}
+    roe = eng.get("rules_of_engagement", {}) or {}
+
+    findings = _extract_findings(transcript)
+    ledger = _tool_ledger(transcript)
+    tool_calls = sum(n for _, n in ledger)
+
+    def _or(val, fallback="NOT RECORDED"):
+        v = (val or "").strip() if isinstance(val, str) else val
+        return v if v else fallback
+
+    scope_in = ", ".join(eng.get("scope", {}).get("in_scope", []) or []) or "NOT RECORDED"
+    scope_out = ", ".join(eng.get("scope", {}).get("out_of_scope", []) or []) or "none specified"
+
+    lines = [
+        f"# VOIDFORGE :: ENGAGEMENT REPORT — {ts}",
+        "",
+        "## EXECUTIVE SUMMARY",
+        f"- **Mission:** {_or(mission)[:200]}",
+        f"- **Outcome:** {tool_calls} tool executions across {len(ledger)} distinct modules",
+        f"- **Findings:** {len(findings)} "
+        f"({sum(1 for f in findings if f['severity']=='CRITICAL')} critical / "
+        f"{sum(1 for f in findings if f['severity']=='HIGH')} high / "
+        f"{sum(1 for f in findings if f['severity']=='MEDIUM')} medium)",
+        "",
+        "## ENGAGEMENT & RULES OF ENGAGEMENT",
+        f"| Field | Value |",
+        f"|---|---|",
+        f"| Client | {_or(eng.get('client'))} |",
+        f"| Contact | {_or(eng.get('contact'))} |",
+        f"| Authorization ref | {_or(eng.get('authorization_ref'))} |",
+        f"| In scope | {scope_in} |",
+        f"| Out of scope | {scope_out} |",
+        f"| Intensity | {_or(roe.get('intensity'))} |",
+        f"| Timing window | {_or(roe.get('timing_window'))} |",
+        f"| Do-not-exploit mode | {_or(str(roe.get('do_not_exploit', 'NOT RECORDED')))} |",
+        f"| Max request rate | {_or(str(roe.get('max_request_rate', 'NOT RECORDED')))} /min |",
+        f"| Operator / Agent | LO / VOIDFORGE |",
+        f"| Generated | {ts} |",
+        "",
+        "> ⚠️ If Authorization ref reads NOT RECORDED, this report documents an",
+        "> engagement without recorded mandate and must not be delivered to a client.",
+        "",
+    ]
+
+    if findings:
+        lines += ["## FINDINGS (severity-ranked)", ""]
+        for f in findings:
+            lines.append(f"- **[{f['severity']}]** `{f['evidence']}`\n  - context: `{f['context']}`")
+        lines.append("")
+
+    if ledger:
+        lines += ["## ARSENAL LEDGER", ""]
+        lines += [f"- `{name}` ×{n}" for name, n in ledger]
+        lines.append("")
+
+    # ── Living Graph section: the engagement's actual knowledge state ──
+    if board is not None:
+        try:
+            st = board.stats()
+            lines += [f"## LIVING GRAPH — {st['assets']} assets / {st['edges']} links "
+                      f"/ {st['tested']} tested observations", ""]
+            cov = board.coverage()
+            if cov:
+                lines += ["| Surface | Tested | Total |", "|---|---|---|"]
+                for kind, c in sorted(cov.items()):
+                    lines.append(f"| {kind} | {c['tested']} | {c['total']} |")
+                lines.append("")
+            conns = board.unmade_connections(6)
+            if conns:
+                lines += ["### Unmade connections (next-mission lead list)", ""]
+                for c in conns:
+                    lines.append(f"- [{c['confidence']:.0%}] {c['suggestion']} — *{c['why']}*")
+                lines.append("")
+            top = sorted(board.assets.values(), key=lambda a: -a["confidence"])[:8]
+            if top:
+                lines += ["### Highest-confidence assets", ""]
+                for a in top:
+                    lines.append(f"- **[{a['kind']}]** `{a['value'][:90]}` ({a['confidence']})")
+                lines.append("")
+        except Exception as ex:
+            lines += [f"_(living graph render failed: {type(ex).__name__})_", ""]
+
+    lines += ["## FULL TRANSCRIPT (evidence)", ""]
+    for kind, text in transcript:
+        icon = "🧠" if kind == "agent" else "⚙"
+        lines.append(f"\n### {icon} {kind.upper()}\n```\n{(text or '')[:8000]}\n```")
+
+    with open(path, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
+    return path

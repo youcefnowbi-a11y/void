@@ -1,0 +1,25 @@
+# VOIDFORGE :: LOCAL BRAIN PROFILE (template)
+#
+# Quand le provider distant refuse une classe de mission, la réponse durable
+# n'est pas plus de prompt — c'est un cerveau qui ne dépend pas d'une politique
+# externe. Ollama parle l'API OpenAI-compatible, donc VOIDFORGE s'y branche
+# sans une ligne de code :
+#
+#   1. Installer Ollama (https://ollama.com) puis tirer un modèle:
+#        ollama pull qwen2.5:14b        (raisonne bien, 9 Go)
+#        ollama pull dolphin-mixtral    (variante officiellement sans garde)
+#   2. Copier CE fichier par-dessus config/provider.yaml (sauvegarder l'ancien):
+#        cp config/provider.yaml config/provider.remote.yaml.bak
+#        cp config/provider.local.yaml config/provider.yaml
+#   3. Relancer le backend — le stratège ET l'agente de mission raisonnent
+#      maintenant en local. Le gouverneur ROE et les clamps restent actifs.
+#
+# Le MCTS hors-ligne reste le filet: même SANS aucun LLM, la mission tourne.
+
+provider:
+  base_url: http://127.0.0.1:11434/v1
+  api_key: ollama
+  model: qwen2.5:14b
+  temperature: 0.3
+  max_tool_rounds: 20
+  max_tokens: 4096

@@ -1,0 +1,9 @@
+# VOIDFORGE Proxy Configuration
+# One proxy per line. Supports http://, https://, socks5://
+# Lines starting with # are comments.
+# Leave empty for direct connections (default).
+#
+# Examples:
+# http://user:pass@proxy.example.com:8080
+# socks5://127.0.0.1:1080
+# http://rotating-residential.provider.com:9999

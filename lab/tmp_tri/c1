@@ -1,0 +1,5 @@
+ERROR: AddressSanitizer: SEGV on address 0x41414141
+WRITE of size 4
+    #0 0x7f0 in fA (a.c:0)
+    #1 0x7f1 in fB (a.c:1)
+    #2 0x7f2 in fC (a.c:2)

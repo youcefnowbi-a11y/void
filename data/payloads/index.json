@@ -1,0 +1,45 @@
+{
+  "comment": "VOIDFORGE payload corpus — seeds from PayloadsAllTheThings (raw.githubusercontent, fetched 2026-02-14) + internal seeds (ssti, proto_pollute written by ENI, sourced from the ssti/proto tools' proven payloads). Served by tools/payload_library.py.",
+  "classes": {
+    "sqli": {
+      "files": ["sqli_auth_bypass.txt", "sqli_union.txt", "sqli_timebased.txt", "sqli_polyglots.txt"],
+      "source": "PayloadsAllTheThings/SQL Injection/Intruder"
+    },
+    "xss": {
+      "files": ["xss_quick.txt", "xss_polyglots.txt"],
+      "source": "PayloadsAllTheThings/XSS Injection/Intruders"
+    },
+    "lfi": {
+      "files": ["lfi_deep.txt"],
+      "source": "PayloadsAllTheThings/Directory Traversal/Intruder"
+    },
+    "cmd": {
+      "files": ["cmd_exec.txt"],
+      "source": "PayloadsAllTheThings/Command Injection/Intruder"
+    },
+    "ssti": {
+      "files": ["ssti.txt"],
+      "source": "VOIDFORGE internal (matches ssti_detect_rce grammar)"
+    },
+    "nosql": {
+      "files": ["nosql.txt"],
+      "source": "PayloadsAllTheThings/NoSQL Injection/Intruder"
+    },
+    "open_redirect": {
+      "files": ["open_redirect.txt"],
+      "source": "PayloadsAllTheThings/Open Redirect/Intruder"
+    },
+    "proto_pollute": {
+      "files": ["proto_pollute.txt"],
+      "source": "VOIDFORGE internal (matches proto_pollute tool grammar)"
+    },
+    "subdomains": {
+      "files": ["../wordlists/subdomains-5000.txt"],
+      "source": "SecLists/Discovery/DNS"
+    },
+    "dirs": {
+      "files": ["../wordlists/common.txt", "../wordlists/quickhits.txt", "../wordlists/raft-small-lower.txt"],
+      "source": "SecLists/Discovery/Web-Content"
+    }
+  }
+}

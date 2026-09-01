@@ -1,0 +1,44 @@
+2026-08-31T00:20:22.0758893+02:00
+| CVE-2023-4863 | 8.8 | Heap buffer overflow in libwebp in Google Chrome prior to 116.0.5845.187 and libwebp 1.3.2 allowed a remote attacker to perform an out of bounds memory write via a crafted HTML page. (Chromium security severity: Critical)
+| CVE-2023-38545 | 9.8 | This flaw makes curl overflow a heap based buffer in the SOCKS5 proxy
+handshake.
+
+When curl is asked to pass along the host name to the SOCKS5 proxy to allow
+that to resolve the address instead of it getting done by curl itself, the
+maximum length that host name can be is 255 bytes.
+
+If the host nam
+| CVE-2023-4911 | 7.8 | A buffer overflow was discovered in the GNU C Library's dynamic loader ld.so while processing the GLIBC_TUNABLES environment variable. This issue could allow a local attacker to use maliciously crafted GLIBC_TUNABLES environment variables when launching binaries with SUID permission to execute code 
+| CVE-2023-6879 | 9.0 | Increasing the resolution of video frames, while performing a multi-threaded encode, can result in a heap overflow in av1_loop_restoration_dealloc().
+| CVE-2023-27997 | 9.8 | A heap-based buffer overflow vulnerability [CWE-122] in FortiOS version 7.2.4 and below, version 7.0.11 and below, version 6.4.12 and below, version 6.0.16 and below and FortiProxy version 7.2.3 and below, version 7.0.9 and below, version 2.0.12 and below, version 1.2 all versions, version 1.1 all v
+| CVE-2024-1086 | 7.8 | A use-after-free vulnerability in the Linux kernel's netfilter: nf_tables component can be exploited to achieve local privilege escalation.
+
+
+
+The nft_verdict_init() function allows positive values as drop error within the hook verdict, and hence the nf_hook_slow() function can cause a double free v
+| CVE-2024-21338 | 7.8 | Windows Kernel Elevation of Privilege Vulnerability
+| CVE-2024-20644 | FAIL | error or rate-limit
+| CVE-2024-0517 | 8.8 | Out of bounds write in V8 in Google Chrome prior to 120.0.6099.224 allowed a remote attacker to potentially exploit heap corruption via a crafted HTML page. (Chromium security severity: High)
+| CVE-2024-21762 | 9.8 | A out-of-bounds write in Fortinet FortiOS versions 7.4.0 through 7.4.2, 7.2.0 through 7.2.6, 7.0.0 through 7.0.13, 6.4.0 through 6.4.14, 6.2.0 through 6.2.15, 6.0.0 through 6.0.17, FortiProxy versions 7.4.0 through 7.4.2, 7.2.0 through 7.2.8, 7.0.0 through 7.0.14, 2.0.0 through 2.0.13, 1.2.0 through
+| CVE-2024-6387 | 8.1 | A security regression (CVE-2006-5051) was discovered in OpenSSH's server (sshd). There is a race condition which can lead sshd to handle some signals in an unsafe manner. An unauthenticated, remote attacker may be able to trigger it by failing to authenticate within a set time period.
+| CVE-2024-2887 | 7.7 | Type Confusion in WebAssembly in Google Chrome prior to 123.0.6312.86 allowed a remote attacker to execute arbitrary code via a crafted HTML page. (Chromium security severity: High)
+| CVE-2024-5274 | 9.6 | Type Confusion in V8 in Google Chrome prior to 125.0.6422.112 allowed a remote attacker to execute arbitrary code inside a sandbox via a crafted HTML page. (Chromium security severity: High)
+| CVE-2025-0291 | 8.8 | Type Confusion in V8 in Google Chrome prior to 131.0.6778.264 allowed a remote attacker to execute arbitrary code inside a sandbox via a crafted HTML page. (Chromium security severity: High)
+| CVE-2024-45490 | 7.5 | An issue was discovered in libexpat before 2.6.3. xmlparse.c does not reject a negative length for XML_ParseBuffer.
+| CVE-2024-33599 | 8.1 | nscd: Stack-based buffer overflow in netgroup cache
+
+If the Name Service Cache Daemon's (nscd) fixed size cache is exhausted
+by client requests then a subsequent client request for netgroup data
+may result in a stack-based buffer overflow.  This flaw was introduced
+in glibc 2.15 when the cache was a
+| CVE-2024-33560 | 9.0 | Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal') vulnerability in 8theme XStore allows PHP Local File Inclusion.This issue affects XStore: from n/a through 9.3.8.
+| CVE-2024-33600 | 5.9 | nscd: Null pointer crashes after notfound response
+
+If the Name Service Cache Daemon's (nscd) cache fails to add a not-found
+netgroup response to the cache, the client request can result in a null
+pointer dereference.  This flaw was introduced in glibc 2.15 when the
+cache was added to nscd.
+
+This vu
+| CVE-2024-32657 | 4.6 | Hydra is a Continuous Integration service for Nix based projects. Attackers can execute arbitrary code in the browser context of Hydra and execute authenticated HTTP requests. The abused feature allows Nix builds to specify files that Hydra serves to clients. One use of this functionality is serving
+DONE

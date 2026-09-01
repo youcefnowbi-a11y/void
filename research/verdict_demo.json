@@ -1,0 +1,218 @@
+{
+  "engine": "auth_state_engine",
+  "version": "0.1.0",
+  "target": {
+    "base_url": "lab://demo",
+    "flow": "mfa",
+    "date": "2026-08-31"
+  },
+  "machine": {
+    "states": 5,
+    "alphabet": 8,
+    "inference": "hand-built (v0)",
+    "confidence": 0.85,
+    "protected": [
+      "s3_authenticated"
+    ],
+    "required_proofs": {
+      "s3_authenticated": [
+        "creds_submit",
+        "otp_submit"
+      ]
+    }
+  },
+  "findings": [
+    {
+      "id": "VF-AUTH-001",
+      "severity": "critical",
+      "title": "Protected state reachable without required proof (step-skip)",
+      "template": "no_skip",
+      "property": "□(enter(s_protected) → ◇proof(n) ∧ fresh(proof(n)))",
+      "trace": "t1-victim-mfa-skip",
+      "entered_state": "s3_authenticated",
+      "missing_proofs": [
+        "otp_submit"
+      ],
+      "evidence": [
+        "creds_submit",
+        "session_establish"
+      ],
+      "repro": [
+        "see lab guide §7 for reproduction pattern"
+      ]
+    },
+    {
+      "id": "VF-AUTH-002",
+      "severity": "critical",
+      "title": "Protected state reachable without required proof (step-skip)",
+      "template": "no_skip",
+      "property": "□(enter(s_protected) → ◇proof(n) ∧ fresh(proof(n)))",
+      "trace": "t1-victim-mfa-skip",
+      "entered_state": "s3_authenticated",
+      "missing_proofs": [
+        "otp_submit"
+      ],
+      "evidence": [
+        "creds_submit",
+        "session_establish",
+        "resource_access"
+      ],
+      "repro": [
+        "see lab guide §7 for reproduction pattern"
+      ]
+    },
+    {
+      "id": "VF-AUTH-003",
+      "severity": "critical",
+      "title": "Protected state reachable without required proof (step-skip)",
+      "template": "no_skip",
+      "property": "□(enter(s_protected) → ◇proof(n) ∧ fresh(proof(n)))",
+      "trace": "t4-aud-confusion",
+      "entered_state": "s3_authenticated",
+      "missing_proofs": [
+        "creds_submit",
+        "otp_submit"
+      ],
+      "evidence": [
+        "token_present"
+      ],
+      "repro": [
+        "see lab guide §7 for reproduction pattern"
+      ]
+    },
+    {
+      "id": "VF-AUTH-004",
+      "severity": "high",
+      "title": "Single-use token consumed more than once (non-atomic guard)",
+      "template": "no_replay",
+      "property": "□(consume(c) → X□¬consume(c))",
+      "trace": "t2-code-race",
+      "evidence": {
+        "event": "code_consume",
+        "token_id": "α",
+        "successful_consumes": 2
+      },
+      "impact": "non-atomic single-use guard (TOCTOU) — race window (dossier §6.5)",
+      "repro": [
+        "see lab guide §7 for reproduction pattern"
+      ]
+    },
+    {
+      "id": "VF-AUTH-005",
+      "severity": "critical",
+      "title": "Callback/token accepted with unverified or mismatched issuer (mix-up surface)",
+      "template": "issuer_confinement",
+      "property": "□(authz_response(resp) → resp.iss = expected_iss(route))",
+      "trace": "t3-mixup",
+      "evidence": {
+        "route": "/cb/google",
+        "iss": null,
+        "expected": "https://accounts.google.com"
+      },
+      "verdict": "MISSING_ISS_ACCEPTED",
+      "repro": [
+        "see lab guide §7 for reproduction pattern"
+      ]
+    },
+    {
+      "id": "VF-AUTH-006",
+      "severity": "critical",
+      "title": "Callback/token accepted with unverified or mismatched issuer (mix-up surface)",
+      "template": "issuer_confinement",
+      "trace": "t3-mixup",
+      "evidence": {
+        "iss": "https://attacker.tld"
+      },
+      "verdict": "UNTRUSTED_ISSUER_TOKEN_ACCEPTED",
+      "repro": [
+        "see lab guide §7 for reproduction pattern"
+      ]
+    },
+    {
+      "id": "VF-AUTH-007",
+      "severity": "high",
+      "title": "Token accepted outside its bound audience",
+      "template": "binding_preservation",
+      "property": "□(grant(B) → ∃τ: τ.sub=B ∧ τ.aud ∋ res ∧ τ.epoch≥now)",
+      "trace": "t4-aud-confusion",
+      "evidence": {
+        "token_ref": "tok_v",
+        "token_aud": [
+          "api.internal"
+        ],
+        "route": "/api/admin",
+        "endpoint_aud": "admin.internal"
+      },
+      "repro": [
+        "see lab guide §7 for reproduction pattern"
+      ]
+    }
+  ],
+  "entropy": [
+    {
+      "label": "observed state param (16 hex)",
+      "charset": "hex",
+      "length": 16,
+      "nominal_bits": 64.0,
+      "empirical_bits_sample": 3.8,
+      "min_bits": 128.0,
+      "verdict": "FAIL",
+      "method": "H = L·log2|C|  (dossier §6.1)"
+    },
+    {
+      "label": "observed code param (22 base62)",
+      "charset": "base62",
+      "length": 22,
+      "nominal_bits": 131.0,
+      "empirical_bits_sample": 4.5,
+      "min_bits": 160.0,
+      "verdict": "FAIL",
+      "method": "H = L·log2|C|  (dossier §6.1)"
+    },
+    {
+      "label": "observed OTP (6 digits)",
+      "charset": "digits",
+      "length": 6,
+      "nominal_bits": 19.9,
+      "empirical_bits_sample": 2.6,
+      "min_bits": 19.9,
+      "verdict": "PASS",
+      "method": "H = L·log2|C|  (dossier §6.1)"
+    }
+  ],
+  "token_bindings": [
+    {
+      "ref": "tok_v",
+      "flags": [],
+      "sub": "victim",
+      "aud": [
+        "api.internal"
+      ],
+      "iss": "https://lab.idp.tld"
+    },
+    {
+      "ref": "tok_evil",
+      "flags": [
+        "ALG_CONFUSION_SURFACE(RS256->HS256)",
+        "KID_INJECTION_SURFACE",
+        "JKU_REMOTE_KEY_SURFACE"
+      ],
+      "sub": "attacker",
+      "aud": [
+        "api.internal"
+      ],
+      "iss": "https://attacker.tld"
+    }
+  ],
+  "race_plan": {
+    "mode": "plan_only_v0",
+    "endpoints": [
+      "POST /oauth/token (code exchange)",
+      "POST /mfa/verify (otp)"
+    ],
+    "requests_per_race": 30,
+    "technique": "http2_single_packet",
+    "model": "P ≈ 1 − (1 − w/σ)^C(k,2)   (dossier §6.5)",
+    "note": "v0 emits the plan; execute with Turbo Intruder (github.com/PortSwigger/turbo-intruder) — single-packet attack."
+  }
+}

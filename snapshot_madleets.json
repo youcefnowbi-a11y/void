@@ -1,0 +1,12 @@
+{
+  "title": "MaDLeeTs — Security Tools, Temp Mail, VPNs &amp; ML Forum",
+  "robots": true,
+  "bundles": {},
+  "endpoints": {
+    "/robots.txt": 200,
+    "/sitemap.xml": null,
+    "/.env": null,
+    "/admin": null,
+    "/api/health": null
+  }
+}

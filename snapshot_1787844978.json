@@ -1,0 +1,13 @@
+{
+  "title": "Admin — Shopee Labs",
+  "robots": false,
+  "bundles": {},
+  "bundles_count": 0,
+  "endpoints": {
+    "/robots.txt": null,
+    "/sitemap.xml": null,
+    "/.env": null,
+    "/admin": null,
+    "/api/health": null
+  }
+}

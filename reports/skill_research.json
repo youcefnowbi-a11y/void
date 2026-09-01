@@ -1,0 +1,350 @@
+[
+ {
+  "query": "payload all the things",
+  "repos": [
+   {
+    "name": "swisskyrepo/PayloadsAllTheThings",
+    "stars": 80500,
+    "desc": "A list of useful payloads and bypass for Web Application Security and Pentest/CTF",
+    "url": "https://github.com/swisskyrepo/PayloadsAllTheThings"
+   },
+   {
+    "name": "Ne3o1/PayLoadAllTheThings",
+    "stars": 471,
+    "desc": "",
+    "url": "https://github.com/Ne3o1/PayLoadAllTheThings"
+   },
+   {
+    "name": "mishmashclone/swisskyrepo-PayloadsAllTheThings",
+    "stars": 348,
+    "desc": "https://github.com/swisskyrepo/PayloadsAllTheThings",
+    "url": "https://github.com/mishmashclone/swisskyrepo-PayloadsAllTheThings"
+   },
+   {
+    "name": "cyberheartmi9/PayloadsAllTheThings",
+    "stars": 336,
+    "desc": "",
+    "url": "https://github.com/cyberheartmi9/PayloadsAllTheThings"
+   }
+  ]
+ },
+ {
+  "query": "hacktricks",
+  "repos": [
+   {
+    "name": "HackTricks-wiki/hacktricks",
+    "stars": 12191,
+    "desc": "Welcome to the page where you will find each trick/technique/whatever I have learnt in CTFs, real life apps, and reading researches and news.",
+    "url": "https://github.com/HackTricks-wiki/hacktricks"
+   },
+   {
+    "name": "HackTricks-wiki/hacktricks-cloud",
+    "stars": 777,
+    "desc": "",
+    "url": "https://github.com/HackTricks-wiki/hacktricks-cloud"
+   },
+   {
+    "name": "Don-No7/Hack-SQL",
+    "stars": 146,
+    "desc": "-- -- File generated with SQLiteStudio v3.2.1 on Sun Feb 7 14:58:28 2021 -- -- Text encoding used: System -- PRAGMA foreign_keys = off; BEGIN TRANSACTION;  -- Table: Commands CREAT",
+    "url": "https://github.com/Don-No7/Hack-SQL"
+   },
+   {
+    "name": "JoelGMSec/AIkido",
+    "stars": 38,
+    "desc": "Fake API Server for AI-Bypass",
+    "url": "https://github.com/JoelGMSec/AIkido"
+   }
+  ]
+ },
+ {
+  "query": "GTFOBins",
+  "repos": [
+   {
+    "name": "GTFOBins/GTFOBins.github.io",
+    "stars": 13598,
+    "desc": "GTFOBins is a curated list of Unix-like executables that can be used to bypass local security restrictions in misconfigured systems.",
+    "url": "https://github.com/GTFOBins/GTFOBins.github.io"
+   },
+   {
+    "name": "liamg/traitor",
+    "stars": 7160,
+    "desc": ":arrow_up: :skull_and_crossbones: :fire: Automatic Linux privesc via exploitation of low-hanging fruit e.g. gtfobins, pwnkit, dirty pipe, +w docker.sock",
+    "url": "https://github.com/liamg/traitor"
+   },
+   {
+    "name": "Anon-Exploiter/SUID3NUM",
+    "stars": 677,
+    "desc": "A standalone python script which utilizes python's built-in modules to enumerate SUID binaries, separate default binaries from custom binaries, cross-match those with bins in GTFO ",
+    "url": "https://github.com/Anon-Exploiter/SUID3NUM"
+   },
+   {
+    "name": "Frissi0n/GTFONow",
+    "stars": 639,
+    "desc": "Automatic privilege escalation for misconfigured capabilities, sudo and suid binaries using GTFOBins.",
+    "url": "https://github.com/Frissi0n/GTFONow"
+   }
+  ]
+ },
+ {
+  "query": "LOLBAS windows",
+  "repos": [
+   {
+    "name": "mzfr/gtfo",
+    "stars": 462,
+    "desc": "Search gtfobins and lolbas files from your terminal",
+    "url": "https://github.com/mzfr/gtfo"
+   },
+   {
+    "name": "MHaggis/NEBULA",
+    "stars": 131,
+    "desc": "Interactive PowerShell framework for testing WMI, COM, LOLBAS, and persistence techniques",
+    "url": "https://github.com/MHaggis/NEBULA"
+   },
+   {
+    "name": "magicsword-io/LOLBASline",
+    "stars": 78,
+    "desc": "Baseline a Windows System against LOLBAS",
+    "url": "https://github.com/magicsword-io/LOLBASline"
+   },
+   {
+    "name": "aaron-kidwell/goLoL",
+    "stars": 66,
+    "desc": "goLoL is a Windows host scanner with dual support for LOLBAS binaries and LOLDrivers. It lists LOLBAS techniques runnable at your current privilege level (with MITRE ATT&CK mapping",
+    "url": "https://github.com/aaron-kidwell/goLoL"
+   }
+  ]
+ },
+ {
+  "query": "atomic red team",
+  "repos": [
+   {
+    "name": "redcanaryco/atomic-red-team",
+    "stars": 12464,
+    "desc": "Small and highly portable detection tests based on MITRE's ATT&CK.",
+    "url": "https://github.com/redcanaryco/atomic-red-team"
+   },
+   {
+    "name": "redcanaryco/invoke-atomicredteam",
+    "stars": 1067,
+    "desc": "Invoke-AtomicRedTeam is a PowerShell module to execute tests as defined in the [atomics folder](https://github.com/redcanaryco/atomic-red-team/tree/master/atomics) of Red Canary's ",
+    "url": "https://github.com/redcanaryco/invoke-atomicredteam"
+   },
+   {
+    "name": "darmado/Atomic-Red-Team-C2",
+    "stars": 178,
+    "desc": "ARTi-C2  is a post-exploitation framework used to execute Atomic Red Team test cases with rapid payload deployment and execution capabilities via .NET's DLR.",
+    "url": "https://github.com/darmado/Atomic-Red-Team-C2"
+   },
+   {
+    "name": "swimlane/atomic-operator",
+    "stars": 156,
+    "desc": "A Python package is used to execute Atomic Red Team tests (Atomics) across multiple operating system environments.",
+    "url": "https://github.com/swimlane/atomic-operator"
+   }
+  ]
+ },
+ {
+  "query": "red team playbook",
+  "repos": [
+   {
+    "name": "0xsyr0/Red-Team-Playbooks",
+    "stars": 446,
+    "desc": "This repository contains cutting-edge open-source security notes and tools that will help you during your Red Team assessments.",
+    "url": "https://github.com/0xsyr0/Red-Team-Playbooks"
+   },
+   {
+    "name": "redhat-cop/automation-good-practices",
+    "stars": 358,
+    "desc": "Recommended practices for all elements of automation using Ansible, starting with collections and roles, continuing with playbooks, inventories and plug-ins... These good practices",
+    "url": "https://github.com/redhat-cop/automation-good-practices"
+   },
+   {
+    "name": "curi0usJack/ansible-redelk",
+    "stars": 52,
+    "desc": "Ansible playbooks for instrumenting a Red Team environment with RedElk",
+    "url": "https://github.com/curi0usJack/ansible-redelk"
+   },
+   {
+    "name": "SnailSploit/The-LLM-Red-Teamer-s-Playbook",
+    "stars": 41,
+    "desc": "A diagnostic methodology for bypassing LLM defense layers — from input filters to persistent memory exploitation.",
+    "url": "https://github.com/SnailSploit/The-LLM-Red-Teamer-s-Playbook"
+   }
+  ]
+ },
+ {
+  "query": "penetration testing checklist methodology",
+  "repos": [
+   {
+    "name": "initstring/pentest-methodology",
+    "stars": 201,
+    "desc": "Short checklists for penetration testing methodology",
+    "url": "https://github.com/initstring/pentest-methodology"
+   },
+   {
+    "name": "OWASP/owasp-istg",
+    "stars": 128,
+    "desc": "The IoT Security Testing Guide (ISTG) provides a comprehensive methodology for penetration tests in the IoT field, offering flexibility to adapt innovations, and developments in th",
+    "url": "https://github.com/OWASP/owasp-istg"
+   },
+   {
+    "name": "botesjuan/PenTestMethodology",
+    "stars": 35,
+    "desc": "A structured, actionable penetration testing methodology and checklist covering end-to-end engagement phases.",
+    "url": "https://github.com/botesjuan/PenTestMethodology"
+   },
+   {
+    "name": "deletehead/pentest_methodology",
+    "stars": 9,
+    "desc": "Checklist & methodology for penetration tests. More of a \"todo\" list than a \"TTP\" list.",
+    "url": "https://github.com/deletehead/pentest_methodology"
+   }
+  ]
+ },
+ {
+  "query": "command and control framework red team",
+  "repos": [
+   {
+    "name": "tcostam/awesome-command-control",
+    "stars": 979,
+    "desc": "A collection of awesome Command & Control (C2) frameworks, tools and resources for post-exploitation and red teaming assignments.",
+    "url": "https://github.com/tcostam/awesome-command-control"
+   },
+   {
+    "name": "cobbr/Elite",
+    "stars": 121,
+    "desc": "Elite is the client-side component of the Covenant project. Covenant is a .NET command and control framework that aims to highlight the attack surface of .NET, make the use of offe",
+    "url": "https://github.com/cobbr/Elite"
+   },
+   {
+    "name": "t1b4n3/TibaneC2",
+    "stars": 68,
+    "desc": "A lightweight Command and Control (C2) framework built for offensive security research and red teaming (Post Exploitation).",
+    "url": "https://github.com/t1b4n3/TibaneC2"
+   },
+   {
+    "name": "JoasASantos/RTLC2",
+    "stars": 57,
+    "desc": "Advanced Command and Control Framework for Authorized Red Team Operations",
+    "url": "https://github.com/JoasASantos/RTLC2"
+   }
+  ]
+ },
+ {
+  "query": "privilege escalation enumeration linux windows",
+  "repos": [
+   {
+    "name": "peass-ng/PEASS-ng",
+    "stars": 20402,
+    "desc": "PEASS - Privilege Escalation Awesome Scripts SUITE (with colors)",
+    "url": "https://github.com/peass-ng/PEASS-ng"
+   },
+   {
+    "name": "Don-No7/Hack-SQL",
+    "stars": 146,
+    "desc": "-- -- File generated with SQLiteStudio v3.2.1 on Sun Feb 7 14:58:28 2021 -- -- Text encoding used: System -- PRAGMA foreign_keys = off; BEGIN TRANSACTION;  -- Table: Commands CREAT",
+    "url": "https://github.com/Don-No7/Hack-SQL"
+   },
+   {
+    "name": "pashamasr01287654800/PEASS-ng",
+    "stars": 3,
+    "desc": "PEASS-ng (Privilege Escalation Awesome Scripts - Next Gen) is a cross-platform toolkit that helps security professionals enumerate and identify privilege escalation vectors on Linu",
+    "url": "https://github.com/pashamasr01287654800/PEASS-ng"
+   },
+   {
+    "name": "PentestPlaybook/enumeration_priv_esc",
+    "stars": 1,
+    "desc": "Linux and Windows enumeration and privilege escalation scripts for authorized penetration testing.",
+    "url": "https://github.com/PentestPlaybook/enumeration_priv_esc"
+   }
+  ]
+ },
+ {
+  "query": "active directory attack cheatsheet",
+  "repos": [
+   {
+    "name": "S1ckB0y1337/Active-Directory-Exploitation-Cheat-Sheet",
+    "stars": 6720,
+    "desc": "A cheat sheet that contains common enumeration and attack methods for Windows Active Directory.",
+    "url": "https://github.com/S1ckB0y1337/Active-Directory-Exploitation-Cheat-Sheet"
+   },
+   {
+    "name": "Integration-IT/Active-Directory-Exploitation-Cheat-Sheet",
+    "stars": 2761,
+    "desc": "A cheat sheet that contains common enumeration and attack methods for Windows Active Directory.",
+    "url": "https://github.com/Integration-IT/Active-Directory-Exploitation-Cheat-Sheet"
+   },
+   {
+    "name": "0xJs/CRTP-cheatsheet",
+    "stars": 266,
+    "desc": "Cheatsheet for the commands learned in Attack and Defense Active Directory Lab",
+    "url": "https://github.com/0xJs/CRTP-cheatsheet"
+   },
+   {
+    "name": "idnahacks/AD_attack_defend_cheatsheet",
+    "stars": 23,
+    "desc": "A list of commands, tools and notes about enumerating and exploiting Active Directory and how to defend against these attacks",
+    "url": "https://github.com/idnahacks/AD_attack_defend_cheatsheet"
+   }
+  ]
+ },
+ {
+  "query": "cloud security exploitation aws azure",
+  "repos": [
+   {
+    "name": "eshlomo1/CloudSec",
+    "stars": 29,
+    "desc": "Master the art of cloud exploitation. A specialized resource for offensive security researchers and red teamers focused on weaponizing vulnerabilities and simulating advanced attac",
+    "url": "https://github.com/eshlomo1/CloudSec"
+   },
+   {
+    "name": "nukIeer/Cloud-Misconfig-Exploit-Guide",
+    "stars": 6,
+    "desc": "Curated snippets for exploiting cloud security misconfigurations in AWS, Azure, and GCP. Covers S3 bucket leaks, IAM abuse, and serverless vulnerabilities. For pentesters and cloud",
+    "url": "https://github.com/nukIeer/Cloud-Misconfig-Exploit-Guide"
+   },
+   {
+    "name": "sylhetyhackvenger/secMONSTER",
+    "stars": 3,
+    "desc": "secMONSTER performs 150+ security tests including XSS, SQLi, RCE, SSRF, LFI, SSTI, XXE, NoSQL, CMDi, CRLF, open redirect, JWT attacks, OAuth/SAML bypass, cloud metadata (AWS/GCP/Az",
+    "url": "https://github.com/sylhetyhackvenger/secMONSTER"
+   },
+   {
+    "name": "nameissanju/CloudPwnLab-Cloud-Security-Exploitation-Playground",
+    "stars": 1,
+    "desc": "CloudPwnLab is a hands-on lab designed to simulate real-world cloud misconfigurations and attack paths in AWS and Azure. It allows you to practice identifying, exploiting, and docu",
+    "url": "https://github.com/nameissanju/CloudPwnLab-Cloud-Security-Exploitation-Playground"
+   }
+  ]
+ },
+ {
+  "query": "web security methodology OWASP WSTG",
+  "repos": [
+   {
+    "name": "SPamungkas/Security-Research-Methodology-For-Global-Telecommunication-Company",
+    "stars": 1,
+    "desc": "Security Research & Offensive Security Portfolio. Focused on web infrastructure reconnaissance and vulnerability analysis following OWASP WSTG methodologies.",
+    "url": "https://github.com/SPamungkas/Security-Research-Methodology-For-Global-Telecommunication-Company"
+   },
+   {
+    "name": "interc00ler/OWASP-Methodology-Scraper",
+    "stars": 0,
+    "desc": "Terminal viewer for the latest OWASP Web Security and Mobile App Security Testing Guides",
+    "url": "https://github.com/interc00ler/OWASP-Methodology-Scraper"
+   },
+   {
+    "name": "Cygnus-Security/owasp-wstg-evaluation",
+    "stars": 0,
+    "desc": "A research project evaluating the OWASP Web Security Testing Guide through practical web security testing scenarios and assessment methodologies.",
+    "url": "https://github.com/Cygnus-Security/owasp-wstg-evaluation"
+   },
+   {
+    "name": "Tauseefahmadkhan097/wstg-security-tracker-v2",
+    "stars": 0,
+    "desc": "Flask-based web application for managing authorized security assessments using the OWASP Web Security Testing Guide (WSTG) methodology.",
+    "url": "https://github.com/Tauseefahmadkhan097/wstg-security-tracker-v2"
+   }
+  ]
+ }
+]

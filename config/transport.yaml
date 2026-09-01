@@ -1,0 +1,26 @@
+# VOIDFORGE :: couche transport (options, TOUT est off par défaut)
+#
+# transport.proxies — pool de sorties (wave2 P1/P2). Quand la liste est vide,
+# fetch() se comporte exactement comme avant (direct, urlopen standard).
+# Format: "http://user:pass@host:port" ou "socks5://host:port" (socks nécessite
+# PySocks). Santé: 3 échecs (403/406/429/WAF) = 2 min de cooldown; les sorties
+# saines reprennent automatiquement. Le gouverneur ROE (120 req/min) reste
+# au-dessus du pool — un proxy ne change jamais la cadence autorisée.
+#
+# Exemple:
+# transport:
+#   proxies:
+#     - "http://user:pass@203.0.113.10:8080"
+#     - "http://user:pass@203.0.113.11:8080"
+transport:
+  proxies: []
+  # P4: hook captcha — provider: none|2captcha|capsolver, api_key requis pour
+  # activer. Sans config: les murs captchés sont annotés (captcha_wall) pour
+  # wall_breaker au lieu d'être résolus. Budget: 3 résolutions par process.
+  captcha:
+    provider: "none"
+    api_key: ""
+    poll_timeout: 120
+  # P5: impersonation TLS/JA3 via curl_cffi — profil navigateur ("chrome",
+  # "chrome124", "safari"...) ou none. Tombe les checks CDN de fingerprint.
+  impersonate: "chrome"

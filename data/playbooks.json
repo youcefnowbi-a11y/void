@@ -1,0 +1,17 @@
+[
+ {
+  "ts": "2026-08-30 05:10",
+  "target": "forge-range.test",
+  "stacks": [
+   "graphql",
+   "spa",
+   "wordpress"
+  ],
+  "sequence": [
+   "spa_crawl",
+   "js_mine_url",
+   "data_extract"
+  ],
+  "assets_found": 154
+ }
+]

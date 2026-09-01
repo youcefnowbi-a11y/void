@@ -1,0 +1,172 @@
+{
+ "apache 2.4.49": {
+  "findings": [
+   {
+    "title": "[EDB-50383] Apache 2.4.49 path traversal",
+    "url": "https://www.exploit-db.com/exploits/50383",
+    "snip": "CVE-2021-41773"
+   }
+  ],
+  "ts": 1788303260.759
+ },
+ "cloudflare": {
+  "findings": [
+   {
+    "title": "cloudflare-bypass · GitHub Topics · GitHub",
+    "url": "https://github.com/topics/cloudflare-bypass",
+    "snip": "GitHub is where people build software. More than 150 million people use GitHub to discover, fork, and contribute to over 420 million projects."
+   },
+   {
+    "title": "GitHub - sarperavci/CloudflareBypassForScraping: A cloudflare ...",
+    "url": "https://github.com/sarperavci/CloudflareBypassForScraping",
+    "snip": "⭐ Thank you for 1,800+ stars! Introducing Version 2.0 with enhanced request mirroring, improved caching and better reliability for bypassing Cloudflare protection. Bypass Cloudflar"
+   },
+   {
+    "title": "Top 10 Ways to Bypass a WAF",
+    "url": "https://bugbase.ai/blog/top-10-ways-to-bypass-waf",
+    "snip": "Top 10 Ways to Bypass a WAF 1. Payload Encoding and Obfuscation One of the simplest yet most effective methods to bypass a WAF is through payload encoding. Encoding alters the repr"
+   },
+   {
+    "title": "ByPass Cloudflare Challenges using Selenium - BrowserStack",
+    "url": "https://www.browserstack.com/guide/selenium-cloudflare",
+    "snip": "Cloudflare challenges can block Selenium tests on protected websites. Learn safe ways to handle them in authorized test workflows."
+   },
+   {
+    "title": "Cloudflare Zero-Day Exploit Bypasses WAF and Exposes Servers",
+    "url": "https://www.ampcuscyber.com/shadowopsintel/cloudflare-zero-day-global-waf-bypass-via-acme-validation-path/",
+    "snip": "A zero-day flaw in Cloudflare&#x27;s WAF exploited the ACME validation path, bypassing security and exposing backend servers to external attackers."
+   },
+   {
+    "title": "Cloudflare CVEs and Security Vulnerabilities - OpenCVE",
+    "url": "https://app.opencve.io/cve/?vendor=cloudflare",
+    "snip": "Explore the latest vulnerabilities and security issues of Cloudflare in the CVE database"
+   },
+   {
+    "title": "Latest Cloudflare Vulnerabilities - Feedly",
+    "url": "https://feedly.com/cve/vendors/cloudflare",
+    "snip": "Track the latest Cloudflare vulnerabilities and their associated exploits, patches, CVSS and EPSS scores, proof of concept, links to malware, threat actors, and MITRE ATT&amp;CK TT"
+   },
+   {
+    "title": "Posts tagged &quot;Vulnerabilities&quot; — Cloudflare Blog",
+    "url": "https://blog.cloudflare.com/tag/vulnerabilities/",
+    "snip": "All posts tagged with Vulnerabilities December 11, 2025 React2Shell and related RSC vulnerabilities threat brief: early exploitation activity and threat actor techniques"
+   },
+   {
+    "title": "Cloudflare : Security vulnerabilities, CVEs - CVEdetails.com",
+    "url": "https://www.cvedetails.com/vulnerability-list/vendor_id-23682/Cloudflare.html?page=1&order=1&sha=66a6f756e93f6de6a9a66e550dd9c3a706438f68",
+    "snip": "ImpactThis vulnerability is generally hard to exploit, as it requires --commit-hash to be attacker controlled. The vulnerability primarily affects CI/CD environments where `wrangle"
+   },
+   {
+    "title": "cloudflare Cyber Security Vulnerability Stats and Metrics",
+    "url": "https://securityvulnerability.io/vendor/cloudflare",
+    "snip": "19 June 2026 Use-After-Free Vulnerabilities in Cloudflare Quiche CVE-2026-11941 Cloudflare Quiche 5.6 MEDIUM"
+   }
+  ],
+  "ts": 1788240227.905
+ },
+ "x402 protocol v1 exact scheme eip-3009 payment verification": {
+  "findings": [
+   {
+    "title": "x402/specs/x402-specification-v1.md at main - GitHub",
+    "url": "https://github.com/x402-foundation/x402/blob/main/specs/x402-specification-v1.md",
+    "snip": "6.1 Exact Scheme (EVM overview) The &quot;exact&quot; scheme uses EIP-3009 (Transfer with Authorization) to enable secure, gasless transfers of specific amounts of ERC-20 tokens."
+   },
+   {
+    "title": "Free-Riding the Agentic Web: A Systematic Security Analysis of x402 ...",
+    "url": "https://arxiv.org/html/2605.30998",
+    "snip": "The x402 EVM exact scheme settles via transferWithAuthorization on the EIP-3009 token contract (51). EIP-3009&#x27;s Security Consideration (20) notes that this variant allows any "
+   },
+   {
+    "title": "31 newly discovered vulnerabilities expose 99% of x402 crypto payments ...",
+    "url": "https://cryptoslate.com/31-newly-discovered-vulnerabilities-expose-99-of-x402-crypto-payments-to-asset-theft-and-free-shopping/",
+    "snip": "A new security study reported 31 previously unknown vulnerabilities across 15 major facilitators supporting x402, an HTTP-native standard for programmatic payments. The tested grou"
+   },
+   {
+    "title": "x402 Integration Security: A Technical Deep Dive",
+    "url": "https://blog.valkyrisec.com/x402-integration-security/",
+    "snip": "The x402 protocol represents a significant advancement in internet-native payment infrastructure, enabling frictionless micropayments critical for the emerging autonomous agent eco"
+   },
+   {
+    "title": "Payment Schemes | coinbase/x402 | DeepWiki",
+    "url": "https://deepwiki.com/coinbase/x402/2.3-payment-schemes",
+    "snip": "The exact scheme provides production-ready fixed-amount payments via EIP-3009 on EVM and SPL transfers on Solana. Schemes are registered using functions like registerExactEvmScheme"
+   },
+   {
+    "title": "GitHub - tikpema274/arc-x402-reference",
+    "url": "https://github.com/tikpema274/arc-x402-reference",
+    "snip": "A minimal, working reference implementation of vanilla x402 (the exact scheme, EIP-3009 direct on-chain settlement) for Arc Testnet: a seller that issues 402 Payment Required chall"
+   },
+   {
+    "title": "GitHub - hihi-yessir/x402-auth-gateway: x402 payment-gated proxy for ...",
+    "url": "https://github.com/hihi-yessir/x402-auth-gateway",
+    "snip": "x402 payment-gated proxy for AI agent resource access. An agent requests a resource, gets a 402 payment challenge, submits an EIP-3009 payment signature, and the gateway holds fund"
+   },
+   {
+    "title": "x402 Header Decoder — PayProbe",
+    "url": "https://payprobe.io/tools/x402-decoder/",
+    "snip": "x402 Header Decoder Decode and build the x402 payment protocol headers — PAYMENT-REQUIRED, PAYMENT-SIGNATURE, and PAYMENT-RESPONSE (v2), or their v1 X-PAYMENT equivalents. Base64 →"
+   },
+   {
+    "title": "How x402 EIP-3009 Settlement Actually Works - by Chad N",
+    "url": "https://jumpbox.substack.com/p/how-x402-eip-3009-settlement-actually",
+    "snip": "Breaking this down: scheme: &quot;exact&quot; — this is an EIP-3009 payment (as opposed to Permit2, which uses a different scheme). network: &quot;eip155:8453&quot; — Base mainnet,"
+   }
+  ],
+  "ts": 1788280048.667
+ },
+ "jwt": {
+  "findings": [
+   {
+    "title": "CVE-2026-55040: SharePoint Auth Bypass PoC Public",
+    "url": "https://securityonline.info/sharepoint-auth-bypass-cve-2026-55040/",
+    "snip": "TL;DR Rapid7 has published a technical analysis and a working proof-of-concept for CVE-2026-55040. The flaw is a critical SharePoint authentication bypass that lets a remote, unaut"
+   },
+   {
+    "title": "Exploiting SharePoint: CVE-2026-55040 and CVE-2026-63520 RCE Chain",
+    "url": "https://www.vulncheck.com/blog/cve-2026-63520-sharepoint-unsafe-type-rce",
+    "snip": "VulnCheck&#x27;s Initial Access Intelligence team shipped an exploit last week chaining two recently disclosed Microsoft SharePoint CVEs that, when used together, allow a remote un"
+   },
+   {
+    "title": "Attackers Exploit SharePoint Authentication Bypass After Public PoC Release",
+    "url": "https://thehackernews.com/2026/08/attackers-exploit-sharepoint.html",
+    "snip": "Attackers exploit SharePoint CVE-2026-55040 after a Rapid7 PoC release, forging JWTs to impersonate site users or admins."
+   },
+   {
+    "title": "How a JWT Authentication Bypass Became a Global CVE (CVE-2026-29000)",
+    "url": "https://codeant.ai/blogs/from-code-audit-to-global-cve-the-story-behind-the-pac4j-jwt-authentication-bypass",
+    "snip": "How the pac4j JWT authentication bypass (CVE-2026-29000) moved from security research to global CVE databases, CERT advisories, and vulnerability feeds."
+   },
+   {
+    "title": "Authentication and JWT Bypass - Attack &amp; Defense Guide",
+    "url": "https://securitycipher.com/docs/security/vulnerability-explain/authentication-and-jwt-bypass/",
+    "snip": "Authentication and JWT Bypass explained with real attack examples, testing techniques, vulnerable vs secure code, and practical defenses for developers."
+   },
+   {
+    "title": "JWT Algorithm Confusion Attacks: CVE-2026-22817, CVE-2026-27804, and ...",
+    "url": "https://dev.to/iamdevbox/jwt-algorithm-confusion-attacks-cve-2026-22817-cve-2026-27804-and-cve-2026-23552-fix-guide-4ac4",
+    "snip": "JWT algorithm confusion attacks are back — and Q1 2026 has seen a cluster of critical CVEs across... Tagged with jwt, security, oauth, cve."
+   },
+   {
+    "title": "CVE-2026-55040: Microsoft SharePoint JWT Token Authentication ... - Rapid7",
+    "url": "https://www.rapid7.com/blog/post/ve-cve-2026-55040-microsoft-sharepoint-jwt-token-authentication-bypass-fixed/",
+    "snip": "Rapid7 Labs conducted a zero-day research project against Microsoft SharePoint, resulting in the discovery of 2 new vulnerabilities that - when chained together - achieve unauthent"
+   },
+   {
+    "title": "Nvd - Cve-2023-48238",
+    "url": "https://nvd.nist.gov/vuln/detail/cve-2023-48238",
+    "snip": "To exploit this vulnerability, an attacker needs to craft a malicious JWT token containing the HS256 algorithm, signed with the public RSA key of the victim application."
+   },
+   {
+    "title": "NVD - cve-2026-27962",
+    "url": "https://nvd.nist.gov/vuln/detail/cve-2026-27962",
+    "snip": "Description Authlib is a Python library which builds OAuth and OpenID Connect servers. Prior to version 1.6.9, a JWK Header Injection vulnerability in authlib&#x27;s JWS implementa"
+   },
+   {
+    "title": "JWT attacks | Web Security Academy - PortSwigger",
+    "url": "https://portswigger.net/web-security/jwt",
+    "snip": "JWT attacks In this section, we&#x27;ll look at how design issues and flawed handling of JSON web tokens (JWTs) can leave websites vulnerable to a variety of high-severity attacks."
+   }
+  ],
+  "ts": 1788283946.879
+ }
+}

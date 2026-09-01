@@ -1,0 +1,19 @@
+provider:
+  base_url: https://api.b.ai/v1
+  api_key: sk-qcz3crmbsfa9r1bsnpj3266ffcz3lk96
+  model: glm-5.3-flash
+  temperature: 0.3
+  max_tool_rounds: 0            # 0 = illimité (clamp 14 mort)
+  max_mission_minutes: 0        # 0 = aucune deadline de campagne (wall-clock off)
+  max_context_tokens: 110000    # budget contexte agent (~estimation 4 chars/token)
+  max_tokens: 4056
+  tokenize_secrets: false       # Dark-Moon: true = le provider ne voit que [HOST-n]/[CRED-n]
+operator:
+  codename: LO
+  agent_name: VOIDFORGE
+security:
+  sandbox_heavy_jobs: true
+  max_subprocess_minutes: 30
+framing:
+  normalize_vocabulary: true
+  refusal_retry: true

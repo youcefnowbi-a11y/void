@@ -1,0 +1,15 @@
+{
+  "title": "购物 - OrcAI",
+  "robots": false,
+  "bundles": {
+    "https://batch.sheerid.cc/cdn-cgi/challenge-platform/scripts/jsd/main.js": "4b38ac97d96d07f02dfbca4a87e35bbe"
+  },
+  "bundles_count": 1,
+  "endpoints": {
+    "/robots.txt": 200,
+    "/sitemap.xml": null,
+    "/.env": null,
+    "/admin": null,
+    "/api/health": null
+  }
+}

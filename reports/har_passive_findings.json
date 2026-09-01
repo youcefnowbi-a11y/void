@@ -1,0 +1,25 @@
+{
+ "hosts": {
+  "shop.t": {
+   "idor": [
+    "https://shop.t/api/v1/orders/42  (id=42)"
+   ],
+   "money": [
+    "https://shop.t/api/v1/orders/42  champs=balance,price"
+   ],
+   "jwt": [
+    "none: {'role': 'admin', 'exp': 1900000000} alg=none faible; claim role/admin visible; exp long-vie"
+   ],
+   "secrets": [
+    "sk_live_abcdefghijklmnop1234"
+   ],
+   "cookies": [
+    "sid — sans Secure, HttpOnly, SameSite"
+   ],
+   "headers": [
+    "https://shop.t/api/v1/orders/42 — sans content-security-policy, strict-transport-security, x-frame-options, x-content-type-options",
+    "https://shop.t/api/me — sans content-security-policy, strict-transport-security, x-frame-options, x-content-type-options"
+   ]
+  }
+ }
+}

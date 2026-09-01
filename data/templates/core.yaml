@@ -1,0 +1,162 @@
+# VOIDFORGE starter pack — mini-nuclei templates (simplified schema).
+# Schema: id / info{title,severity} / requests[{path,method}] / matchers-condition(and|or)
+#         matchers: {type: status|word|regex, ...}
+---
+id: git-config-leak
+info:
+  title: "Git repository config exposure"
+  severity: high
+requests:
+  - path: "/.git/config"
+matchers:
+  - type: status
+    status: [200]
+  - type: word
+    words: ["[core]", "repositoryformatversion"]
+---
+id: env-file-leak
+info:
+  title: "Environment file disclosure"
+  severity: critical
+requests:
+  - path: "/.env"
+matchers-condition: or
+matchers:
+  - type: status
+    status: [200]
+  - type: regex
+    regex: ["(?m)^[A-Z_]+=", "DB_PASSWORD", "APP_KEY", "SECRET"]
+---
+id: htaccess-exposed
+info:
+  title: "Apache htaccess disclosure"
+  severity: medium
+requests:
+  - path: "/.htaccess"
+matchers:
+  - type: status
+    status: [200]
+  - type: word
+    words: ["RewriteEngine", "Deny from", "Options"]
+---
+id: phpinfo-exposed
+info:
+  title: "phpinfo() page exposed"
+  severity: high
+requests:
+  - path: "/phpinfo.php"
+  - path: "/info.php"
+matchers:
+  - type: status
+    status: [200]
+  - type: word
+    words: ["phpinfo()", "PHP Version"]
+---
+id: swagger-open
+info:
+  title: "Swagger/OpenAPI specification exposed"
+  severity: medium
+requests:
+  - path: "/swagger.json"
+  - path: "/openapi.json"
+  - path: "/swagger/doc.json"
+matchers:
+  - type: status
+    status: [200]
+  - type: word
+    words: ["openapi", "swagger"]
+---
+id: graphql-introspect-open
+info:
+  title: "GraphQL introspection enabled"
+  severity: medium
+requests:
+  - path: "/graphql"
+  - path: "/graphiql"
+matchers:
+  - type: status
+    status: [200, 400]
+  - type: word
+    words: ["__schema", "graphiql", "queryintrospection"]
+---
+id: spring-actuator-open
+info:
+  title: "Spring Boot Actuator exposed"
+  severity: high
+requests:
+  - path: "/actuator"
+  - path: "/actuator/env"
+matchers:
+  - type: status
+    status: [200]
+  - type: word
+    words: ["_links", "health", "{\"activeProfiles\""]
+---
+id: debug-vars-page
+info:
+  title: "Framework debug page (Django/Flask/Laravel)"
+  severity: high
+requests:
+  - path: "/__debug__/"
+  - path: "/_ignition/health-check"
+  - path: "/console/"
+matchers:
+  - type: status
+    status: [200]
+  - type: word
+    words: ["traceback", "DEBUG = True", "django-debug-toolbar", "ignition"]
+---
+id: backup-archives
+info:
+  title: "Backup/archive file exposed"
+  severity: high
+requests:
+  - path: "/backup.zip"
+  - path: "/site.tar.gz"
+  - path: "/db.sql"
+  - path: "/dump.sql"
+matchers:
+  - type: status
+    status: [200]
+  - type: word
+    words: ["PK", "!DOCTYPE", "CREATE TABLE", "INSERT INTO"]
+---
+id: admin-panel-open
+info:
+  title: "Admin panel reachable"
+  severity: low
+requests:
+  - path: "/admin"
+  - path: "/adminer.php"
+  - path: "/wp-admin/"
+matchers:
+  - type: status
+    status: [200, 302]
+  - type: word
+    words: ["admin", "login", "dashboard", "Adminer"]
+---
+id: ds-store-leak
+info:
+  title: "macOS .DS_Store disclosure (path oracle)"
+  severity: low
+requests:
+  - path: "/.DS_Store"
+matchers:
+  - type: status
+    status: [200]
+  - type: word
+    words: ["Bud1"]
+---
+id: wp-config-backup
+info:
+  title: "WordPress config backup exposed"
+  severity: critical
+requests:
+  - path: "/wp-config.php.bak"
+  - path: "/wp-config.php~"
+  - path: "/wp-config.save"
+matchers:
+  - type: status
+    status: [200]
+  - type: word
+    words: ["DB_NAME", "DB_PASSWORD", "table_prefix"]

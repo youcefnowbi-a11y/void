@@ -1,0 +1,6264 @@
+{
+ "target": "venice.ai",
+ "updated": "2026-09-01T18:10:09",
+ "assets": {
+  "endpoint:https://venice.ai/checkout/plus/monthly": {
+   "kind": "endpoint",
+   "value": "https://venice.ai/checkout/plus/monthly",
+   "props": {},
+   "confidence": 0.937,
+   "sources": [
+    "transport",
+    "data_extract"
+   ],
+   "ts": "2026-09-01T16:04:33"
+  },
+  "endpoint:https://venice.ai/": {
+   "kind": "endpoint",
+   "value": "https://venice.ai/",
+   "props": {},
+   "confidence": 0.99,
+   "sources": [
+    "waf_detect",
+    "batch_execute",
+    "data_extract"
+   ],
+   "ts": "2026-09-01T16:04:33"
+  },
+  "domain:verify.walletconnect.org": {
+   "kind": "domain",
+   "value": "verify.walletconnect.org",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "waf_detect"
+   ],
+   "ts": "2026-09-01T16:04:33"
+  },
+  "domain:warpcast.com": {
+   "kind": "domain",
+   "value": "warpcast.com",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "waf_detect"
+   ],
+   "ts": "2026-09-01T16:04:33"
+  },
+  "domain:farcaster.xyz": {
+   "kind": "domain",
+   "value": "farcaster.xyz",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "waf_detect"
+   ],
+   "ts": "2026-09-01T16:04:33"
+  },
+  "endpoint:http://venice.ai/%20saved%20chat%20folders/chats%20are%20not%20shown%20with%20Brave%20Shields%20full%20on.": {
+   "kind": "endpoint",
+   "value": "http://venice.ai/%20saved%20chat%20folders/chats%20are%20not%20shown%20with%20Brave%20Shields%20full%20on.",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "wayback_urls"
+   ],
+   "ts": "2026-09-01T16:04:52"
+  },
+  "domain:venice.ai": {
+   "kind": "domain",
+   "value": "venice.ai",
+   "props": {},
+   "confidence": 0.998,
+   "sources": [
+    "wayback_urls",
+    "data_extract",
+    "api_sweep",
+    "batch_execute",
+    "evidence_pack"
+   ],
+   "ts": "2026-09-01T16:04:52"
+  },
+  "domain:www.w3.org": {
+   "kind": "domain",
+   "value": "www.w3.org",
+   "props": {},
+   "confidence": 0.899,
+   "sources": [
+    "data_extract"
+   ],
+   "ts": "2026-09-01T16:05:17"
+  },
+  "endpoint:https://outerface.venice.ai/": {
+   "kind": "endpoint",
+   "value": "https://outerface.venice.ai/",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "data_extract"
+   ],
+   "ts": "2026-09-01T16:05:19"
+  },
+  "domain:docs.venice.ai": {
+   "kind": "domain",
+   "value": "docs.venice.ai",
+   "props": {},
+   "confidence": 0.998,
+   "sources": [
+    "data_extract",
+    "api_sweep",
+    "batch_execute"
+   ],
+   "ts": "2026-09-01T16:05:19"
+  },
+  "domain:mintcdn.com": {
+   "kind": "domain",
+   "value": "mintcdn.com",
+   "props": {},
+   "confidence": 0.997,
+   "sources": [
+    "data_extract",
+    "api_sweep"
+   ],
+   "ts": "2026-09-01T16:05:19"
+  },
+  "domain:plausible.io": {
+   "kind": "domain",
+   "value": "plausible.io",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "data_extract"
+   ],
+   "ts": "2026-09-01T16:05:19"
+  },
+  "domain:veniceai.mintlify.app": {
+   "kind": "domain",
+   "value": "veniceai.mintlify.app",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "data_extract"
+   ],
+   "ts": "2026-09-01T16:05:19"
+  },
+  "domain:d4tuoctqmanu0.cloudfront.net": {
+   "kind": "domain",
+   "value": "d4tuoctqmanu0.cloudfront.net",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "data_extract"
+   ],
+   "ts": "2026-09-01T16:05:19"
+  },
+  "domain:schema.org": {
+   "kind": "domain",
+   "value": "schema.org",
+   "props": {},
+   "confidence": 0.971,
+   "sources": [
+    "data_extract"
+   ],
+   "ts": "2026-09-01T16:05:19"
+  },
+  "domain:mintlify.com": {
+   "kind": "domain",
+   "value": "mintlify.com",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "data_extract"
+   ],
+   "ts": "2026-09-01T16:05:19"
+  },
+  "endpoint:https://clerk.venice.ai/v1/client": {
+   "kind": "endpoint",
+   "value": "https://clerk.venice.ai/v1/client",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "data_extract"
+   ],
+   "ts": "2026-09-01T16:05:20"
+  },
+  "endpoint:https://docs.venice.ai/overview/about-venice": {
+   "kind": "endpoint",
+   "value": "https://docs.venice.ai/overview/about-venice",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "api_sweep"
+   ],
+   "ts": "2026-09-01T16:06:36"
+  },
+  "domain:api.venice.ai": {
+   "kind": "domain",
+   "value": "api.venice.ai",
+   "props": {},
+   "confidence": 0.998,
+   "sources": [
+    "api_sweep",
+    "batch_execute",
+    "web_read",
+    "evidence_pack"
+   ],
+   "ts": "2026-09-01T16:06:36"
+  },
+  "domain:clerk.venice.ai": {
+   "kind": "domain",
+   "value": "clerk.venice.ai",
+   "props": {},
+   "confidence": 0.998,
+   "sources": [
+    "batch_execute",
+    "evidence_pack"
+   ],
+   "ts": "2026-09-01T17:15:12"
+  },
+  "domain:img.clerk.com": {
+   "kind": "domain",
+   "value": "img.clerk.com",
+   "props": {},
+   "confidence": 0.998,
+   "sources": [
+    "batch_execute",
+    "data_extract"
+   ],
+   "ts": "2026-09-01T17:15:12"
+  },
+  "domain:www.googleapis.com": {
+   "kind": "domain",
+   "value": "www.googleapis.com",
+   "props": {},
+   "confidence": 0.998,
+   "sources": [
+    "batch_execute",
+    "data_extract"
+   ],
+   "ts": "2026-09-01T17:15:12"
+  },
+  "domain:lh3.googleusercontent.com": {
+   "kind": "domain",
+   "value": "lh3.googleusercontent.com",
+   "props": {},
+   "confidence": 0.997,
+   "sources": [
+    "batch_execute",
+    "data_extract"
+   ],
+   "ts": "2026-09-01T17:15:12"
+  },
+  "domain:images.clerk.dev": {
+   "kind": "domain",
+   "value": "images.clerk.dev",
+   "props": {},
+   "confidence": 0.997,
+   "sources": [
+    "batch_execute",
+    "data_extract"
+   ],
+   "ts": "2026-09-01T17:15:12"
+  },
+  "domain:outerface.venice.ai": {
+   "kind": "domain",
+   "value": "outerface.venice.ai",
+   "props": {},
+   "confidence": 0.899,
+   "sources": [
+    "batch_execute"
+   ],
+   "ts": "2026-09-01T17:15:12"
+  },
+  "endpoint:https://clerk.venice.ai/v1/client/sessions/sess_3I8bLN3kKffTuYFrPJc40xkkSuc/tokens": {
+   "kind": "endpoint",
+   "value": "https://clerk.venice.ai/v1/client/sessions/sess_3I8bLN3kKffTuYFrPJc40xkkSuc/tokens",
+   "props": {},
+   "confidence": 0.998,
+   "sources": [
+    "data_extract",
+    "batch_execute"
+   ],
+   "ts": "2026-09-01T17:15:42"
+  },
+  "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgyOTUyLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzA0MiwiZnZhIjpbODc2LC0xXSwiaWF0IjoxNzg4MjgyOTgyLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4Mjk3Miwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c": {
+   "kind": "key",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgyOTUyLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzA0MiwiZnZhIjpbODc2LC0xXSwiaWF0IjoxNzg4MjgyOTgyLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4Mjk3Miwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "props": {
+    "kind_of_key": "anon_key"
+   },
+   "confidence": 0.956,
+   "sources": [
+    "data_extract"
+   ],
+   "ts": "2026-09-01T17:15:42"
+  },
+  "endpoint:https://outerface.venice.ai/api/v1/x402/top-up": {
+   "kind": "endpoint",
+   "value": "https://outerface.venice.ai/api/v1/x402/top-up",
+   "props": {},
+   "confidence": 0.937,
+   "sources": [
+    "batch_execute",
+    "data_extract"
+   ],
+   "ts": "2026-09-01T17:17:55"
+  },
+  "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzMTE1LCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzE3NSwiZnZhIjpbODc4LC0xXSwiaWF0IjoxNzg4MjgzMTE1LCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4MzEwNSwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c": {
+   "kind": "key",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzMTE1LCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzE3NSwiZnZhIjpbODc4LC0xXSwiaWF0IjoxNzg4MjgzMTE1LCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4MzEwNSwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "props": {
+    "kind_of_key": "anon_key"
+   },
+   "confidence": 0.956,
+   "sources": [
+    "batch_execute"
+   ],
+   "ts": "2026-09-01T17:17:55"
+  },
+  "endpoint:https://api.venice.ai/api/v1/models": {
+   "kind": "endpoint",
+   "value": "https://api.venice.ai/api/v1/models",
+   "props": {},
+   "confidence": 0.937,
+   "sources": [
+    "batch_execute",
+    "evidence_pack"
+   ],
+   "ts": "2026-09-01T17:18:51"
+  },
+  "domain:huggingface.co": {
+   "kind": "domain",
+   "value": "huggingface.co",
+   "props": {},
+   "confidence": 0.998,
+   "sources": [
+    "batch_execute",
+    "api_sweep"
+   ],
+   "ts": "2026-09-01T17:18:51"
+  },
+  "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzMTcwLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzIzMCwiZnZhIjpbODc5LC0xXSwiaWF0IjoxNzg4MjgzMTcwLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4MzE2MCwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c": {
+   "kind": "key",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzMTcwLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzIzMCwiZnZhIjpbODc5LC0xXSwiaWF0IjoxNzg4MjgzMTcwLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4MzE2MCwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "props": {
+    "kind_of_key": "anon_key"
+   },
+   "confidence": 0.956,
+   "sources": [
+    "batch_execute"
+   ],
+   "ts": "2026-09-01T17:18:51"
+  },
+  "endpoint:https://outerface.venice.ai/api/app/user/billing/subscription/stripe/pricing/pro/monthly": {
+   "kind": "endpoint",
+   "value": "https://outerface.venice.ai/api/app/user/billing/subscription/stripe/pricing/pro/monthly",
+   "props": {},
+   "confidence": 0.937,
+   "sources": [
+    "batch_execute",
+    "data_extract"
+   ],
+   "ts": "2026-09-01T17:19:29"
+  },
+  "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzNTY3LCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzYyNywiZnZhIjpbODg2LC0xXSwiaWF0IjoxNzg4MjgzNTY3LCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4MzU1Nywic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c": {
+   "kind": "key",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzNTY3LCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzYyNywiZnZhIjpbODg2LC0xXSwiaWF0IjoxNzg4MjgzNTY3LCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4MzU1Nywic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "props": {
+    "kind_of_key": "anon_key"
+   },
+   "confidence": 0.956,
+   "sources": [
+    "data_extract"
+   ],
+   "ts": "2026-09-01T17:25:27"
+  },
+  "endpoint:https://outerface.venice.ai/api/app/user/billing/subscription/stripe/invoices": {
+   "kind": "endpoint",
+   "value": "https://outerface.venice.ai/api/app/user/billing/subscription/stripe/invoices",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "data_extract"
+   ],
+   "ts": "2026-09-01T17:26:03"
+  },
+  "endpoint:https://api.venice.ai/api/v1/characters": {
+   "kind": "endpoint",
+   "value": "https://api.venice.ai/api/v1/characters",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "data_extract"
+   ],
+   "ts": "2026-09-01T17:26:03"
+  },
+  "endpoint:https://huggingface.co/BAAI/bge-m3": {
+   "kind": "endpoint",
+   "value": "https://huggingface.co/BAAI/bge-m3",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "api_sweep"
+   ],
+   "ts": "2026-09-01T17:26:42"
+  },
+  "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzNjgwLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4Mzc0MCwiZnZhIjpbODg4LC0xXSwiaWF0IjoxNzg4MjgzNjgwLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4MzY3MCwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c": {
+   "kind": "key",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzNjgwLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4Mzc0MCwiZnZhIjpbODg4LC0xXSwiaWF0IjoxNzg4MjgzNjgwLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4MzY3MCwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "props": {
+    "kind_of_key": "anon_key"
+   },
+   "confidence": 0.956,
+   "sources": [
+    "data_extract"
+   ],
+   "ts": "2026-09-01T17:27:20"
+  },
+  "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzNzQxLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzgwMSwiZnZhIjpbODg5LC0xXSwiaWF0IjoxNzg4MjgzNzQxLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4MzczMSwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c": {
+   "kind": "key",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzNzQxLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzgwMSwiZnZhIjpbODg5LC0xXSwiaWF0IjoxNzg4MjgzNzQxLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4MzczMSwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "props": {
+    "kind_of_key": "anon_key"
+   },
+   "confidence": 0.956,
+   "sources": [
+    "data_extract"
+   ],
+   "ts": "2026-09-01T17:28:21"
+  },
+  "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzNzQxLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzgzMCwiZnZhIjpbODg5LC0xXSwiaWF0IjoxNzg4MjgzNzcwLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4Mzc2MCwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c": {
+   "kind": "key",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzNzQxLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzgzMCwiZnZhIjpbODg5LC0xXSwiaWF0IjoxNzg4MjgzNzcwLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4Mzc2MCwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "props": {
+    "kind_of_key": "anon_key"
+   },
+   "confidence": 0.956,
+   "sources": [
+    "batch_execute"
+   ],
+   "ts": "2026-09-01T17:28:50"
+  },
+  "endpoint:https://api.venice.ai/api/v1/api_keys/generate_web3_key": {
+   "kind": "endpoint",
+   "value": "https://api.venice.ai/api/v1/api_keys/generate_web3_key",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "file_grep"
+   ],
+   "ts": "2026-09-01T17:37:55"
+  },
+  "endpoint:https://api.venice.ai/api/v1/x402/balance/0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045": {
+   "kind": "endpoint",
+   "value": "https://api.venice.ai/api/v1/x402/balance/0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "batch_execute"
+   ],
+   "ts": "2026-09-01T17:40:26"
+  },
+  "endpoint:https://unpkg.com/x402/dist/index.js": {
+   "kind": "endpoint",
+   "value": "https://unpkg.com/x402/dist/index.js",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:40:58"
+  },
+  "endpoint:https://docs.venice.ai/api-reference/endpoint/x402/top-up": {
+   "kind": "endpoint",
+   "value": "https://docs.venice.ai/api-reference/endpoint/x402/top-up",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:40:59"
+  },
+  "endpoint:https://unpkg.com/browse": {
+   "kind": "endpoint",
+   "value": "https://unpkg.com/browse",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:41:19"
+  },
+  "endpoint:https://unpkg.com/": {
+   "kind": "endpoint",
+   "value": "https://unpkg.com/",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:41:19"
+  },
+  "endpoint:https://registry.npmjs.org/": {
+   "kind": "endpoint",
+   "value": "https://registry.npmjs.org/",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:41:41"
+  },
+  "endpoint:https://registry.npmjs.org/x402": {
+   "kind": "endpoint",
+   "value": "https://registry.npmjs.org/x402",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:41:55"
+  },
+  "endpoint:https://registry.npmjs.org/x402/-/x402-0.0.1.tgz": {
+   "kind": "endpoint",
+   "value": "https://registry.npmjs.org/x402/-/x402-0.0.1.tgz",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:41:55"
+  },
+  "domain:github.com": {
+   "kind": "domain",
+   "value": "github.com",
+   "props": {},
+   "confidence": 0.998,
+   "sources": [
+    "web_read",
+    "batch_execute",
+    "data_extract"
+   ],
+   "ts": "2026-09-01T17:41:55"
+  },
+  "endpoint:https://registry.npmjs.org/x402/-/x402-0.1.0.tgz": {
+   "kind": "endpoint",
+   "value": "https://registry.npmjs.org/x402/-/x402-0.1.0.tgz",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:41:55"
+  },
+  "domain:registry.npmjs.org": {
+   "kind": "domain",
+   "value": "registry.npmjs.org",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:41:55"
+  },
+  "domain:slsa.dev": {
+   "kind": "domain",
+   "value": "slsa.dev",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:41:55"
+  },
+  "endpoint:https://registry.npmjs.org/x402/-/x402-0.1.1.tgz": {
+   "kind": "endpoint",
+   "value": "https://registry.npmjs.org/x402/-/x402-0.1.1.tgz",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:41:55"
+  },
+  "endpoint:https://x402.org/llms.txt": {
+   "kind": "endpoint",
+   "value": "https://x402.org/llms.txt",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:42:14"
+  },
+  "domain:x402.org": {
+   "kind": "domain",
+   "value": "x402.org",
+   "props": {},
+   "confidence": 0.997,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:42:14"
+  },
+  "endpoint:https://api.github.com/repos/coinbase/x402/git/trees/main": {
+   "kind": "endpoint",
+   "value": "https://api.github.com/repos/coinbase/x402/git/trees/main",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:42:28"
+  },
+  "domain:api.github.com": {
+   "kind": "domain",
+   "value": "api.github.com",
+   "props": {},
+   "confidence": 0.997,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:42:28"
+  },
+  "endpoint:https://raw.githubusercontent.com/coinbase/x402/main/typescript/packages/extensions/siwx/src/index.ts": {
+   "kind": "endpoint",
+   "value": "https://raw.githubusercontent.com/coinbase/x402/main/typescript/packages/extensions/siwx/src/index.ts",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:42:48"
+  },
+  "endpoint:https://raw.githubusercontent.com/coinbase/x402/main/python/x402/extensions/siwx.py": {
+   "kind": "endpoint",
+   "value": "https://raw.githubusercontent.com/coinbase/x402/main/python/x402/extensions/siwx.py",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:42:49"
+  },
+  "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages": {
+   "kind": "endpoint",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:43:14"
+  },
+  "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/core": {
+   "kind": "endpoint",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/core",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:43:14"
+  },
+  "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions": {
+   "kind": "endpoint",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:43:14"
+  },
+  "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/http": {
+   "kind": "endpoint",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/http",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:43:14"
+  },
+  "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/legacy": {
+   "kind": "endpoint",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/legacy",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:43:14"
+  },
+  "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/mcp": {
+   "kind": "endpoint",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/mcp",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:43:14"
+  },
+  "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/mechanisms": {
+   "kind": "endpoint",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/mechanisms",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:43:14"
+  },
+  "endpoint:https://api.github.com/repos/coinbase/x402/contents/python/x402/extensions": {
+   "kind": "endpoint",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/python/x402/extensions",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:43:17"
+  },
+  "endpoint:https://api.github.com/repos/coinbase/x402/contents/python/x402/extensions/README.md": {
+   "kind": "endpoint",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/python/x402/extensions/README.md",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:43:17"
+  },
+  "domain:raw.githubusercontent.com": {
+   "kind": "domain",
+   "value": "raw.githubusercontent.com",
+   "props": {},
+   "confidence": 0.997,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:43:17"
+  },
+  "endpoint:https://api.github.com/repos/coinbase/x402/contents/python/x402/extensions/__init__.py": {
+   "kind": "endpoint",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/python/x402/extensions/__init__.py",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:43:17"
+  },
+  "endpoint:https://api.github.com/repos/coinbase/x402/contents/python/x402/extensions/bazaar": {
+   "kind": "endpoint",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/python/x402/extensions/bazaar",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:43:17"
+  },
+  "endpoint:https://api.github.com/repos/coinbase/x402/contents/python/x402/extensions/eip2612_gas_sponsoring": {
+   "kind": "endpoint",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/python/x402/extensions/eip2612_gas_sponsoring",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:43:17"
+  },
+  "endpoint:https://api.github.com/repos/coinbase/x402/contents/python/x402/extensions/erc20_approval_gas_sponsoring": {
+   "kind": "endpoint",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/python/x402/extensions/erc20_approval_gas_sponsoring",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:43:17"
+  },
+  "endpoint:https://api.github.com/repos/coinbase/x402/contents/python/x402/extensions/payment_identifier": {
+   "kind": "endpoint",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/python/x402/extensions/payment_identifier",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:43:17"
+  },
+  "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src": {
+   "kind": "endpoint",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:43:39"
+  },
+  "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/bazaar": {
+   "kind": "endpoint",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/bazaar",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:43:39"
+  },
+  "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/eip2612-gas-sponsoring": {
+   "kind": "endpoint",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/eip2612-gas-sponsoring",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:43:39"
+  },
+  "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/erc20-approval-gas-sponsoring": {
+   "kind": "endpoint",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/erc20-approval-gas-sponsoring",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:43:39"
+  },
+  "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/index.ts": {
+   "kind": "endpoint",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/index.ts",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:43:39"
+  },
+  "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/offer-receipt": {
+   "kind": "endpoint",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/offer-receipt",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:43:39"
+  },
+  "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/payment-identifier": {
+   "kind": "endpoint",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/payment-identifier",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:43:39"
+  },
+  "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/sign-in-with-x/src": {
+   "kind": "endpoint",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/sign-in-with-x/src",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:43:52"
+  },
+  "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/sign-in-with-x": {
+   "kind": "endpoint",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/sign-in-with-x",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:44:06"
+  },
+  "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/sign-in-with-x/client.ts": {
+   "kind": "endpoint",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/sign-in-with-x/client.ts",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:44:06"
+  },
+  "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/sign-in-with-x/declare.ts": {
+   "kind": "endpoint",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/sign-in-with-x/declare.ts",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:44:06"
+  },
+  "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/sign-in-with-x/encode.ts": {
+   "kind": "endpoint",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/sign-in-with-x/encode.ts",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:44:06"
+  },
+  "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/sign-in-with-x/evm.ts": {
+   "kind": "endpoint",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/sign-in-with-x/evm.ts",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:44:06"
+  },
+  "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/sign-in-with-x/fetch.ts": {
+   "kind": "endpoint",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/sign-in-with-x/fetch.ts",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:44:06"
+  },
+  "endpoint:https://raw.githubusercontent.com/coinbase/x402/main/typescript/packages/extensions/src/sign-in-with-x/evm.ts": {
+   "kind": "endpoint",
+   "value": "https://raw.githubusercontent.com/coinbase/x402/main/typescript/packages/extensions/src/sign-in-with-x/evm.ts",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:44:27"
+  },
+  "domain:api.example.com": {
+   "kind": "domain",
+   "value": "api.example.com",
+   "props": {},
+   "confidence": 0.899,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:44:27"
+  },
+  "endpoint:https://raw.githubusercontent.com/coinbase/x402/main/typescript/packages/extensions/src/sign-in-with-x/declare.ts": {
+   "kind": "endpoint",
+   "value": "https://raw.githubusercontent.com/coinbase/x402/main/typescript/packages/extensions/src/sign-in-with-x/declare.ts",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:44:28"
+  },
+  "endpoint:https://raw.githubusercontent.com/coinbase/x402/main/typescript/packages/extensions/src/sign-in-with-x/client.ts": {
+   "kind": "endpoint",
+   "value": "https://raw.githubusercontent.com/coinbase/x402/main/typescript/packages/extensions/src/sign-in-with-x/client.ts",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:45:05"
+  },
+  "endpoint:https://raw.githubusercontent.com/coinbase/x402/main/typescript/packages/extensions/src/sign-in-with-x/encode.ts": {
+   "kind": "endpoint",
+   "value": "https://raw.githubusercontent.com/coinbase/x402/main/typescript/packages/extensions/src/sign-in-with-x/encode.ts",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:45:05"
+  },
+  "endpoint:https://raw.githubusercontent.com/coinbase/x402/main/typescript/packages/extensions/src/sign-in-with-x/message.ts": {
+   "kind": "endpoint",
+   "value": "https://raw.githubusercontent.com/coinbase/x402/main/typescript/packages/extensions/src/sign-in-with-x/message.ts",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:45:47"
+  },
+  "endpoint:https://raw.githubusercontent.com/coinbase/x402/main/typescript/packages/extensions/src/sign-in-with-x/sign.ts": {
+   "kind": "endpoint",
+   "value": "https://raw.githubusercontent.com/coinbase/x402/main/typescript/packages/extensions/src/sign-in-with-x/sign.ts",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "web_read"
+   ],
+   "ts": "2026-09-01T17:45:47"
+  },
+  "endpoint:https://clerk.venice.ai/v1/client/sessions/sess_3I8bLN3kKffTuYFrPJc40xkkSuc/tokens/api/v1/x402/transactions": {
+   "kind": "endpoint",
+   "value": "https://clerk.venice.ai/v1/client/sessions/sess_3I8bLN3kKffTuYFrPJc40xkkSuc/tokens/api/v1/x402/transactions",
+   "props": {},
+   "confidence": 0.6,
+   "sources": [
+    "batch_execute"
+   ],
+   "ts": "2026-09-01T17:48:53"
+  },
+  "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg0OTcyLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4NTAzMiwiZnZhIjpbOTA5LC0xXSwiaWF0IjoxNzg4Mjg0OTcyLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4NDk2Miwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c": {
+   "kind": "key",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg0OTcyLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4NTAzMiwiZnZhIjpbOTA5LC0xXSwiaWF0IjoxNzg4Mjg0OTcyLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4NDk2Miwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "props": {
+    "kind_of_key": "anon_key"
+   },
+   "confidence": 0.956,
+   "sources": [
+    "batch_execute"
+   ],
+   "ts": "2026-09-01T17:48:53"
+  },
+  "domain:btcpay.venice.ai": {
+   "kind": "domain",
+   "value": "btcpay.venice.ai",
+   "props": {},
+   "confidence": 0.998,
+   "sources": [
+    "batch_execute",
+    "evidence_pack"
+   ],
+   "ts": "2026-09-01T17:48:53"
+  },
+  "endpoint:https://outerface.venice.ai/api/app/user/billing/subscription": {
+   "kind": "endpoint",
+   "value": "https://outerface.venice.ai/api/app/user/billing/subscription",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "batch_execute"
+   ],
+   "ts": "2026-09-01T17:49:43"
+  },
+  "domain:chat.btcpayserver.org": {
+   "kind": "domain",
+   "value": "chat.btcpayserver.org",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "batch_execute"
+   ],
+   "ts": "2026-09-01T17:49:43"
+  },
+  "domain:x.com": {
+   "kind": "domain",
+   "value": "x.com",
+   "props": {},
+   "confidence": 0.937,
+   "sources": [
+    "batch_execute",
+    "data_extract"
+   ],
+   "ts": "2026-09-01T17:49:43"
+  },
+  "domain:telegram.me": {
+   "kind": "domain",
+   "value": "telegram.me",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "batch_execute"
+   ],
+   "ts": "2026-09-01T17:49:43"
+  },
+  "domain:btcpayserver.org": {
+   "kind": "domain",
+   "value": "btcpayserver.org",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "batch_execute"
+   ],
+   "ts": "2026-09-01T17:49:43"
+  },
+  "domain:docs.btcpayserver.org": {
+   "kind": "domain",
+   "value": "docs.btcpayserver.org",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "batch_execute"
+   ],
+   "ts": "2026-09-01T17:49:43"
+  },
+  "endpoint:https://outerface.venice.ai/api/app/user/billing/subscription/api/v1/stores": {
+   "kind": "endpoint",
+   "value": "https://outerface.venice.ai/api/app/user/billing/subscription/api/v1/stores",
+   "props": {},
+   "confidence": 0.6,
+   "sources": [
+    "batch_execute"
+   ],
+   "ts": "2026-09-01T17:49:43"
+  },
+  "endpoint:https://outerface.venice.ai/api/app/user/billing/subscription/api/v1/invoices": {
+   "kind": "endpoint",
+   "value": "https://outerface.venice.ai/api/app/user/billing/subscription/api/v1/invoices",
+   "props": {},
+   "confidence": 0.6,
+   "sources": [
+    "batch_execute"
+   ],
+   "ts": "2026-09-01T17:49:43"
+  },
+  "endpoint:https://outerface.venice.ai/api/app/user/billing/subscription/api/v1/apps": {
+   "kind": "endpoint",
+   "value": "https://outerface.venice.ai/api/app/user/billing/subscription/api/v1/apps",
+   "props": {},
+   "confidence": 0.6,
+   "sources": [
+    "batch_execute"
+   ],
+   "ts": "2026-09-01T17:49:43"
+  },
+  "endpoint:https://outerface.venice.ai/api/app/user/billing/subscription/api/v1/crowdfunds": {
+   "kind": "endpoint",
+   "value": "https://outerface.venice.ai/api/app/user/billing/subscription/api/v1/crowdfunds",
+   "props": {},
+   "confidence": 0.6,
+   "sources": [
+    "batch_execute"
+   ],
+   "ts": "2026-09-01T17:49:43"
+  },
+  "endpoint:https://outerface.venice.ai/api/app/user/billing/subscription/api/v1/users/me": {
+   "kind": "endpoint",
+   "value": "https://outerface.venice.ai/api/app/user/billing/subscription/api/v1/users/me",
+   "props": {},
+   "confidence": 0.6,
+   "sources": [
+    "batch_execute"
+   ],
+   "ts": "2026-09-01T17:49:43"
+  },
+  "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg0OTcyLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4NTA4MCwiZnZhIjpbOTA5LC0xXSwiaWF0IjoxNzg4Mjg1MDIwLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4NTAxMCwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c": {
+   "kind": "key",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg0OTcyLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4NTA4MCwiZnZhIjpbOTA5LC0xXSwiaWF0IjoxNzg4Mjg1MDIwLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4NTAxMCwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "props": {
+    "kind_of_key": "anon_key"
+   },
+   "confidence": 0.956,
+   "sources": [
+    "batch_execute"
+   ],
+   "ts": "2026-09-01T17:49:43"
+  },
+  "domain:cdn.venice.ai": {
+   "kind": "domain",
+   "value": "cdn.venice.ai",
+   "props": {},
+   "confidence": 0.997,
+   "sources": [
+    "data_extract"
+   ],
+   "ts": "2026-09-01T17:52:07"
+  },
+  "endpoint:https://venice.ai/images/farcasterHero.png": {
+   "kind": "endpoint",
+   "value": "https://venice.ai/images/farcasterHero.png",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "data_extract"
+   ],
+   "ts": "2026-09-01T17:52:07"
+  },
+  "endpoint:https://venice.ai/chat": {
+   "kind": "endpoint",
+   "value": "https://venice.ai/chat",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "data_extract"
+   ],
+   "ts": "2026-09-01T17:52:07"
+  },
+  "endpoint:https://venice.ai/images/farcasterSplashImage.png": {
+   "kind": "endpoint",
+   "value": "https://venice.ai/images/farcasterSplashImage.png",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "data_extract"
+   ],
+   "ts": "2026-09-01T17:52:07"
+  },
+  "endpoint:https://venice.ai/social.webp": {
+   "kind": "endpoint",
+   "value": "https://venice.ai/social.webp",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "data_extract"
+   ],
+   "ts": "2026-09-01T17:52:07"
+  },
+  "domain:amped.venice.ai": {
+   "kind": "domain",
+   "value": "amped.venice.ai",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "data_extract"
+   ],
+   "ts": "2026-09-01T17:52:07"
+  },
+  "endpoint:https://venice.ai/faqs": {
+   "kind": "endpoint",
+   "value": "https://venice.ai/faqs",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "data_extract"
+   ],
+   "ts": "2026-09-01T17:52:07"
+  },
+  "domain:discord.gg": {
+   "kind": "domain",
+   "value": "discord.gg",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "data_extract"
+   ],
+   "ts": "2026-09-01T17:52:07"
+  },
+  "endpoint:https://venice.ai/pricing": {
+   "kind": "endpoint",
+   "value": "https://venice.ai/pricing",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "data_extract"
+   ],
+   "ts": "2026-09-01T17:52:07"
+  },
+  "domain:media.venice.ai": {
+   "kind": "domain",
+   "value": "media.venice.ai",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "data_extract"
+   ],
+   "ts": "2026-09-01T17:52:07"
+  },
+  "endpoint:https://outerface.venice.ai/api/webhooks/stripe": {
+   "kind": "endpoint",
+   "value": "https://outerface.venice.ai/api/webhooks/stripe",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "batch_execute"
+   ],
+   "ts": "2026-09-01T17:57:17"
+  },
+  "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg1NDcxLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4NTUzMSwiZnZhIjpbOTE4LC0xXSwiaWF0IjoxNzg4Mjg1NDcxLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4NTQ2MSwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c": {
+   "kind": "key",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg1NDcxLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4NTUzMSwiZnZhIjpbOTE4LC0xXSwiaWF0IjoxNzg4Mjg1NDcxLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4NTQ2MSwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "props": {
+    "kind_of_key": "anon_key"
+   },
+   "confidence": 0.956,
+   "sources": [
+    "batch_execute"
+   ],
+   "ts": "2026-09-01T17:57:17"
+  },
+  "endpoint:https://clerk.venice.ai/v1/me/update_profile": {
+   "kind": "endpoint",
+   "value": "https://clerk.venice.ai/v1/me/update_profile",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "batch_execute"
+   ],
+   "ts": "2026-09-01T17:59:15"
+  },
+  "endpoint:https://api.venice.ai/api/v1/x402/balance/0x3204f0": {
+   "kind": "endpoint",
+   "value": "https://api.venice.ai/api/v1/x402/balance/0x3204f0",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "batch_execute"
+   ],
+   "ts": "2026-09-01T18:01:28"
+  },
+  "endpoint:https://api.venice.ai/api/v1/x402/balance/0x66cec874AF5e151C68D69E1F5d95f5596Ec3fDde": {
+   "kind": "endpoint",
+   "value": "https://api.venice.ai/api/v1/x402/balance/0x66cec874AF5e151C68D69E1F5d95f5596Ec3fDde",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "batch_execute"
+   ],
+   "ts": "2026-09-01T18:02:55"
+  },
+  "endpoint:https://api.venice.ai/api/v1/x402/balance/0xA4770C46A94F27A552B9dF185FBC80A0c1D4909c": {
+   "kind": "endpoint",
+   "value": "https://api.venice.ai/api/v1/x402/balance/0xA4770C46A94F27A552B9dF185FBC80A0c1D4909c",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "batch_execute"
+   ],
+   "ts": "2026-09-01T18:07:07"
+  },
+  "endpoint:https://clerk.venice.ai/v1/me": {
+   "kind": "endpoint",
+   "value": "https://clerk.venice.ai/v1/me",
+   "props": {},
+   "confidence": 0.899,
+   "sources": [
+    "data_extract"
+   ],
+   "ts": "2026-09-01T18:07:27"
+  },
+  "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg2MDg3LCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4NjE0NywiZnZhIjpbOTI4LC0xXSwiaWF0IjoxNzg4Mjg2MDg3LCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4NjA3Nywic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c": {
+   "kind": "key",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg2MDg3LCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4NjE0NywiZnZhIjpbOTI4LC0xXSwiaWF0IjoxNzg4Mjg2MDg3LCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4NjA3Nywic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "props": {
+    "kind_of_key": "anon_key"
+   },
+   "confidence": 0.956,
+   "sources": [
+    "data_extract"
+   ],
+   "ts": "2026-09-01T18:07:27"
+  },
+  "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg2MTA2LCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4NjE2NiwiZnZhIjpbOTI4LC0xXSwiaWF0IjoxNzg4Mjg2MTA2LCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4NjA5Niwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c": {
+   "kind": "key",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg2MTA2LCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4NjE2NiwiZnZhIjpbOTI4LC0xXSwiaWF0IjoxNzg4Mjg2MTA2LCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4NjA5Niwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "props": {
+    "kind_of_key": "anon_key"
+   },
+   "confidence": 0.956,
+   "sources": [
+    "data_extract"
+   ],
+   "ts": "2026-09-01T18:07:47"
+  },
+  "domain:api-dev.venice.ai": {
+   "kind": "domain",
+   "value": "api-dev.venice.ai",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "evidence_pack"
+   ],
+   "ts": "2026-09-01T18:08:44"
+  },
+  "domain:diem-calculator.venice.ai": {
+   "kind": "domain",
+   "value": "diem-calculator.venice.ai",
+   "props": {},
+   "confidence": 0.7,
+   "sources": [
+    "evidence_pack"
+   ],
+   "ts": "2026-09-01T18:08:44"
+  },
+  "endpoint:https://api.venice.ai/api/v1/models/api/v1/subscription": {
+   "kind": "endpoint",
+   "value": "https://api.venice.ai/api/v1/models/api/v1/subscription",
+   "props": {},
+   "confidence": 0.6,
+   "sources": [
+    "evidence_pack"
+   ],
+   "ts": "2026-09-01T18:08:44"
+  }
+ },
+ "edges": {},
+ "tested": {},
+ "facts": [
+  {
+   "seq": 1,
+   "ts": "2026-09-01T16:04:33",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://venice.ai/checkout/plus/monthly",
+   "value": "https://venice.ai/checkout/plus/monthly",
+   "confidence": 0.7,
+   "source": "transport",
+   "evidence": ""
+  },
+  {
+   "seq": 2,
+   "ts": "2026-09-01T16:04:33",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://venice.ai/",
+   "value": "https://venice.ai/",
+   "confidence": 0.7,
+   "source": "waf_detect",
+   "evidence": ""
+  },
+  {
+   "seq": 3,
+   "ts": "2026-09-01T16:04:33",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:verify.walletconnect.org",
+   "value": "verify.walletconnect.org",
+   "confidence": 0.7,
+   "source": "waf_detect",
+   "evidence": ""
+  },
+  {
+   "seq": 4,
+   "ts": "2026-09-01T16:04:33",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:warpcast.com",
+   "value": "warpcast.com",
+   "confidence": 0.7,
+   "source": "waf_detect",
+   "evidence": ""
+  },
+  {
+   "seq": 5,
+   "ts": "2026-09-01T16:04:33",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:farcaster.xyz",
+   "value": "farcaster.xyz",
+   "confidence": 0.7,
+   "source": "waf_detect",
+   "evidence": ""
+  },
+  {
+   "seq": 6,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:http://venice.ai/%20saved%20chat%20folders/chats%20are%20not%20shown%20with%20Brave%20Shields%20full%20on.",
+   "value": "http://venice.ai/%20saved%20chat%20folders/chats%20are%20not%20shown%20with%20Brave%20Shields%20full%20on.",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 7,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 8,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 9,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 10,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 11,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 12,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 13,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 14,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 15,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 16,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 17,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 18,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 19,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 20,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 21,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 22,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 23,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 24,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 25,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 26,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 27,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 28,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 29,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 30,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 31,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 32,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 33,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 34,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 35,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 36,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 37,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 38,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 39,
+   "ts": "2026-09-01T16:04:52",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "wayback_urls",
+   "evidence": ""
+  },
+  {
+   "seq": 40,
+   "ts": "2026-09-01T16:05:17",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://venice.ai/checkout/plus/monthly",
+   "value": "https://venice.ai/checkout/plus/monthly",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 41,
+   "ts": "2026-09-01T16:05:17",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 42,
+   "ts": "2026-09-01T16:05:17",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 43,
+   "ts": "2026-09-01T16:05:17",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 44,
+   "ts": "2026-09-01T16:05:17",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 45,
+   "ts": "2026-09-01T16:05:17",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:www.w3.org",
+   "value": "www.w3.org",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 46,
+   "ts": "2026-09-01T16:05:19",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://outerface.venice.ai/",
+   "value": "https://outerface.venice.ai/",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 47,
+   "ts": "2026-09-01T16:05:19",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:docs.venice.ai",
+   "value": "docs.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 48,
+   "ts": "2026-09-01T16:05:19",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:mintcdn.com",
+   "value": "mintcdn.com",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 49,
+   "ts": "2026-09-01T16:05:19",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:mintcdn.com",
+   "value": "mintcdn.com",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 50,
+   "ts": "2026-09-01T16:05:19",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:plausible.io",
+   "value": "plausible.io",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 51,
+   "ts": "2026-09-01T16:05:19",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:veniceai.mintlify.app",
+   "value": "veniceai.mintlify.app",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 52,
+   "ts": "2026-09-01T16:05:19",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:d4tuoctqmanu0.cloudfront.net",
+   "value": "d4tuoctqmanu0.cloudfront.net",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 53,
+   "ts": "2026-09-01T16:05:19",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:schema.org",
+   "value": "schema.org",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 54,
+   "ts": "2026-09-01T16:05:19",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:mintlify.com",
+   "value": "mintlify.com",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 55,
+   "ts": "2026-09-01T16:05:20",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://clerk.venice.ai/v1/client",
+   "value": "https://clerk.venice.ai/v1/client",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 56,
+   "ts": "2026-09-01T16:06:36",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://docs.venice.ai/overview/about-venice",
+   "value": "https://docs.venice.ai/overview/about-venice",
+   "confidence": 0.7,
+   "source": "api_sweep",
+   "evidence": ""
+  },
+  {
+   "seq": 57,
+   "ts": "2026-09-01T16:06:36",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:mintcdn.com",
+   "value": "mintcdn.com",
+   "confidence": 0.7,
+   "source": "api_sweep",
+   "evidence": ""
+  },
+  {
+   "seq": 58,
+   "ts": "2026-09-01T16:06:36",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:mintcdn.com",
+   "value": "mintcdn.com",
+   "confidence": 0.7,
+   "source": "api_sweep",
+   "evidence": ""
+  },
+  {
+   "seq": 59,
+   "ts": "2026-09-01T16:06:36",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:docs.venice.ai",
+   "value": "docs.venice.ai",
+   "confidence": 0.7,
+   "source": "api_sweep",
+   "evidence": ""
+  },
+  {
+   "seq": 60,
+   "ts": "2026-09-01T16:06:36",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "api_sweep",
+   "evidence": ""
+  },
+  {
+   "seq": 61,
+   "ts": "2026-09-01T16:06:36",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.venice.ai",
+   "value": "api.venice.ai",
+   "confidence": 0.7,
+   "source": "api_sweep",
+   "evidence": ""
+  },
+  {
+   "seq": 62,
+   "ts": "2026-09-01T17:15:12",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://venice.ai/",
+   "value": "https://venice.ai/",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 63,
+   "ts": "2026-09-01T17:15:12",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:clerk.venice.ai",
+   "value": "clerk.venice.ai",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 64,
+   "ts": "2026-09-01T17:15:12",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:clerk.venice.ai",
+   "value": "clerk.venice.ai",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 65,
+   "ts": "2026-09-01T17:15:12",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:img.clerk.com",
+   "value": "img.clerk.com",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 66,
+   "ts": "2026-09-01T17:15:12",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:www.googleapis.com",
+   "value": "www.googleapis.com",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 67,
+   "ts": "2026-09-01T17:15:12",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:www.googleapis.com",
+   "value": "www.googleapis.com",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 68,
+   "ts": "2026-09-01T17:15:12",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:lh3.googleusercontent.com",
+   "value": "lh3.googleusercontent.com",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 69,
+   "ts": "2026-09-01T17:15:12",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:img.clerk.com",
+   "value": "img.clerk.com",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 70,
+   "ts": "2026-09-01T17:15:12",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:images.clerk.dev",
+   "value": "images.clerk.dev",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 71,
+   "ts": "2026-09-01T17:15:12",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:outerface.venice.ai",
+   "value": "outerface.venice.ai",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 72,
+   "ts": "2026-09-01T17:15:42",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://clerk.venice.ai/v1/client/sessions/sess_3I8bLN3kKffTuYFrPJc40xkkSuc/tokens",
+   "value": "https://clerk.venice.ai/v1/client/sessions/sess_3I8bLN3kKffTuYFrPJc40xkkSuc/tokens",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 73,
+   "ts": "2026-09-01T17:15:42",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 74,
+   "ts": "2026-09-01T17:15:42",
+   "op": "asset",
+   "kind": "key",
+   "key": "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgyOTUyLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzA0MiwiZnZhIjpbODc2LC0xXSwiaWF0IjoxNzg4MjgyOTgyLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4Mjk3Miwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgyOTUyLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzA0MiwiZnZhIjpbODc2LC0xXSwiaWF0IjoxNzg4MjgyOTgyLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4Mjk3Miwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "confidence": 0.8,
+   "source": "data_extract",
+   "evidence": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgyOTUyLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4M"
+  },
+  {
+   "seq": 75,
+   "ts": "2026-09-01T17:15:42",
+   "op": "asset",
+   "kind": "key",
+   "key": "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgyOTUyLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzA0MiwiZnZhIjpbODc2LC0xXSwiaWF0IjoxNzg4MjgyOTgyLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4Mjk3Miwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgyOTUyLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzA0MiwiZnZhIjpbODc2LC0xXSwiaWF0IjoxNzg4MjgyOTgyLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4Mjk3Miwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "confidence": 0.85,
+   "source": "data_extract",
+   "evidence": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgyOTUyLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4M"
+  },
+  {
+   "seq": 76,
+   "ts": "2026-09-01T17:17:55",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://outerface.venice.ai/api/v1/x402/top-up",
+   "value": "https://outerface.venice.ai/api/v1/x402/top-up",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 77,
+   "ts": "2026-09-01T17:17:55",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.venice.ai",
+   "value": "api.venice.ai",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 78,
+   "ts": "2026-09-01T17:17:55",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:clerk.venice.ai",
+   "value": "clerk.venice.ai",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 79,
+   "ts": "2026-09-01T17:17:55",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 80,
+   "ts": "2026-09-01T17:17:55",
+   "op": "asset",
+   "kind": "key",
+   "key": "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzMTE1LCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzE3NSwiZnZhIjpbODc4LC0xXSwiaWF0IjoxNzg4MjgzMTE1LCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4MzEwNSwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzMTE1LCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzE3NSwiZnZhIjpbODc4LC0xXSwiaWF0IjoxNzg4MjgzMTE1LCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4MzEwNSwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "confidence": 0.8,
+   "source": "batch_execute",
+   "evidence": "{\n \"url\": \"https://clerk.venice.ai/v1/client/sessions/sess_3I8bLN3kKffTuYFrPJc40xkkSuc/tokens\",\n \"status\": 200,\n \"size\": 813,\n \"content_type\": \"application/json\",\n \"set_cookie\": [\n  \"_cfuvid=NTz1gPBvK"
+  },
+  {
+   "seq": 81,
+   "ts": "2026-09-01T17:17:55",
+   "op": "asset",
+   "kind": "key",
+   "key": "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzMTE1LCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzE3NSwiZnZhIjpbODc4LC0xXSwiaWF0IjoxNzg4MjgzMTE1LCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4MzEwNSwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzMTE1LCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzE3NSwiZnZhIjpbODc4LC0xXSwiaWF0IjoxNzg4MjgzMTE1LCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4MzEwNSwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "confidence": 0.85,
+   "source": "batch_execute",
+   "evidence": "{\n \"url\": \"https://clerk.venice.ai/v1/client/sessions/sess_3I8bLN3kKffTuYFrPJc40xkkSuc/tokens\",\n \"status\": 200,\n \"size\": 813,\n \"content_type\": \"application/json\",\n \"set_cookie\": [\n  \"_cfuvid=NTz1gPBvK"
+  },
+  {
+   "seq": 82,
+   "ts": "2026-09-01T17:17:55",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:clerk.venice.ai",
+   "value": "clerk.venice.ai",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 83,
+   "ts": "2026-09-01T17:18:51",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.venice.ai/api/v1/models",
+   "value": "https://api.venice.ai/api/v1/models",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 84,
+   "ts": "2026-09-01T17:18:51",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:huggingface.co",
+   "value": "huggingface.co",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 85,
+   "ts": "2026-09-01T17:18:51",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.venice.ai",
+   "value": "api.venice.ai",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 86,
+   "ts": "2026-09-01T17:18:51",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.venice.ai",
+   "value": "api.venice.ai",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 87,
+   "ts": "2026-09-01T17:18:51",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 88,
+   "ts": "2026-09-01T17:18:51",
+   "op": "asset",
+   "kind": "key",
+   "key": "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzMTcwLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzIzMCwiZnZhIjpbODc5LC0xXSwiaWF0IjoxNzg4MjgzMTcwLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4MzE2MCwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzMTcwLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzIzMCwiZnZhIjpbODc5LC0xXSwiaWF0IjoxNzg4MjgzMTcwLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4MzE2MCwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "confidence": 0.8,
+   "source": "batch_execute",
+   "evidence": "{\n \"url\": \"https://clerk.venice.ai/v1/client/sessions/sess_3I8bLN3kKffTuYFrPJc40xkkSuc/tokens\",\n \"status\": 200,\n \"size\": 813,\n \"content_type\": \"application/json\",\n \"set_cookie\": [\n  \"_cfuvid=LG603QKcZ"
+  },
+  {
+   "seq": 89,
+   "ts": "2026-09-01T17:18:51",
+   "op": "asset",
+   "kind": "key",
+   "key": "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzMTcwLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzIzMCwiZnZhIjpbODc5LC0xXSwiaWF0IjoxNzg4MjgzMTcwLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4MzE2MCwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzMTcwLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzIzMCwiZnZhIjpbODc5LC0xXSwiaWF0IjoxNzg4MjgzMTcwLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4MzE2MCwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "confidence": 0.85,
+   "source": "batch_execute",
+   "evidence": "{\n \"url\": \"https://clerk.venice.ai/v1/client/sessions/sess_3I8bLN3kKffTuYFrPJc40xkkSuc/tokens\",\n \"status\": 200,\n \"size\": 813,\n \"content_type\": \"application/json\",\n \"set_cookie\": [\n  \"_cfuvid=LG603QKcZ"
+  },
+  {
+   "seq": 90,
+   "ts": "2026-09-01T17:18:51",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:clerk.venice.ai",
+   "value": "clerk.venice.ai",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 91,
+   "ts": "2026-09-01T17:18:51",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 92,
+   "ts": "2026-09-01T17:19:29",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://outerface.venice.ai/api/app/user/billing/subscription/stripe/pricing/pro/monthly",
+   "value": "https://outerface.venice.ai/api/app/user/billing/subscription/stripe/pricing/pro/monthly",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 93,
+   "ts": "2026-09-01T17:19:29",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 94,
+   "ts": "2026-09-01T17:19:29",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:outerface.venice.ai",
+   "value": "outerface.venice.ai",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 95,
+   "ts": "2026-09-01T17:19:29",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.venice.ai",
+   "value": "api.venice.ai",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 96,
+   "ts": "2026-09-01T17:19:29",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 97,
+   "ts": "2026-09-01T17:19:29",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:docs.venice.ai",
+   "value": "docs.venice.ai",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 98,
+   "ts": "2026-09-01T17:19:29",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:docs.venice.ai",
+   "value": "docs.venice.ai",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 99,
+   "ts": "2026-09-01T17:19:29",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.venice.ai",
+   "value": "api.venice.ai",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 100,
+   "ts": "2026-09-01T17:25:27",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://clerk.venice.ai/v1/client/sessions/sess_3I8bLN3kKffTuYFrPJc40xkkSuc/tokens",
+   "value": "https://clerk.venice.ai/v1/client/sessions/sess_3I8bLN3kKffTuYFrPJc40xkkSuc/tokens",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 101,
+   "ts": "2026-09-01T17:25:27",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 102,
+   "ts": "2026-09-01T17:25:27",
+   "op": "asset",
+   "kind": "key",
+   "key": "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzNTY3LCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzYyNywiZnZhIjpbODg2LC0xXSwiaWF0IjoxNzg4MjgzNTY3LCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4MzU1Nywic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzNTY3LCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzYyNywiZnZhIjpbODg2LC0xXSwiaWF0IjoxNzg4MjgzNTY3LCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4MzU1Nywic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "confidence": 0.8,
+   "source": "data_extract",
+   "evidence": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzNTY3LCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4M"
+  },
+  {
+   "seq": 103,
+   "ts": "2026-09-01T17:25:27",
+   "op": "asset",
+   "kind": "key",
+   "key": "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzNTY3LCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzYyNywiZnZhIjpbODg2LC0xXSwiaWF0IjoxNzg4MjgzNTY3LCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4MzU1Nywic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzNTY3LCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzYyNywiZnZhIjpbODg2LC0xXSwiaWF0IjoxNzg4MjgzNTY3LCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4MzU1Nywic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "confidence": 0.85,
+   "source": "data_extract",
+   "evidence": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzNTY3LCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4M"
+  },
+  {
+   "seq": 104,
+   "ts": "2026-09-01T17:26:03",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://outerface.venice.ai/api/app/user/billing/subscription/stripe/invoices",
+   "value": "https://outerface.venice.ai/api/app/user/billing/subscription/stripe/invoices",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 105,
+   "ts": "2026-09-01T17:26:03",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 106,
+   "ts": "2026-09-01T17:26:03",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.venice.ai/api/v1/characters",
+   "value": "https://api.venice.ai/api/v1/characters",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 107,
+   "ts": "2026-09-01T17:26:42",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://huggingface.co/BAAI/bge-m3",
+   "value": "https://huggingface.co/BAAI/bge-m3",
+   "confidence": 0.7,
+   "source": "api_sweep",
+   "evidence": ""
+  },
+  {
+   "seq": 108,
+   "ts": "2026-09-01T17:26:42",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:huggingface.co",
+   "value": "huggingface.co",
+   "confidence": 0.7,
+   "source": "api_sweep",
+   "evidence": ""
+  },
+  {
+   "seq": 109,
+   "ts": "2026-09-01T17:26:42",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:huggingface.co",
+   "value": "huggingface.co",
+   "confidence": 0.7,
+   "source": "api_sweep",
+   "evidence": ""
+  },
+  {
+   "seq": 110,
+   "ts": "2026-09-01T17:26:42",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:huggingface.co",
+   "value": "huggingface.co",
+   "confidence": 0.7,
+   "source": "api_sweep",
+   "evidence": ""
+  },
+  {
+   "seq": 111,
+   "ts": "2026-09-01T17:26:42",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:huggingface.co",
+   "value": "huggingface.co",
+   "confidence": 0.7,
+   "source": "api_sweep",
+   "evidence": ""
+  },
+  {
+   "seq": 112,
+   "ts": "2026-09-01T17:26:42",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:huggingface.co",
+   "value": "huggingface.co",
+   "confidence": 0.7,
+   "source": "api_sweep",
+   "evidence": ""
+  },
+  {
+   "seq": 113,
+   "ts": "2026-09-01T17:26:42",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:huggingface.co",
+   "value": "huggingface.co",
+   "confidence": 0.7,
+   "source": "api_sweep",
+   "evidence": ""
+  },
+  {
+   "seq": 114,
+   "ts": "2026-09-01T17:26:42",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "api_sweep",
+   "evidence": ""
+  },
+  {
+   "seq": 115,
+   "ts": "2026-09-01T17:27:20",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://clerk.venice.ai/v1/client/sessions/sess_3I8bLN3kKffTuYFrPJc40xkkSuc/tokens",
+   "value": "https://clerk.venice.ai/v1/client/sessions/sess_3I8bLN3kKffTuYFrPJc40xkkSuc/tokens",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 116,
+   "ts": "2026-09-01T17:27:20",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 117,
+   "ts": "2026-09-01T17:27:20",
+   "op": "asset",
+   "kind": "key",
+   "key": "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzNjgwLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4Mzc0MCwiZnZhIjpbODg4LC0xXSwiaWF0IjoxNzg4MjgzNjgwLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4MzY3MCwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzNjgwLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4Mzc0MCwiZnZhIjpbODg4LC0xXSwiaWF0IjoxNzg4MjgzNjgwLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4MzY3MCwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "confidence": 0.8,
+   "source": "data_extract",
+   "evidence": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzNjgwLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4M"
+  },
+  {
+   "seq": 118,
+   "ts": "2026-09-01T17:27:20",
+   "op": "asset",
+   "kind": "key",
+   "key": "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzNjgwLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4Mzc0MCwiZnZhIjpbODg4LC0xXSwiaWF0IjoxNzg4MjgzNjgwLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4MzY3MCwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzNjgwLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4Mzc0MCwiZnZhIjpbODg4LC0xXSwiaWF0IjoxNzg4MjgzNjgwLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4MzY3MCwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "confidence": 0.85,
+   "source": "data_extract",
+   "evidence": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzNjgwLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4M"
+  },
+  {
+   "seq": 119,
+   "ts": "2026-09-01T17:27:53",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://outerface.venice.ai/api/app/user/billing/subscription/stripe/pricing/pro/monthly",
+   "value": "https://outerface.venice.ai/api/app/user/billing/subscription/stripe/pricing/pro/monthly",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 120,
+   "ts": "2026-09-01T17:27:53",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 121,
+   "ts": "2026-09-01T17:28:21",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://clerk.venice.ai/v1/client/sessions/sess_3I8bLN3kKffTuYFrPJc40xkkSuc/tokens",
+   "value": "https://clerk.venice.ai/v1/client/sessions/sess_3I8bLN3kKffTuYFrPJc40xkkSuc/tokens",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 122,
+   "ts": "2026-09-01T17:28:21",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 123,
+   "ts": "2026-09-01T17:28:21",
+   "op": "asset",
+   "kind": "key",
+   "key": "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzNzQxLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzgwMSwiZnZhIjpbODg5LC0xXSwiaWF0IjoxNzg4MjgzNzQxLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4MzczMSwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzNzQxLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzgwMSwiZnZhIjpbODg5LC0xXSwiaWF0IjoxNzg4MjgzNzQxLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4MzczMSwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "confidence": 0.8,
+   "source": "data_extract",
+   "evidence": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzNzQxLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4M"
+  },
+  {
+   "seq": 124,
+   "ts": "2026-09-01T17:28:21",
+   "op": "asset",
+   "kind": "key",
+   "key": "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzNzQxLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzgwMSwiZnZhIjpbODg5LC0xXSwiaWF0IjoxNzg4MjgzNzQxLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4MzczMSwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzNzQxLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzgwMSwiZnZhIjpbODg5LC0xXSwiaWF0IjoxNzg4MjgzNzQxLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4MzczMSwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "confidence": 0.85,
+   "source": "data_extract",
+   "evidence": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzNzQxLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4M"
+  },
+  {
+   "seq": 125,
+   "ts": "2026-09-01T17:28:50",
+   "op": "asset",
+   "kind": "key",
+   "key": "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzNzQxLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzgzMCwiZnZhIjpbODg5LC0xXSwiaWF0IjoxNzg4MjgzNzcwLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4Mzc2MCwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzNzQxLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzgzMCwiZnZhIjpbODg5LC0xXSwiaWF0IjoxNzg4MjgzNzcwLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4Mzc2MCwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "confidence": 0.8,
+   "source": "batch_execute",
+   "evidence": "{\n \"url\": \"https://clerk.venice.ai/v1/client/sessions/sess_3I8bLN3kKffTuYFrPJc40xkkSuc/tokens\",\n \"status\": 200,\n \"size\": 813,\n \"content_type\": \"application/json\",\n \"set_cookie\": [\n  \"_cfuvid=w6RnBTGax"
+  },
+  {
+   "seq": 126,
+   "ts": "2026-09-01T17:28:50",
+   "op": "asset",
+   "kind": "key",
+   "key": "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzNzQxLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzgzMCwiZnZhIjpbODg5LC0xXSwiaWF0IjoxNzg4MjgzNzcwLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4Mzc2MCwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4MjgzNzQxLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4MzgzMCwiZnZhIjpbODg5LC0xXSwiaWF0IjoxNzg4MjgzNzcwLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4Mzc2MCwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "confidence": 0.85,
+   "source": "batch_execute",
+   "evidence": "{\n \"url\": \"https://clerk.venice.ai/v1/client/sessions/sess_3I8bLN3kKffTuYFrPJc40xkkSuc/tokens\",\n \"status\": 200,\n \"size\": 813,\n \"content_type\": \"application/json\",\n \"set_cookie\": [\n  \"_cfuvid=w6RnBTGax"
+  },
+  {
+   "seq": 127,
+   "ts": "2026-09-01T17:28:50",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://clerk.venice.ai/v1/client/sessions/sess_3I8bLN3kKffTuYFrPJc40xkkSuc/tokens",
+   "value": "https://clerk.venice.ai/v1/client/sessions/sess_3I8bLN3kKffTuYFrPJc40xkkSuc/tokens",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 128,
+   "ts": "2026-09-01T17:28:50",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 129,
+   "ts": "2026-09-01T17:37:55",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.venice.ai/api/v1/api_keys/generate_web3_key",
+   "value": "https://api.venice.ai/api/v1/api_keys/generate_web3_key",
+   "confidence": 0.7,
+   "source": "file_grep",
+   "evidence": ""
+  },
+  {
+   "seq": 130,
+   "ts": "2026-09-01T17:40:26",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.venice.ai/api/v1/x402/balance/0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+   "value": "https://api.venice.ai/api/v1/x402/balance/0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 131,
+   "ts": "2026-09-01T17:40:26",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 132,
+   "ts": "2026-09-01T17:40:26",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:docs.venice.ai",
+   "value": "docs.venice.ai",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 133,
+   "ts": "2026-09-01T17:40:26",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:docs.venice.ai",
+   "value": "docs.venice.ai",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 134,
+   "ts": "2026-09-01T17:40:58",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://unpkg.com/x402/dist/index.js",
+   "value": "https://unpkg.com/x402/dist/index.js",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 135,
+   "ts": "2026-09-01T17:40:59",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://docs.venice.ai/api-reference/endpoint/x402/top-up",
+   "value": "https://docs.venice.ai/api-reference/endpoint/x402/top-up",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 136,
+   "ts": "2026-09-01T17:40:59",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.venice.ai",
+   "value": "api.venice.ai",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 137,
+   "ts": "2026-09-01T17:41:19",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://unpkg.com/browse",
+   "value": "https://unpkg.com/browse",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 138,
+   "ts": "2026-09-01T17:41:19",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://unpkg.com/",
+   "value": "https://unpkg.com/",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 139,
+   "ts": "2026-09-01T17:41:41",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://registry.npmjs.org/",
+   "value": "https://registry.npmjs.org/",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 140,
+   "ts": "2026-09-01T17:41:55",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://registry.npmjs.org/x402",
+   "value": "https://registry.npmjs.org/x402",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 141,
+   "ts": "2026-09-01T17:41:55",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://registry.npmjs.org/x402/-/x402-0.0.1.tgz",
+   "value": "https://registry.npmjs.org/x402/-/x402-0.0.1.tgz",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 142,
+   "ts": "2026-09-01T17:41:55",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:github.com",
+   "value": "github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 143,
+   "ts": "2026-09-01T17:41:55",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:github.com",
+   "value": "github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 144,
+   "ts": "2026-09-01T17:41:55",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://registry.npmjs.org/x402/-/x402-0.1.0.tgz",
+   "value": "https://registry.npmjs.org/x402/-/x402-0.1.0.tgz",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 145,
+   "ts": "2026-09-01T17:41:55",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:registry.npmjs.org",
+   "value": "registry.npmjs.org",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 146,
+   "ts": "2026-09-01T17:41:55",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:slsa.dev",
+   "value": "slsa.dev",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 147,
+   "ts": "2026-09-01T17:41:55",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:github.com",
+   "value": "github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 148,
+   "ts": "2026-09-01T17:41:55",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://registry.npmjs.org/x402/-/x402-0.1.1.tgz",
+   "value": "https://registry.npmjs.org/x402/-/x402-0.1.1.tgz",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 149,
+   "ts": "2026-09-01T17:42:14",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://x402.org/llms.txt",
+   "value": "https://x402.org/llms.txt",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 150,
+   "ts": "2026-09-01T17:42:14",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:x402.org",
+   "value": "x402.org",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 151,
+   "ts": "2026-09-01T17:42:14",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:x402.org",
+   "value": "x402.org",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 152,
+   "ts": "2026-09-01T17:42:14",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:x402.org",
+   "value": "x402.org",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 153,
+   "ts": "2026-09-01T17:42:14",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:x402.org",
+   "value": "x402.org",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 154,
+   "ts": "2026-09-01T17:42:14",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:x402.org",
+   "value": "x402.org",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 155,
+   "ts": "2026-09-01T17:42:14",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:x402.org",
+   "value": "x402.org",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 156,
+   "ts": "2026-09-01T17:42:14",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:x402.org",
+   "value": "x402.org",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 157,
+   "ts": "2026-09-01T17:42:14",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:x402.org",
+   "value": "x402.org",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 158,
+   "ts": "2026-09-01T17:42:14",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:x402.org",
+   "value": "x402.org",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 159,
+   "ts": "2026-09-01T17:42:14",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:x402.org",
+   "value": "x402.org",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 160,
+   "ts": "2026-09-01T17:42:14",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:x402.org",
+   "value": "x402.org",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 161,
+   "ts": "2026-09-01T17:42:14",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:x402.org",
+   "value": "x402.org",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 162,
+   "ts": "2026-09-01T17:42:14",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:x402.org",
+   "value": "x402.org",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 163,
+   "ts": "2026-09-01T17:42:14",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:x402.org",
+   "value": "x402.org",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 164,
+   "ts": "2026-09-01T17:42:14",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:x402.org",
+   "value": "x402.org",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 165,
+   "ts": "2026-09-01T17:42:14",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:x402.org",
+   "value": "x402.org",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 166,
+   "ts": "2026-09-01T17:42:14",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:x402.org",
+   "value": "x402.org",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 167,
+   "ts": "2026-09-01T17:42:14",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:x402.org",
+   "value": "x402.org",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 168,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.github.com/repos/coinbase/x402/git/trees/main",
+   "value": "https://api.github.com/repos/coinbase/x402/git/trees/main",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 169,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 170,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 171,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 172,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 173,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 174,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 175,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 176,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 177,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 178,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 179,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 180,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 181,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 182,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 183,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 184,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 185,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 186,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 187,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 188,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 189,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 190,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 191,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 192,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 193,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 194,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 195,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 196,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 197,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 198,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 199,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 200,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 201,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 202,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 203,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 204,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 205,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 206,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 207,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 208,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 209,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 210,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 211,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 212,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 213,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 214,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 215,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 216,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 217,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 218,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 219,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 220,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 221,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 222,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 223,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 224,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 225,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 226,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 227,
+   "ts": "2026-09-01T17:42:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 228,
+   "ts": "2026-09-01T17:42:48",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://raw.githubusercontent.com/coinbase/x402/main/typescript/packages/extensions/siwx/src/index.ts",
+   "value": "https://raw.githubusercontent.com/coinbase/x402/main/typescript/packages/extensions/siwx/src/index.ts",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 229,
+   "ts": "2026-09-01T17:42:49",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://raw.githubusercontent.com/coinbase/x402/main/python/x402/extensions/siwx.py",
+   "value": "https://raw.githubusercontent.com/coinbase/x402/main/python/x402/extensions/siwx.py",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 230,
+   "ts": "2026-09-01T17:43:14",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 231,
+   "ts": "2026-09-01T17:43:14",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/core",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/core",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 232,
+   "ts": "2026-09-01T17:43:14",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:github.com",
+   "value": "github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 233,
+   "ts": "2026-09-01T17:43:14",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 234,
+   "ts": "2026-09-01T17:43:14",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 235,
+   "ts": "2026-09-01T17:43:14",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:github.com",
+   "value": "github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 236,
+   "ts": "2026-09-01T17:43:14",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 237,
+   "ts": "2026-09-01T17:43:14",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/http",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/http",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 238,
+   "ts": "2026-09-01T17:43:14",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:github.com",
+   "value": "github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 239,
+   "ts": "2026-09-01T17:43:14",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 240,
+   "ts": "2026-09-01T17:43:14",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/legacy",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/legacy",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 241,
+   "ts": "2026-09-01T17:43:14",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:github.com",
+   "value": "github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 242,
+   "ts": "2026-09-01T17:43:14",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 243,
+   "ts": "2026-09-01T17:43:14",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/mcp",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/mcp",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 244,
+   "ts": "2026-09-01T17:43:14",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:github.com",
+   "value": "github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 245,
+   "ts": "2026-09-01T17:43:14",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 246,
+   "ts": "2026-09-01T17:43:14",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/mechanisms",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/mechanisms",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 247,
+   "ts": "2026-09-01T17:43:14",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:github.com",
+   "value": "github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 248,
+   "ts": "2026-09-01T17:43:14",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 249,
+   "ts": "2026-09-01T17:43:17",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.github.com/repos/coinbase/x402/contents/python/x402/extensions",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/python/x402/extensions",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 250,
+   "ts": "2026-09-01T17:43:17",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.github.com/repos/coinbase/x402/contents/python/x402/extensions/README.md",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/python/x402/extensions/README.md",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 251,
+   "ts": "2026-09-01T17:43:17",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:github.com",
+   "value": "github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 252,
+   "ts": "2026-09-01T17:43:17",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 253,
+   "ts": "2026-09-01T17:43:17",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:raw.githubusercontent.com",
+   "value": "raw.githubusercontent.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 254,
+   "ts": "2026-09-01T17:43:17",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.github.com/repos/coinbase/x402/contents/python/x402/extensions/__init__.py",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/python/x402/extensions/__init__.py",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 255,
+   "ts": "2026-09-01T17:43:17",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:github.com",
+   "value": "github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 256,
+   "ts": "2026-09-01T17:43:17",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 257,
+   "ts": "2026-09-01T17:43:17",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:raw.githubusercontent.com",
+   "value": "raw.githubusercontent.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 258,
+   "ts": "2026-09-01T17:43:17",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.github.com/repos/coinbase/x402/contents/python/x402/extensions/bazaar",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/python/x402/extensions/bazaar",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 259,
+   "ts": "2026-09-01T17:43:17",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:github.com",
+   "value": "github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 260,
+   "ts": "2026-09-01T17:43:17",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 261,
+   "ts": "2026-09-01T17:43:17",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.github.com/repos/coinbase/x402/contents/python/x402/extensions/eip2612_gas_sponsoring",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/python/x402/extensions/eip2612_gas_sponsoring",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 262,
+   "ts": "2026-09-01T17:43:17",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:github.com",
+   "value": "github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 263,
+   "ts": "2026-09-01T17:43:17",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 264,
+   "ts": "2026-09-01T17:43:17",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.github.com/repos/coinbase/x402/contents/python/x402/extensions/erc20_approval_gas_sponsoring",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/python/x402/extensions/erc20_approval_gas_sponsoring",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 265,
+   "ts": "2026-09-01T17:43:17",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:github.com",
+   "value": "github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 266,
+   "ts": "2026-09-01T17:43:17",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 267,
+   "ts": "2026-09-01T17:43:17",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.github.com/repos/coinbase/x402/contents/python/x402/extensions/payment_identifier",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/python/x402/extensions/payment_identifier",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 268,
+   "ts": "2026-09-01T17:43:17",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:github.com",
+   "value": "github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 269,
+   "ts": "2026-09-01T17:43:17",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 270,
+   "ts": "2026-09-01T17:43:39",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 271,
+   "ts": "2026-09-01T17:43:39",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/bazaar",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/bazaar",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 272,
+   "ts": "2026-09-01T17:43:39",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:github.com",
+   "value": "github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 273,
+   "ts": "2026-09-01T17:43:39",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 274,
+   "ts": "2026-09-01T17:43:39",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/eip2612-gas-sponsoring",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/eip2612-gas-sponsoring",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 275,
+   "ts": "2026-09-01T17:43:39",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:github.com",
+   "value": "github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 276,
+   "ts": "2026-09-01T17:43:39",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 277,
+   "ts": "2026-09-01T17:43:39",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/erc20-approval-gas-sponsoring",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/erc20-approval-gas-sponsoring",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 278,
+   "ts": "2026-09-01T17:43:39",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:github.com",
+   "value": "github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 279,
+   "ts": "2026-09-01T17:43:39",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 280,
+   "ts": "2026-09-01T17:43:39",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/index.ts",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/index.ts",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 281,
+   "ts": "2026-09-01T17:43:39",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:github.com",
+   "value": "github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 282,
+   "ts": "2026-09-01T17:43:39",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 283,
+   "ts": "2026-09-01T17:43:39",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:raw.githubusercontent.com",
+   "value": "raw.githubusercontent.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 284,
+   "ts": "2026-09-01T17:43:39",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/offer-receipt",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/offer-receipt",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 285,
+   "ts": "2026-09-01T17:43:39",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:github.com",
+   "value": "github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 286,
+   "ts": "2026-09-01T17:43:39",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 287,
+   "ts": "2026-09-01T17:43:39",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/payment-identifier",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/payment-identifier",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 288,
+   "ts": "2026-09-01T17:43:39",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:github.com",
+   "value": "github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 289,
+   "ts": "2026-09-01T17:43:39",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 290,
+   "ts": "2026-09-01T17:43:52",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/sign-in-with-x/src",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/sign-in-with-x/src",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 291,
+   "ts": "2026-09-01T17:44:06",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/sign-in-with-x",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/sign-in-with-x",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 292,
+   "ts": "2026-09-01T17:44:06",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/sign-in-with-x/client.ts",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/sign-in-with-x/client.ts",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 293,
+   "ts": "2026-09-01T17:44:06",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:github.com",
+   "value": "github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 294,
+   "ts": "2026-09-01T17:44:06",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 295,
+   "ts": "2026-09-01T17:44:06",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:raw.githubusercontent.com",
+   "value": "raw.githubusercontent.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 296,
+   "ts": "2026-09-01T17:44:06",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/sign-in-with-x/declare.ts",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/sign-in-with-x/declare.ts",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 297,
+   "ts": "2026-09-01T17:44:06",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:github.com",
+   "value": "github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 298,
+   "ts": "2026-09-01T17:44:06",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 299,
+   "ts": "2026-09-01T17:44:06",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:raw.githubusercontent.com",
+   "value": "raw.githubusercontent.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 300,
+   "ts": "2026-09-01T17:44:06",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/sign-in-with-x/encode.ts",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/sign-in-with-x/encode.ts",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 301,
+   "ts": "2026-09-01T17:44:06",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:github.com",
+   "value": "github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 302,
+   "ts": "2026-09-01T17:44:06",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 303,
+   "ts": "2026-09-01T17:44:06",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:raw.githubusercontent.com",
+   "value": "raw.githubusercontent.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 304,
+   "ts": "2026-09-01T17:44:06",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/sign-in-with-x/evm.ts",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/sign-in-with-x/evm.ts",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 305,
+   "ts": "2026-09-01T17:44:06",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:github.com",
+   "value": "github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 306,
+   "ts": "2026-09-01T17:44:06",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 307,
+   "ts": "2026-09-01T17:44:06",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:raw.githubusercontent.com",
+   "value": "raw.githubusercontent.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 308,
+   "ts": "2026-09-01T17:44:06",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/sign-in-with-x/fetch.ts",
+   "value": "https://api.github.com/repos/coinbase/x402/contents/typescript/packages/extensions/src/sign-in-with-x/fetch.ts",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 309,
+   "ts": "2026-09-01T17:44:06",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:github.com",
+   "value": "github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 310,
+   "ts": "2026-09-01T17:44:06",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 311,
+   "ts": "2026-09-01T17:44:06",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:raw.githubusercontent.com",
+   "value": "raw.githubusercontent.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 312,
+   "ts": "2026-09-01T17:44:06",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.github.com",
+   "value": "api.github.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 313,
+   "ts": "2026-09-01T17:44:27",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://raw.githubusercontent.com/coinbase/x402/main/typescript/packages/extensions/src/sign-in-with-x/evm.ts",
+   "value": "https://raw.githubusercontent.com/coinbase/x402/main/typescript/packages/extensions/src/sign-in-with-x/evm.ts",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 314,
+   "ts": "2026-09-01T17:44:27",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.example.com",
+   "value": "api.example.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 315,
+   "ts": "2026-09-01T17:44:28",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://raw.githubusercontent.com/coinbase/x402/main/typescript/packages/extensions/src/sign-in-with-x/declare.ts",
+   "value": "https://raw.githubusercontent.com/coinbase/x402/main/typescript/packages/extensions/src/sign-in-with-x/declare.ts",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 316,
+   "ts": "2026-09-01T17:44:28",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.example.com",
+   "value": "api.example.com",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 317,
+   "ts": "2026-09-01T17:45:05",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://raw.githubusercontent.com/coinbase/x402/main/typescript/packages/extensions/src/sign-in-with-x/client.ts",
+   "value": "https://raw.githubusercontent.com/coinbase/x402/main/typescript/packages/extensions/src/sign-in-with-x/client.ts",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 318,
+   "ts": "2026-09-01T17:45:05",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://raw.githubusercontent.com/coinbase/x402/main/typescript/packages/extensions/src/sign-in-with-x/encode.ts",
+   "value": "https://raw.githubusercontent.com/coinbase/x402/main/typescript/packages/extensions/src/sign-in-with-x/encode.ts",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 319,
+   "ts": "2026-09-01T17:45:47",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://raw.githubusercontent.com/coinbase/x402/main/typescript/packages/extensions/src/sign-in-with-x/message.ts",
+   "value": "https://raw.githubusercontent.com/coinbase/x402/main/typescript/packages/extensions/src/sign-in-with-x/message.ts",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 320,
+   "ts": "2026-09-01T17:45:47",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://raw.githubusercontent.com/coinbase/x402/main/typescript/packages/extensions/src/sign-in-with-x/sign.ts",
+   "value": "https://raw.githubusercontent.com/coinbase/x402/main/typescript/packages/extensions/src/sign-in-with-x/sign.ts",
+   "confidence": 0.7,
+   "source": "web_read",
+   "evidence": ""
+  },
+  {
+   "seq": 321,
+   "ts": "2026-09-01T17:48:53",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://clerk.venice.ai/v1/client/sessions/sess_3I8bLN3kKffTuYFrPJc40xkkSuc/tokens/api/v1/x402/transactions",
+   "value": "https://clerk.venice.ai/v1/client/sessions/sess_3I8bLN3kKffTuYFrPJc40xkkSuc/tokens/api/v1/x402/transactions",
+   "confidence": 0.6,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 322,
+   "ts": "2026-09-01T17:48:53",
+   "op": "asset",
+   "kind": "key",
+   "key": "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg0OTcyLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4NTAzMiwiZnZhIjpbOTA5LC0xXSwiaWF0IjoxNzg4Mjg0OTcyLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4NDk2Miwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg0OTcyLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4NTAzMiwiZnZhIjpbOTA5LC0xXSwiaWF0IjoxNzg4Mjg0OTcyLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4NDk2Miwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "confidence": 0.8,
+   "source": "batch_execute",
+   "evidence": "{\n \"url\": \"https://clerk.venice.ai/v1/client/sessions/sess_3I8bLN3kKffTuYFrPJc40xkkSuc/tokens\",\n \"status\": 200,\n \"size\": 813,\n \"content_type\": \"application/json\",\n \"set_cookie\": [\n  \"_cfuvid=LV3qBy96q"
+  },
+  {
+   "seq": 323,
+   "ts": "2026-09-01T17:48:53",
+   "op": "asset",
+   "kind": "key",
+   "key": "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg0OTcyLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4NTAzMiwiZnZhIjpbOTA5LC0xXSwiaWF0IjoxNzg4Mjg0OTcyLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4NDk2Miwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg0OTcyLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4NTAzMiwiZnZhIjpbOTA5LC0xXSwiaWF0IjoxNzg4Mjg0OTcyLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4NDk2Miwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "confidence": 0.85,
+   "source": "batch_execute",
+   "evidence": "{\n \"url\": \"https://clerk.venice.ai/v1/client/sessions/sess_3I8bLN3kKffTuYFrPJc40xkkSuc/tokens\",\n \"status\": 200,\n \"size\": 813,\n \"content_type\": \"application/json\",\n \"set_cookie\": [\n  \"_cfuvid=LV3qBy96q"
+  },
+  {
+   "seq": 324,
+   "ts": "2026-09-01T17:48:53",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://clerk.venice.ai/v1/client/sessions/sess_3I8bLN3kKffTuYFrPJc40xkkSuc/tokens",
+   "value": "https://clerk.venice.ai/v1/client/sessions/sess_3I8bLN3kKffTuYFrPJc40xkkSuc/tokens",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 325,
+   "ts": "2026-09-01T17:48:53",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 326,
+   "ts": "2026-09-01T17:48:53",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:btcpay.venice.ai",
+   "value": "btcpay.venice.ai",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 327,
+   "ts": "2026-09-01T17:49:43",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://outerface.venice.ai/api/app/user/billing/subscription",
+   "value": "https://outerface.venice.ai/api/app/user/billing/subscription",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 328,
+   "ts": "2026-09-01T17:49:43",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 329,
+   "ts": "2026-09-01T17:49:43",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:github.com",
+   "value": "github.com",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 330,
+   "ts": "2026-09-01T17:49:43",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:chat.btcpayserver.org",
+   "value": "chat.btcpayserver.org",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 331,
+   "ts": "2026-09-01T17:49:43",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:x.com",
+   "value": "x.com",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 332,
+   "ts": "2026-09-01T17:49:43",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:telegram.me",
+   "value": "telegram.me",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 333,
+   "ts": "2026-09-01T17:49:43",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:btcpayserver.org",
+   "value": "btcpayserver.org",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 334,
+   "ts": "2026-09-01T17:49:43",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:docs.btcpayserver.org",
+   "value": "docs.btcpayserver.org",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 335,
+   "ts": "2026-09-01T17:49:43",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://outerface.venice.ai/api/app/user/billing/subscription/api/v1/stores",
+   "value": "https://outerface.venice.ai/api/app/user/billing/subscription/api/v1/stores",
+   "confidence": 0.6,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 336,
+   "ts": "2026-09-01T17:49:43",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://outerface.venice.ai/api/app/user/billing/subscription/api/v1/invoices",
+   "value": "https://outerface.venice.ai/api/app/user/billing/subscription/api/v1/invoices",
+   "confidence": 0.6,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 337,
+   "ts": "2026-09-01T17:49:43",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://outerface.venice.ai/api/app/user/billing/subscription/api/v1/apps",
+   "value": "https://outerface.venice.ai/api/app/user/billing/subscription/api/v1/apps",
+   "confidence": 0.6,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 338,
+   "ts": "2026-09-01T17:49:43",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://outerface.venice.ai/api/app/user/billing/subscription/api/v1/crowdfunds",
+   "value": "https://outerface.venice.ai/api/app/user/billing/subscription/api/v1/crowdfunds",
+   "confidence": 0.6,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 339,
+   "ts": "2026-09-01T17:49:43",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://outerface.venice.ai/api/app/user/billing/subscription/api/v1/users/me",
+   "value": "https://outerface.venice.ai/api/app/user/billing/subscription/api/v1/users/me",
+   "confidence": 0.6,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 340,
+   "ts": "2026-09-01T17:49:43",
+   "op": "asset",
+   "kind": "key",
+   "key": "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg0OTcyLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4NTA4MCwiZnZhIjpbOTA5LC0xXSwiaWF0IjoxNzg4Mjg1MDIwLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4NTAxMCwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg0OTcyLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4NTA4MCwiZnZhIjpbOTA5LC0xXSwiaWF0IjoxNzg4Mjg1MDIwLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4NTAxMCwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "confidence": 0.8,
+   "source": "batch_execute",
+   "evidence": "{\n \"url\": \"https://clerk.venice.ai/v1/client/sessions/sess_3I8bLN3kKffTuYFrPJc40xkkSuc/tokens\",\n \"status\": 200,\n \"size\": 813,\n \"content_type\": \"application/json\",\n \"set_cookie\": [\n  \"_cfuvid=0RFqVQpl6"
+  },
+  {
+   "seq": 341,
+   "ts": "2026-09-01T17:49:43",
+   "op": "asset",
+   "kind": "key",
+   "key": "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg0OTcyLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4NTA4MCwiZnZhIjpbOTA5LC0xXSwiaWF0IjoxNzg4Mjg1MDIwLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4NTAxMCwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg0OTcyLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4NTA4MCwiZnZhIjpbOTA5LC0xXSwiaWF0IjoxNzg4Mjg1MDIwLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4NTAxMCwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "confidence": 0.85,
+   "source": "batch_execute",
+   "evidence": "{\n \"url\": \"https://clerk.venice.ai/v1/client/sessions/sess_3I8bLN3kKffTuYFrPJc40xkkSuc/tokens\",\n \"status\": 200,\n \"size\": 813,\n \"content_type\": \"application/json\",\n \"set_cookie\": [\n  \"_cfuvid=0RFqVQpl6"
+  },
+  {
+   "seq": 342,
+   "ts": "2026-09-01T17:49:43",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:clerk.venice.ai",
+   "value": "clerk.venice.ai",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 343,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://venice.ai/",
+   "value": "https://venice.ai/",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 344,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:cdn.venice.ai",
+   "value": "cdn.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 345,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:cdn.venice.ai",
+   "value": "cdn.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 346,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:cdn.venice.ai",
+   "value": "cdn.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 347,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:cdn.venice.ai",
+   "value": "cdn.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 348,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:cdn.venice.ai",
+   "value": "cdn.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 349,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:cdn.venice.ai",
+   "value": "cdn.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 350,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:cdn.venice.ai",
+   "value": "cdn.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 351,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:cdn.venice.ai",
+   "value": "cdn.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 352,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:cdn.venice.ai",
+   "value": "cdn.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 353,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:cdn.venice.ai",
+   "value": "cdn.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 354,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:cdn.venice.ai",
+   "value": "cdn.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 355,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:cdn.venice.ai",
+   "value": "cdn.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 356,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:cdn.venice.ai",
+   "value": "cdn.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 357,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:cdn.venice.ai",
+   "value": "cdn.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 358,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:cdn.venice.ai",
+   "value": "cdn.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 359,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:cdn.venice.ai",
+   "value": "cdn.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 360,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:cdn.venice.ai",
+   "value": "cdn.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 361,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:cdn.venice.ai",
+   "value": "cdn.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 362,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:cdn.venice.ai",
+   "value": "cdn.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 363,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:cdn.venice.ai",
+   "value": "cdn.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 364,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:cdn.venice.ai",
+   "value": "cdn.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 365,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:cdn.venice.ai",
+   "value": "cdn.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 366,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:cdn.venice.ai",
+   "value": "cdn.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 367,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:cdn.venice.ai",
+   "value": "cdn.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 368,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:cdn.venice.ai",
+   "value": "cdn.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 369,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:cdn.venice.ai",
+   "value": "cdn.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 370,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:cdn.venice.ai",
+   "value": "cdn.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 371,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:cdn.venice.ai",
+   "value": "cdn.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 372,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:cdn.venice.ai",
+   "value": "cdn.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 373,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://venice.ai/images/farcasterHero.png",
+   "value": "https://venice.ai/images/farcasterHero.png",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 374,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://venice.ai/chat",
+   "value": "https://venice.ai/chat",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 375,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://venice.ai/images/farcasterSplashImage.png",
+   "value": "https://venice.ai/images/farcasterSplashImage.png",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 376,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 377,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://venice.ai/social.webp",
+   "value": "https://venice.ai/social.webp",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 378,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:cdn.venice.ai",
+   "value": "cdn.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 379,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:amped.venice.ai",
+   "value": "amped.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 380,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:schema.org",
+   "value": "schema.org",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 381,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://venice.ai/faqs",
+   "value": "https://venice.ai/faqs",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 382,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:docs.venice.ai",
+   "value": "docs.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 383,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:x.com",
+   "value": "x.com",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 384,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:discord.gg",
+   "value": "discord.gg",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 385,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:github.com",
+   "value": "github.com",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 386,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://venice.ai/pricing",
+   "value": "https://venice.ai/pricing",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 387,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:schema.org",
+   "value": "schema.org",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 388,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:media.venice.ai",
+   "value": "media.venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 389,
+   "ts": "2026-09-01T17:52:07",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:www.w3.org",
+   "value": "www.w3.org",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 390,
+   "ts": "2026-09-01T17:56:30",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://outerface.venice.ai/api/v1/x402/top-up",
+   "value": "https://outerface.venice.ai/api/v1/x402/top-up",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 391,
+   "ts": "2026-09-01T17:57:17",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://outerface.venice.ai/api/webhooks/stripe",
+   "value": "https://outerface.venice.ai/api/webhooks/stripe",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 392,
+   "ts": "2026-09-01T17:57:17",
+   "op": "asset",
+   "kind": "key",
+   "key": "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg1NDcxLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4NTUzMSwiZnZhIjpbOTE4LC0xXSwiaWF0IjoxNzg4Mjg1NDcxLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4NTQ2MSwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg1NDcxLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4NTUzMSwiZnZhIjpbOTE4LC0xXSwiaWF0IjoxNzg4Mjg1NDcxLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4NTQ2MSwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "confidence": 0.8,
+   "source": "batch_execute",
+   "evidence": "{\n \"url\": \"https://clerk.venice.ai/v1/client/sessions/sess_3I8bLN3kKffTuYFrPJc40xkkSuc/tokens\",\n \"status\": 200,\n \"size\": 813,\n \"content_type\": \"application/json\",\n \"set_cookie\": [\n  \"_cfuvid=8phr4TAED"
+  },
+  {
+   "seq": 393,
+   "ts": "2026-09-01T17:57:17",
+   "op": "asset",
+   "kind": "key",
+   "key": "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg1NDcxLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4NTUzMSwiZnZhIjpbOTE4LC0xXSwiaWF0IjoxNzg4Mjg1NDcxLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4NTQ2MSwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg1NDcxLCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4NTUzMSwiZnZhIjpbOTE4LC0xXSwiaWF0IjoxNzg4Mjg1NDcxLCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4NTQ2MSwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "confidence": 0.85,
+   "source": "batch_execute",
+   "evidence": "{\n \"url\": \"https://clerk.venice.ai/v1/client/sessions/sess_3I8bLN3kKffTuYFrPJc40xkkSuc/tokens\",\n \"status\": 200,\n \"size\": 813,\n \"content_type\": \"application/json\",\n \"set_cookie\": [\n  \"_cfuvid=8phr4TAED"
+  },
+  {
+   "seq": 394,
+   "ts": "2026-09-01T17:57:17",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:clerk.venice.ai",
+   "value": "clerk.venice.ai",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 395,
+   "ts": "2026-09-01T17:57:17",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 396,
+   "ts": "2026-09-01T17:59:15",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://clerk.venice.ai/v1/me/update_profile",
+   "value": "https://clerk.venice.ai/v1/me/update_profile",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 397,
+   "ts": "2026-09-01T17:59:15",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 398,
+   "ts": "2026-09-01T17:59:15",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:clerk.venice.ai",
+   "value": "clerk.venice.ai",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 399,
+   "ts": "2026-09-01T17:59:15",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:img.clerk.com",
+   "value": "img.clerk.com",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 400,
+   "ts": "2026-09-01T17:59:15",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:www.googleapis.com",
+   "value": "www.googleapis.com",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 401,
+   "ts": "2026-09-01T17:59:15",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:www.googleapis.com",
+   "value": "www.googleapis.com",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 402,
+   "ts": "2026-09-01T17:59:15",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:lh3.googleusercontent.com",
+   "value": "lh3.googleusercontent.com",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 403,
+   "ts": "2026-09-01T17:59:15",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:img.clerk.com",
+   "value": "img.clerk.com",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 404,
+   "ts": "2026-09-01T17:59:15",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:images.clerk.dev",
+   "value": "images.clerk.dev",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 405,
+   "ts": "2026-09-01T18:01:28",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.venice.ai/api/v1/x402/balance/0x3204f0",
+   "value": "https://api.venice.ai/api/v1/x402/balance/0x3204f0",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 406,
+   "ts": "2026-09-01T18:02:55",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.venice.ai/api/v1/x402/balance/0x66cec874AF5e151C68D69E1F5d95f5596Ec3fDde",
+   "value": "https://api.venice.ai/api/v1/x402/balance/0x66cec874AF5e151C68D69E1F5d95f5596Ec3fDde",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 407,
+   "ts": "2026-09-01T18:07:07",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.venice.ai/api/v1/x402/balance/0xA4770C46A94F27A552B9dF185FBC80A0c1D4909c",
+   "value": "https://api.venice.ai/api/v1/x402/balance/0xA4770C46A94F27A552B9dF185FBC80A0c1D4909c",
+   "confidence": 0.7,
+   "source": "batch_execute",
+   "evidence": ""
+  },
+  {
+   "seq": 408,
+   "ts": "2026-09-01T18:07:27",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://clerk.venice.ai/v1/me",
+   "value": "https://clerk.venice.ai/v1/me",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 409,
+   "ts": "2026-09-01T18:07:27",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 410,
+   "ts": "2026-09-01T18:07:27",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:img.clerk.com",
+   "value": "img.clerk.com",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 411,
+   "ts": "2026-09-01T18:07:27",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:www.googleapis.com",
+   "value": "www.googleapis.com",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 412,
+   "ts": "2026-09-01T18:07:27",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:www.googleapis.com",
+   "value": "www.googleapis.com",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 413,
+   "ts": "2026-09-01T18:07:27",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:lh3.googleusercontent.com",
+   "value": "lh3.googleusercontent.com",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 414,
+   "ts": "2026-09-01T18:07:27",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:img.clerk.com",
+   "value": "img.clerk.com",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 415,
+   "ts": "2026-09-01T18:07:27",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:images.clerk.dev",
+   "value": "images.clerk.dev",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 416,
+   "ts": "2026-09-01T18:07:27",
+   "op": "asset",
+   "kind": "key",
+   "key": "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg2MDg3LCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4NjE0NywiZnZhIjpbOTI4LC0xXSwiaWF0IjoxNzg4Mjg2MDg3LCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4NjA3Nywic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg2MDg3LCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4NjE0NywiZnZhIjpbOTI4LC0xXSwiaWF0IjoxNzg4Mjg2MDg3LCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4NjA3Nywic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "confidence": 0.8,
+   "source": "data_extract",
+   "evidence": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg2MDg3LCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4N"
+  },
+  {
+   "seq": 417,
+   "ts": "2026-09-01T18:07:27",
+   "op": "asset",
+   "kind": "key",
+   "key": "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg2MDg3LCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4NjE0NywiZnZhIjpbOTI4LC0xXSwiaWF0IjoxNzg4Mjg2MDg3LCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4NjA3Nywic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg2MDg3LCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4NjE0NywiZnZhIjpbOTI4LC0xXSwiaWF0IjoxNzg4Mjg2MDg3LCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4NjA3Nywic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "confidence": 0.85,
+   "source": "data_extract",
+   "evidence": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg2MDg3LCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4N"
+  },
+  {
+   "seq": 418,
+   "ts": "2026-09-01T18:07:47",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://clerk.venice.ai/v1/me",
+   "value": "https://clerk.venice.ai/v1/me",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 419,
+   "ts": "2026-09-01T18:07:47",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 420,
+   "ts": "2026-09-01T18:07:47",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:img.clerk.com",
+   "value": "img.clerk.com",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 421,
+   "ts": "2026-09-01T18:07:47",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:www.googleapis.com",
+   "value": "www.googleapis.com",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 422,
+   "ts": "2026-09-01T18:07:47",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:www.googleapis.com",
+   "value": "www.googleapis.com",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 423,
+   "ts": "2026-09-01T18:07:47",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:lh3.googleusercontent.com",
+   "value": "lh3.googleusercontent.com",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 424,
+   "ts": "2026-09-01T18:07:47",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:img.clerk.com",
+   "value": "img.clerk.com",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 425,
+   "ts": "2026-09-01T18:07:47",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:images.clerk.dev",
+   "value": "images.clerk.dev",
+   "confidence": 0.7,
+   "source": "data_extract",
+   "evidence": ""
+  },
+  {
+   "seq": 426,
+   "ts": "2026-09-01T18:07:47",
+   "op": "asset",
+   "kind": "key",
+   "key": "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg2MTA2LCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4NjE2NiwiZnZhIjpbOTI4LC0xXSwiaWF0IjoxNzg4Mjg2MTA2LCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4NjA5Niwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg2MTA2LCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4NjE2NiwiZnZhIjpbOTI4LC0xXSwiaWF0IjoxNzg4Mjg2MTA2LCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4NjA5Niwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "confidence": 0.8,
+   "source": "data_extract",
+   "evidence": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg2MTA2LCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4N"
+  },
+  {
+   "seq": 427,
+   "ts": "2026-09-01T18:07:47",
+   "op": "asset",
+   "kind": "key",
+   "key": "key:eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg2MTA2LCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4NjE2NiwiZnZhIjpbOTI4LC0xXSwiaWF0IjoxNzg4Mjg2MTA2LCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4NjA5Niwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "value": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg2MTA2LCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4NjE2NiwiZnZhIjpbOTI4LC0xXSwiaWF0IjoxNzg4Mjg2MTA2LCJpc3MiOiJodHRwczovL2NsZXJrLnZlbmljZS5haSIsIm5iZiI6MTc4ODI4NjA5Niwic2lkIjoic2Vzc18zSThiTE4za0tmZlR1WUZyUEpjNDB4a2tTdWMiLCJzdHMiOiJhY3RpdmUiLCJzdWIiOiJ1c",
+   "confidence": 0.85,
+   "source": "data_extract",
+   "evidence": "eyJhbGciOiJSUzI1NiIsImNhdCI6ImNsX0I3ZDRQRDExMUFBQSIsImtpZCI6Imluc18yZHViUnZDS3FpNVhyT1V4SWdVTjRmb21ERlIiLCJvaWF0IjoxNzg4Mjg2MTA2LCJ0eXAiOiJKV1QifQ.eyJhenAiOiJodHRwczovL3ZlbmljZS5haSIsImV4cCI6MTc4ODI4N"
+  },
+  {
+   "seq": 428,
+   "ts": "2026-09-01T18:08:44",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.venice.ai/api/v1/models",
+   "value": "https://api.venice.ai/api/v1/models",
+   "confidence": 0.7,
+   "source": "evidence_pack",
+   "evidence": ""
+  },
+  {
+   "seq": 429,
+   "ts": "2026-09-01T18:08:44",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "evidence_pack",
+   "evidence": ""
+  },
+  {
+   "seq": 430,
+   "ts": "2026-09-01T18:08:44",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:btcpay.venice.ai",
+   "value": "btcpay.venice.ai",
+   "confidence": 0.7,
+   "source": "evidence_pack",
+   "evidence": ""
+  },
+  {
+   "seq": 431,
+   "ts": "2026-09-01T18:08:44",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:clerk.venice.ai",
+   "value": "clerk.venice.ai",
+   "confidence": 0.7,
+   "source": "evidence_pack",
+   "evidence": ""
+  },
+  {
+   "seq": 432,
+   "ts": "2026-09-01T18:08:44",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "evidence_pack",
+   "evidence": ""
+  },
+  {
+   "seq": 433,
+   "ts": "2026-09-01T18:08:44",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api-dev.venice.ai",
+   "value": "api-dev.venice.ai",
+   "confidence": 0.7,
+   "source": "evidence_pack",
+   "evidence": ""
+  },
+  {
+   "seq": 434,
+   "ts": "2026-09-01T18:08:44",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.venice.ai",
+   "value": "api.venice.ai",
+   "confidence": 0.7,
+   "source": "evidence_pack",
+   "evidence": ""
+  },
+  {
+   "seq": 435,
+   "ts": "2026-09-01T18:08:44",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:btcpay.venice.ai",
+   "value": "btcpay.venice.ai",
+   "confidence": 0.7,
+   "source": "evidence_pack",
+   "evidence": ""
+  },
+  {
+   "seq": 436,
+   "ts": "2026-09-01T18:08:44",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:clerk.venice.ai",
+   "value": "clerk.venice.ai",
+   "confidence": 0.7,
+   "source": "evidence_pack",
+   "evidence": ""
+  },
+  {
+   "seq": 437,
+   "ts": "2026-09-01T18:08:44",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:api.venice.ai",
+   "value": "api.venice.ai",
+   "confidence": 0.7,
+   "source": "evidence_pack",
+   "evidence": ""
+  },
+  {
+   "seq": 438,
+   "ts": "2026-09-01T18:08:44",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:diem-calculator.venice.ai",
+   "value": "diem-calculator.venice.ai",
+   "confidence": 0.7,
+   "source": "evidence_pack",
+   "evidence": ""
+  },
+  {
+   "seq": 439,
+   "ts": "2026-09-01T18:08:44",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:clerk.venice.ai",
+   "value": "clerk.venice.ai",
+   "confidence": 0.7,
+   "source": "evidence_pack",
+   "evidence": ""
+  },
+  {
+   "seq": 440,
+   "ts": "2026-09-01T18:08:44",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:btcpay.venice.ai",
+   "value": "btcpay.venice.ai",
+   "confidence": 0.7,
+   "source": "evidence_pack",
+   "evidence": ""
+  },
+  {
+   "seq": 441,
+   "ts": "2026-09-01T18:08:44",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:clerk.venice.ai",
+   "value": "clerk.venice.ai",
+   "confidence": 0.7,
+   "source": "evidence_pack",
+   "evidence": ""
+  },
+  {
+   "seq": 442,
+   "ts": "2026-09-01T18:08:44",
+   "op": "asset",
+   "kind": "domain",
+   "key": "domain:venice.ai",
+   "value": "venice.ai",
+   "confidence": 0.7,
+   "source": "evidence_pack",
+   "evidence": ""
+  },
+  {
+   "seq": 443,
+   "ts": "2026-09-01T18:08:44",
+   "op": "asset",
+   "kind": "endpoint",
+   "key": "endpoint:https://api.venice.ai/api/v1/models/api/v1/subscription",
+   "value": "https://api.venice.ai/api/v1/models/api/v1/subscription",
+   "confidence": 0.6,
+   "source": "evidence_pack",
+   "evidence": ""
+  }
+ ]
+}

@@ -1,0 +1,20 @@
+# VOIDFORGE :: ENGAGEMENT (Règles d'engagement + périmètre)
+# Configuration universelle — s'applique à toute cible assignée par l'opérateur.
+
+engagement:
+  client: "LO"
+  contact: "LO"
+  authorization_ref: "Operator-authorized — universal engagement"
+  scope:
+    in_scope:
+      - "*"                       # toute cible assignée par l'opérateur
+    out_of_scope: []
+  rules_of_engagement:
+    intensity: "aggressive"       # passive | moderate | aggressive
+    timing_window: ""             # aucune restriction horaire
+    do_not_exploit: false         # false = exploitation complète autorisée
+    max_request_rate: 120         # requêtes / minute max vers la cible
+
+operator:
+  codename: "LO"
+  agent_name: "VOIDFORGE"
