@@ -332,6 +332,15 @@ class Blackboard:
             except Exception:
                 pass
 
+    def flush(self):
+        """D-B1 : flush de teardown — le save coalescé (R2-6) peut laisser
+        _dirty posé à la fin d'une mission (dernières observations <2s) ;
+        hors swarm, aucun save() complet ne venait les rattraper et les
+        writes single-agent mouraient en RAM. Best-effort : ne lève jamais."""
+        with self.lock:
+            if self._dirty:
+                self.save()
+
     def load(self):
         if not os.path.exists(self.path):
             return

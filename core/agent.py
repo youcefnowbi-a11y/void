@@ -1588,6 +1588,18 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
             except Exception:
                 pass
 
+        # ── D-B1 : flush de la Living Graph au teardown — le save coalescé
+        # (R2-6) peut laisser _dirty posé quand la dernière observation date
+        # de <2s ; hors swarm, AUCUN autre save() ne viendrait le rattraper
+        # (les derniers writes de la mission restaient en RAM). Best-effort :
+        # une panne disque ne doit jamais masquer le mission_complete.
+        _teardown_board = getattr(self, "board", None)
+        if _teardown_board is not None:
+            try:
+                _teardown_board.flush()
+            except Exception:
+                pass
+
         if on_event:
             on_event({"type": "mission_complete", "rounds": rnd + 1,
                       "tools_used": len([t for t in transcript if t[0] == "tool"]),
