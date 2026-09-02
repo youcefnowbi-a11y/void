@@ -8,6 +8,7 @@ le process tourne avec les droits de l'agente). N'activer execute=True que
 si la source du PoC est vérifiée. Verdict JSON carries the whole chain.
 """
 import json, os, re, subprocess, sys, tempfile
+from urllib.parse import quote_plus  # C-N2: keyword GitHub encodé
 
 from tools import register
 from tools._exploit_lib import paced_send, verdict
@@ -103,7 +104,7 @@ def nday_exploit(cve_id=None, keyword=None, verify_url=None,
     # GitHub PoC hunt
     q = cve_id or keyword
     poc = {"repos": [], "scripts": [], "executed": None}
-    gst, gbody, _gdt = paced_send(f"{GITHUB_SEARCH}?q={q}&sort=stars&per_page=6",
+    gst, gbody, _gdt = paced_send(f"{GITHUB_SEARCH}?q={quote_plus(q)}&sort=stars&per_page=6",
                                   headers={"Accept": "application/vnd.github+json"},
                                   timeout=25)
     if gst == 200:
@@ -147,9 +148,12 @@ def nday_exploit(cve_id=None, keyword=None, verify_url=None,
         if poc["scripts"]:
             break
 
-    # exécution LOCALE directe (aucun sandbox) — double confirmation:
-    # execute doit être le booléen exact True ET confirm == "YES"
-    if execute is True and confirm == "YES" and verify_url and poc["scripts"]:
+    # exécution LOCALE directe (aucun sandbox) — triple confirmation:
+    # execute booléen exact True ET confirm == "YES" ET stack-match confiant.
+    # C-N1: la gate « never blind-fire a PoC at the wrong stack » gate
+    # VRAIMENT désormais — sans stack_match confiant, pas d'exécution.
+    if (execute is True and confirm == "YES" and verify_url and poc["scripts"]
+            and stack_match and stack_match.get("confident")):
         script = poc["scripts"][0]["saved"]
         # basic safety scan of PoC content
         try:
@@ -181,15 +185,33 @@ def nday_exploit(cve_id=None, keyword=None, verify_url=None,
             poc["executed"] = {"script": script, "exit": -1,
                                "tail": f"read error: {str(ex)[:200]}"}
 
-    exploitable = bool(poc["scripts"]) and (
-        bool(poc.get("executed") and poc["executed"].get("exit") == 0)
-        if execute else None)
+    executed = poc.get("executed")
+    note = None
+    if executed:
+        # C-N3: False uniquement après une exécution réelle échouée
+        exploitable = executed.get("exit") == 0
+    elif execute is True and poc["scripts"]:
+        # C-N1/N3: exécution demandée mais bloquée par la gate stack-match
+        # — non testé ≠ propre
+        exploitable = "partial"
+        note = ("execution requested but blocked by stack-match gate — "
+                "verdict 'partial' (untested)")
+    elif not poc["scripts"]:
+        # C-N3: rien de stagé — RIEN n'a été testé ; l'ancien False était lu
+        # « cible propre » par l'intel downstream (contrat tri-state violé)
+        exploitable = "partial"
+        note = "no PoC staged — nothing tested, verdict 'partial' (untested ≠ clean)"
+    else:
+        exploitable = None  # stagé, non exécuté → 'partial' en sortie (idem avant)
     summary = (f"{q}: {len(poc['repos'])} PoC repos, {len(poc['scripts'])} script(s) staged"
                + (f" — stack match: {stack_match['matched']}" if stack_match and stack_match.get("confident") else "")
-               + (" — EXECUTED" if poc.get("executed") else " — staged only (execute=False)")
+               + (" — EXECUTED" if executed else " — staged only (execute=False)")
                if poc["scripts"] else
                f"{q}: no public PoC found — candidate for original research")
+    extra = {"intel": intel, "poc": poc}
+    if note:
+        extra["note"] = note
     return verdict("nday_exploit", exploitable if exploitable is not None else "partial",
                    summary,
                    evidence=[json.dumps(poc["repos"][:3])[:300]] if poc["repos"] else [],
-                   intel=intel, poc=poc)
+                   **extra)
