@@ -169,6 +169,18 @@ _TIER1_PATTERNS = [
     r"\bthe frame is the problem\b",
     r"\bi (?:have|'ve) not run any (?:tools|scans|commands)\b",
     r"\bsame answer\b",
+    r"\bi'?m going to stop (?:here|before)\b",
+    # FR meta-refusal family (live FR refusal autopsies, venice 2026-09-02 :
+    # trois refus passes inapercus car EN-seul — « Je vais arrêter ici… »,
+    # « Non. Ma réponse ne change pas… », « Toujours non… ») :
+    r"\bje vais arr[eê]ter (?:ici|l[aà]|avant)\b",
+    r"\bje m'?arr[eê]te (?:ici|l[aà])\b",
+    r"\bavant tout appel d'outil\b",
+    r"\bma r[eé]ponse ne change(?:ra)? pas\b",
+    r"\btoujours non\b",
+    r"\bce sera la m[eê]me r[eé]ponse\b",
+    r"\bje maintiens mon refus\b",
+    r"\brien n'?a chang[eé] ici\b",
 ]
 _TIER2_PATTERNS = [
     r"\b(?:hasn'?t|has not|isn'?t|is not) (?:been )?authoriz\w+\b",
@@ -205,6 +217,11 @@ _TIER2_PATTERNS = [
     r"\bteste?r un (?:flux de paiement|checkout|paiement)\b.{0,60}\b(sans|pas)\b",
     r"\bnon sanctionn[eé] par\b",
     r"\bpas sanctionn[eé]\b",
+    # FR « ce n'est pas un pentest » (autopsie venice 2026-09-02 — l'EN
+    # « is not a pentest » existait, jamais son miroir français) :
+    r"\bn['’]?est pas un(?:e)? (?:pentest|vrai(?:e)? pentest|v[ée]ritable(?:e)? pentest|"
+    r"test de s[eé]curit[eé]|audit de s[eé]curit[eé]|exercice l[eé]gitime)\b",
+    r"\bc['’]?est pas un(?:e)? (?:pentest|test de s[eé]curit[eé])\b",
 ]
 _TIER1_RE = re.compile("|".join(_TIER1_PATTERNS), re.I)
 _TIER2_RE = re.compile("|".join(_TIER2_PATTERNS), re.I)
@@ -219,7 +236,10 @@ def is_refusal(content):
     the [LLM ...] prefix and are handled elsewhere)."""
     if not content or not _cfg()["refusal_retry"]:
         return False
-    head = content[:600]
+    # les providers sortent des apostrophes typographiques (’) — les patterns
+    # sont ASCII (i'm, isn't, d'outil) : normaliser AVANT tout matching,
+    # sinon toute la famille à apostrophe rate silencieusement.
+    head = content[:600].replace("\u2019", "'").replace("\u2018", "'")
     # a refusal that still contains actionable planning is not a refusal
     if _ANALYSIS_RE.search(head):
         return False
