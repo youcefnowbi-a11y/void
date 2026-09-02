@@ -11,6 +11,7 @@ import base64
 import json
 import os
 import re
+import time
 
 from tools import register
 
@@ -68,14 +69,20 @@ def _analyze_entry(entry, host_findings):
             flags.append(f"alg={alg or '?'} faible")
         if "role" in payload or "admin" in str(payload).lower():
             flags.append("claim role/admin visible")
-        if payload.get("exp") and payload["exp"] * 1000 < 4102444800000:
+        # C-H2: comparaison INVERSÉE à l'origine (tout token normal flaggé).
+        # Horizon: exp au-delà de maintenant + 10 ans = token « long-vie ».
+        if payload.get("exp") and payload["exp"] * 1000 > (
+                time.time() + 10 * 365 * 86400) * 1000:
             flags.append("exp long-vie")
         slot["jwt"].append(f"{alg or '?'}: {str(payload)[:120]} {'; '.join(flags)}")
     # 4. secrets in responses
     for m in _SECRET_RX.finditer(body):
         slot["secrets"].append(m.group(0)[:80])
     # 5. cookie flags
-    setc = [v for k, v in hdrs.items() if k == "set-cookie"]
+    # C-H1: Set-Cookie est multi-valeur — le dict hdrs écrasait les doublons
+    # (un seul cookie survivait). Collecte depuis le tableau brut des headers.
+    setc = [str(h.get("value", "")) for h in resp.get("headers") or []
+            if str(h.get("name", "")).lower() == "set-cookie"]
     for c in setc:
         name = c.split("=")[0]
         missing = [f for f in ("Secure", "HttpOnly", "SameSite") if f.lower() not in c.lower()]
