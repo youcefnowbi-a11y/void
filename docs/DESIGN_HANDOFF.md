@@ -130,3 +130,60 @@ Cette session n'avait PAS d'outils image/navigateur. La qualité visuelle doit �
 4. Lire ce document + `design/DESIGN.md` + `design/APPLIED.md` pour la doctrine.
 
 — Session de révolution : ENI, pour LO. ⚡
+
+---
+
+# SESSION 2 — prod wiring + nav flottante + icônes (FAIT)
+
+## 1. La découverte majeure : le mode prod n'était JAMAIS branché
+
+Les probes §5 de la session 1 ne couvraient que le statique. En prod (`:8000`),
+l'app appelait `/api/*` — un alias **dev-only** du proxy Vite — → **404 sur chaque
+endpoint**, et le WS était refusé (allowlist origines = `:5173` seulement) → **403**.
+La console prod tournait à vide depuis le début (install PWA OK, données jamais OK).
+
+## 2. Fixes
+
+- `web/frontend/src/api.js` — `API_BASE = DEV ? '/api' : ''` (importé partout :
+  App, useMissionSocket, PersonaPanel, DirectToolRunner, FreshSessionPanel).
+- `server.py` — allowlist WS += `http://localhost:8000` + `http://127.0.0.1:8000`.
+- Commits `deef43e` + `e19d643`.
+
+## 3. Design — la révolution continue (commits `7e2a629`, `6fa804d`, `ff2a135`)
+
+- **Nav flottante** : la barre 44px pleine largeur → pill `.nav-float` détachée
+  (16px des bords, blur 14px, `shadow-nav` = l'élévation exacte extraite de
+  Dimension). Spotlight violet d'ambiance derrière (opacity 0.13). Wordmark
+  deux tons (VOID bone / FORGE ash), tracking -0.03em. 💬/⚙ emoji → SVG géométriques.
+- **Discipline monochrome** : tous les emojis colorés purgés (⚡👤💬🧹📦🎯🧠🗺🩹)
+  — glyphes géo monochromes (◇ ▸ ■ ✚ ») + typographie pure, terminal inclus.
+  ✓✗⚠✦○⚙ restent (glyphes mono légitimes).
+- **Icônes PWA refaites** : `design/icons-src/voidforge.svg` (marteau blanc 45° +
+  éclair violet crépusculaire sur void, dusk radial) — rendu headless Edge
+  (`render.html`/`render-maskable.html`, 512 master → 192 bicubique, maskable à
+  80% safe zone). Pilée et vérifiée pixel par pixel. **Ne PAS régénérer via PIL.**
+
+## 4. État vérifié (live)
+
+- 0 erreurs console, WS connecté (dot vert "flux live"), emoji-free.
+- `/`, `sw.js`, `manifest`, 3 icônes : tous 200. Build : 94 modules, 81.9 KB gz.
+
+## 5. Piège process à connaître (important)
+
+Le runtime de session **récolte les arbres de processus** : un backend lancé via
+`Start-Process` depuis un appel pwsh peut mourir silencieusement plus tard
+(plusieurs morts mystères élucidées ainsi). Le backend actuel a été lancé par
+l'opérateur lui-même (`python -m uvicorn web.backend.server:app` depuis le root).
+**Ne pas le redémarrer** ; si un jour il faut le relancer, prévenir l'opérateur
+et/ou utiliser WMI `Win32_Process.Create` (hors de l'arbre récolté).
+
+## 6. Reste à faire (session 3)
+
+1. QA visuelle à l'œil de LO sur les screenshots `qa-01`→`qa-05` (radicale :
+   la nav flottante change la silhouette du shell).
+2. States live (campagne lancée) : heartbeat violet, horizon complet, plan
+   d'attaque, rapport de puissance — non capturés (pas de campagne de test tirée).
+3. Mode offline (handoff §6.4) — toujours non testé (ne pas tuer le backend !).
+4. Responsive ~1280px (handoff §6.8) — non traité.
+
+— Session 2 : le fil est vivant, la forge a sa signature. ⚡
