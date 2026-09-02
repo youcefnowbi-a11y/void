@@ -1283,6 +1283,18 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                     if not steps:
                         from core.planner import plan
                         steps = plan(mission)
+                    # A1 : le cerveau offline ne connaît ni plan_mode ni le
+                    # filtre de rôle — il passe par LE même périmètre que le
+                    # LLM. En plan-mode, les strikes du planner ne partent
+                    # jamais ; chez les spécialistes, le rôle tient.
+                    if steps and self.tools is not None:
+                        _allowed = {t["name"] for t in self.tools}
+                        _dropped = sorted({s[0] for s in steps if s[0] not in _allowed})
+                        steps = [s for s in steps if s[0] in _allowed]
+                        if _dropped and on_event:
+                            on_event({"type": "error",
+                                      "text": "🚫 offline brain — steps hors arsenal refusés: "
+                                              + ", ".join(_dropped)})
                     if steps:
                         if on_event:
                             on_event({"type": "plan",
@@ -1370,6 +1382,9 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                                          "function": {"name": tc["name"],
                                                       "arguments": json.dumps(tc["args"])}}
                                         for tc in tcs]})
+            # A3 : intel wall-breaker collectée dans la boucle, injectée APRÈS
+            # tous les tool results (ordre provider tool_calls→tool).
+            _wall_pending = None
             for tc in tcs:
                 name, args = tc["name"], tc["args"]
                 # ── Malformed-arguments self-correction: the model must LEARN ──
@@ -1395,7 +1410,15 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                 _sig = name + "|" + json.dumps(args, sort_keys=True, default=str)[:200]
                 _dupe = (_sig == getattr(self, "_last_tool_sig", None))
                 self._last_tool_sig = _sig
-                out = reg.execute(name, args, on_event=tap)
+                # A2 : le périmètre de l'agent accompagne l'appel — le registre
+                # le vérifie et batch_execute le relit pour ses appels internes
+                # (la clôture plan-mode/rôles devient mécanique, plus prompt-only).
+                _prev_allowed = reg.current_allowed()
+                reg.allowed.names = {t["name"] for t in self.tools}
+                try:
+                    out = reg.execute(name, args, on_event=tap)
+                finally:
+                    reg.allowed.names = _prev_allowed
                 dur = round(time.time() - t0, 2)
                 state["outer"] = None
 
@@ -1495,15 +1518,29 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                         if mfp:
                             _tech = mfp.group(0)
                         try:
-                            _bw = reg.execute("wall_breaker",
-                                              {"tech": _tech or "waf filtering",
-                                               "context": f"after {name}: {out[:120]}"})
+                            # A2 : wall_breaker auto hérite du même périmètre
+                            # (sinon il frappe hors plan-mode hors rôle).
+                            _prev_wb = reg.current_allowed()
+                            # wall_breaker reste légal même en plan-mode : son
+                            # produit est de l'INTEL externe, pas une frappe.
+                            reg.allowed.names = ({t["name"] for t in self.tools}
+                                                 | {"wall_breaker"})
+                            try:
+                                _bw = reg.execute("wall_breaker",
+                                                  {"tech": _tech or "waf filtering",
+                                                   "context": f"after {name}: {out[:120]}"},
+                                                  on_event=tap)
+                            finally:
+                                reg.allowed.names = _prev_wb
                             self._wall_streak = 0
                             _bmsg = ("\n\n[🧨 WALL BREAKER AUTO — 2 murs d'affilée détectés. "
                                      "INTEL EXTERIEURE collectée (web/exploit-db/NVD):\n"
                                      + str(_bw)[:3000] + "\nAdapte ta prochaine frappe avec "
                                      "cette intelligence — ou change de vector.]")
-                            msgs.append({"role": "user", "content": _bmsg})
+                            # A3 : différé — l'injection user se fera après TOUS
+                            # les tool results du round, jamais entre
+                            # assistant(tool_calls) et tool(result).
+                            _wall_pending = _bmsg
                             transcript.append(("system", "wall_breaker auto-déclenché"))
                             if on_event:
                                 on_event({"type": "system",
@@ -1516,6 +1553,14 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                 msgs.append({"role": "tool", "tool_call_id": tc["id"],
                              "content": _feed_result(name, out, total_cap=24000,
                                                      sub_cap=4000) + pacing})
+
+            # A3 : l'intel wall-breaker arrive APRÈS tous les tool results du
+            # round — un `user` entre assistant(tool_calls) et tool(result)
+            # est un ordre de messages invalide chez les providers stricts
+            # (OpenAI/DeepSeek/GLM → 400 sur la requête suivante → 3 échecs
+            # consécutifs → mission morte).
+            if _wall_pending:
+                msgs.append({"role": "user", "content": _wall_pending})
 
             # ── Context diet: old tool results collapse to one-line evidence ──
             # (keeps the last 25 full; provider latency scales with context size.

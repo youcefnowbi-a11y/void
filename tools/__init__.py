@@ -5,6 +5,15 @@ import importlib, ipaddress, pkgutil, re, traceback, sys, os, json, threading
 
 _CURRENT_EVENT = None  # event emitter visible to nested dispatch (batch inner tools)
 _thread_state = threading.local()
+# A2 : périmètre d'outils hérité — posé par execute() sur le thread appelant,
+# lu par batch_execute pour ses appels internes. Sans ça, batch bypass tous
+# les filtres (plan-mode recon-only, arsenaux de rôles) : la clôture était
+# prompt-enforced seulement.
+allowed = threading.local()
+
+
+def current_allowed():
+    return getattr(allowed, 'names', None)
 
 def get_current_event():
     return getattr(_thread_state, 'current_event', None)
@@ -321,6 +330,20 @@ def execute(name, args, on_event=None):
             args = _tk.unmask_obj(args)
     except Exception:
         pass
+    # A2 : un appel d'un agent à périmètre restreint (plan-mode, rôle swarm)
+    # propage son arsenal — batch_execute le relira pour ses appels internes.
+    # L'appel externe qui frappe hors périmètre reçoit le même refus que le
+    # registre aurait donné au modèle.
+    _allowed_here = current_allowed()
+    if _allowed_here is not None and name not in _allowed_here:
+        err = (f"TOOL ERROR [SCOPE_TOOL]: '{name}' n'est pas dans l'arsenal "
+               f"autorisé de cet agent ({len(_allowed_here)} outils). "
+               f"Reste dans ton rôle / ton plan.")
+        if on_event:
+            on_event({"type": "tool_error", "tool": name, "error": err[:300],
+                      "category": "SCOPE_TOOL", "duration": 0.0})
+        return err
+
     # ── Rules of Engagement, enforced for real (F10) ──
     roe = _load_roe_cached()
     # F-1/R3-27: fail-closed — TOUT sauf "safe" est bloqué (loud/active/
@@ -374,7 +397,15 @@ def execute(name, args, on_event=None):
                              "category": "SCOPE_BLOCKED", "duration": 0.0})
                 return scope_err
             try:
-                out = t["run"](**(args or {}))
+                # A2 : le périmètre est visible pendant le run de l'outil —
+                # batch_execute le capture et le ré-applique à ses workers ;
+                # save/restore pour le nesting propre (outer garde le sien).
+                _prev_allowed = current_allowed()
+                allowed.names = _allowed_here
+                try:
+                    out = t["run"](**(args or {}))
+                finally:
+                    allowed.names = _prev_allowed
                 if not isinstance(out, str):
                     out = json.dumps(out, ensure_ascii=False, default=str)
                 # archive-grade cap: 20KB coupait les JSON en plein milieu

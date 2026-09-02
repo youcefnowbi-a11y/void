@@ -58,10 +58,23 @@ def batch_execute(calls):
     # écrit par execute(); le fallback reste pour la compat process mixte)
     inner_event = (getattr(getattr(_reg, "_thread_state", None), "current_event", None)
                    or getattr(_reg, "_CURRENT_EVENT", None))
+    # A2 : périmètre de l'agent appelant (plan-mode, rôle swarm) — les appels
+    # internes ne peuvent pas frapper hors arsenal. Hérité aussi par les
+    # workers pour que le NESTING (batch dans batch) capture le même set.
+    _allowed = _reg.current_allowed()
 
     def run(i, name, args):
-        # through reg.execute: healer + UNKNOWN_TOOL self-correction included
-        res = _reg.execute(name, args or {}, on_event=inner_event)
+        if _allowed is not None and name not in _allowed:
+            return i, {"tool": name, "ok": False,
+                       "result": "SKIPPED: '" + name + "' hors arsenal autorisé de "
+                                 "l'agent appelant (plan-mode / rôle swarm)."}
+        _prev = _reg.current_allowed()
+        _reg.allowed.names = _allowed
+        try:
+            # through reg.execute: healer + UNKNOWN_TOOL self-correction included
+            res = _reg.execute(name, args or {}, on_event=inner_event)
+        finally:
+            _reg.allowed.names = _prev
         return i, {"tool": name, "ok": not str(res).startswith("TOOL ERROR"),
                    "result": str(res)[:6000]}
 
