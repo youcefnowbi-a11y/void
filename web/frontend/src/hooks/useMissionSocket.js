@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
+import { API_BASE } from '../api.js';
 
 /**
  * Mission stream — WebSocket with auto-reconnect + HTTP fallback.
@@ -234,7 +235,7 @@ export function useMissionSocket() {
 
   // ── resync au montage (U3) : si une campagne tourne, le HUD la retrouve ──
   useEffect(() => {
-    axios.get('/api/mission/status').then(r => {
+    axios.get(`${API_BASE}/mission/status`).then(r => {
       const d = r.data || {};
       if (d.running && d.mission_id) {
         setStatus('running');
@@ -257,7 +258,7 @@ export function useMissionSocket() {
     push({ type: 'system', text: `Transmis au commandement : ${mission.substring(0, 120)}` });
     flushBatch();
     try {
-      const res = await axios.post('/api/mission', { mission, mode, intel_mode, docs, autonomy });
+      const res = await axios.post(`${API_BASE}/mission`, { mission, mode, intel_mode, docs, autonomy });
       if (res.data.status !== 'accepted') {
         setStatus('error');
         push({ type: 'error', text: `Refusé : ${res.data.output || 'échec'}` });
@@ -272,7 +273,7 @@ export function useMissionSocket() {
 
   const sendOperatorMessage = useCallback(async (missionId, message) => {
     try {
-      const res = await axios.post('/api/mission/message', {
+      const res = await axios.post(`${API_BASE}/mission/message`, {
         mission_id: missionId || null, message,
       });
       return res.data; // {status: 'queued'} live | {status: 'continued'} new mission
@@ -283,11 +284,11 @@ export function useMissionSocket() {
 
   // ── la conversation survit au reload : le backend sert le log complet ──
   useEffect(() => {
-    axios.get('/api/chat/log').then(r => {
+    axios.get(`${API_BASE}/chat/log`).then(r => {
       const log = r.data?.log;
       if (Array.isArray(log) && log.length) setChatLog(log);
     }).catch(() => {});
-    axios.get('/api/mission/pending').then(r => {
+    axios.get(`${API_BASE}/mission/pending`).then(r => {
       if (r.data?.pending && r.data.plan) {
         setPendingPlan({ missionId: null, plan: r.data.plan, target: r.data.target });
       }
@@ -303,7 +304,7 @@ export function useMissionSocket() {
     setChatStreaming('');
     setChatBusy(true);
     try {
-      const res = await axios.post('/api/chat', { message: msg });
+      const res = await axios.post(`${API_BASE}/chat`, { message: msg });
       setChatLog(p => [...p, { role: 'strategist', text: res.data.answer, time: res.data.elapsed }]);
       streamRef.current = '';
       setChatStreaming('');
@@ -324,13 +325,13 @@ export function useMissionSocket() {
 
   const clearChat = useCallback(async () => {
     setChatLog([]);
-    try { await axios.post('/api/chat/clear'); } catch { /* silencieux */ }
+    try { await axios.post(`${API_BASE}/chat/clear`); } catch { /* silencieux */ }
   }, []);
 
   // ── verdict du commandant sur le plan : approuver (édité ou non) / rejeter ──
   const approvePlan = useCallback(async (approved, planDoc, strikeMode) => {
     try {
-      const res = await axios.post('/api/mission/approve-plan', {
+      const res = await axios.post(`${API_BASE}/mission/approve-plan`, {
         approved, plan_doc: planDoc || '', strike_mode: strikeMode || '',
       });
       setPendingPlan(null);
@@ -366,7 +367,7 @@ export function useMissionSocket() {
     push({ type: 'system', text: '⏹ rupture demandée — transmission du signal…' });
     flushBatch();
     try {
-      const res = await axios.post('/api/mission/abort', { mission_id: id, message: '__ABORT__' });
+      const res = await axios.post(`${API_BASE}/mission/abort`, { mission_id: id, message: '__ABORT__' });
       return res.data;
     } catch (err) {
       const detail = err.response?.data?.detail || err.message;

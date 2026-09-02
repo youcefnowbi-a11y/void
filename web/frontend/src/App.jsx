@@ -7,8 +7,8 @@ import DirectToolRunner from './components/DirectToolRunner.jsx';
 import PersonaPanel from './components/PersonaPanel.jsx';
 import FreshSessionPanel from './components/FreshSessionPanel.jsx';
 import { useMissionSocket } from './hooks/useMissionSocket.js';
+import { API_BASE } from './api.js';
 
-const API_BASE = '/api';
 const DOC_NO = `VF-${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}`;
 
 /* ═══════════════════════════════════════════════════════════════════

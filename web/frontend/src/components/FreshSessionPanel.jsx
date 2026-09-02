@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import axios from 'axios'
+import { API_BASE } from '../api.js'
 
 /* ═══════════════════════════════════════════════════════════════════
    SESSION NEUVE — the memory purge panel.
@@ -37,7 +38,7 @@ export default function FreshSessionPanel({ onPurge }) {
     if (!window.confirm(`SESSION NEUVE — purge définitive :\n${label}\n\nContinuer ?`)) return
     setBusy(true); setMsg(null)
     try {
-      const r = await axios.post('/api/admin/fresh', {
+      const r = await axios.post(`${API_BASE}/admin/fresh`, {
         chat: !!sel.chat, pending: !!sel.pending, bandit: !!sel.bandit,
         healer: !!sel.healer, intel: !!sel.intel, target: (target || '').trim(),
       })
