@@ -233,7 +233,12 @@ class ChatSession:
                                             max_tokens=self.max_tokens,
                                             on_delta=stream_cb)
             except Exception as ex:
-                answer = f"[chat indisponible : {type(ex).__name__}: {str(ex)[:120]}]"
+                # B-C1 : préfixe canonique [LLM UNREACHABLE — le guard de
+                # doctrine (startswith("[LLM HTTP", "[LLM UNREACHABLE", …))
+                # doit reconnaître SON propre chemin d'exception, sinon
+                # l'erreur provider entre dans l'historique et get_context la
+                # ré-exporte comme doctrine du commandant.
+                answer = f"[LLM UNREACHABLE chat indisponible : {type(ex).__name__}: {str(ex)[:120]}]"
                 break
             tcs = resp.get("tool_calls") or []
             if tcs:
