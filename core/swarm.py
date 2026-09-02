@@ -105,8 +105,21 @@ def _target_from_mission(mission):
     m = re.search(r"https?://([a-zA-Z0-9.\-]+)", mission or "")
     if m:
         return m.group(1)
-    m = re.search(r"\b([a-z0-9\-]+\.(?:com|tech|app|io|net|org|dev|co))\b", mission or "", re.I)
-    raw = m.group(1).lower() if m else "unknown"
+    # E2-residual : source unique de vérité — le parseur de planner (sa liste
+    # TLD a été étendue : fr|dev|app|…). L'ancienne alternation locale avait
+    # dérivé (pas de .fr) → la gate B-S6 du serveur dégradait sur test.fr.
+    t = None
+    try:
+        from core.planner import extract_target
+        ext = extract_target(mission or "")
+        if ext:
+            t = re.sub(r"^https?://", "", ext).split("/", 1)[0]
+    except Exception:
+        pass
+    if not t:
+        m = re.search(r"\b([a-z0-9\-]+\.(?:com|tech|app|io|net|org|dev|co))\b", mission or "", re.I)
+        t = m.group(1) if m else None
+    raw = (t or "unknown").lower()
     # slugify: "http://.." must never become ".." (path traversal in missions/)
     from core.mission_workspace import _slug
     return _slug(raw) or "unknown"
