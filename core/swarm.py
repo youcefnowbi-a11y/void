@@ -142,6 +142,11 @@ class SwarmCoordinator:
             agent = Agent(self.cfg, tools_filter=spec["tools"],
                           extra_system=spec["brief"] + (f"\n\n{plan}" if plan else ""),
                           blackboard=self.board)
+            # D-T2 : les spécialistes NE resetent pas le coffre — le reset
+            # par-campagne vit dans le lanceur (server.py) ; 4 resets
+            # concurrents effaceraient les jetons déjà émis par les autres
+            # (args -> [HOST-7] littéraux -> unmask no-op -> frappe hors cible).
+            agent._skip_vault_reset = True
             # specialists get a lighter loop
             agent.max_rounds = self.specialist_rounds
             sub_mission = (f"Main mission: {mission}\n\n"
@@ -287,6 +292,8 @@ class PlannedSwarm(SwarmCoordinator):
                           extra_system=chain_text + "\n\nAPPROVED PLAN CONTEXT:\n"
                           + self.plan_doc[:6000],
                           blackboard=board)
+            # D-T2 : opt-out du reset par-run (voir run_specialist).
+            agent._skip_vault_reset = True
             agent.max_rounds = max(4, min(rounds, 25))
             sub_mission = (f"Execute chain '{name}' on {target}. Stay in scope — "
                            f"other chains cover the rest. Batch independent calls.")

@@ -998,13 +998,18 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
         plan_doc: optional str — an operator-approved attack plan to execute.
         Returns: list of (kind, text) transcript tuples."""
         # ── R1-3: nouveau coffre par mission — les tokens [CRED-n] d'une
-        # campagne précédente ne peuvent plus être démasqués dans celle-ci ──
-        try:
-            from core import _tokenize as _tkr
-            if _tkr.enabled():
-                _tkr.reset_vault()
-        except Exception:
-            pass
+        # campagne précédente ne peuvent plus être démasqués dans celle-ci.
+        # D-T2 : les spécialistes swarm OPT OUT (agent._skip_vault_reset) —
+        # leur reset concurrent effaçait les jetons déjà émis par leurs
+        # frères (args tokenisés restés littéraux). Le reset par-campagne
+        # vit dans le lanceur (server.py), une seule fois.
+        if not getattr(self, "_skip_vault_reset", False):
+            try:
+                from core import _tokenize as _tkr
+                if _tkr.enabled():
+                    _tkr.reset_vault()
+            except Exception:
+                pass
         # ── Mission workspace: one folder per target, everything traced ──
         ws = None
         try:

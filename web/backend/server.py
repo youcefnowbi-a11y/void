@@ -1216,6 +1216,17 @@ async def _run_mission_streaming(mission: str, mode: str, ws: WebSocket,
         raise
     _graph_board = None  # set once the Living Graph exists — snapshots attach to events
 
+    # D-T2 : reset du coffre de tokenisation UNE fois par campagne, au
+    # lanceur — plus par Agent.run. Les spécialistes swarm opt-out
+    # (_skip_vault_reset) : 4 resets concurrents effaçaient les jetons déjà
+    # émis par les autres (unmask no-op → frappe sur des [HOST-7] littéraux).
+    try:
+        from core import _tokenize as _sv
+        if _sv.enabled():
+            _sv.reset_vault()
+    except Exception:
+        pass
+
     def _graph_snapshot(board):
         """Compact Living Graph snapshot for the tactical map."""
         try:

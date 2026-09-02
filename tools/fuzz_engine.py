@@ -59,14 +59,14 @@ def _payload_str(p):
     return json.dumps(p) if isinstance(p, (dict, list)) else str(p)
 
 @register(name="fuzz_attack_surface",
-          desc="ZERO-DAY: mutation fuzzer over URL/params/headers with 5-oracle anomaly detection + error-class fingerprinting + optional SecLists dictionary sweep (wordlist='common.txt'|'quickhits.txt'|'raft-small-lower.txt'). Findings feed crash_triage. This is where 0days start.",
+          desc="ZERO-DAY: mutation fuzzer over URL/params/headers with 5-oracle anomaly detection + error-class fingerprinting + optional SecLists dictionary sweep (wordlist='common'|'quickhits'|'raft-small-lower' — name WITHOUT .txt, the code appends it). Findings feed crash_triage. This is where 0days start.",
           params={"type": "object", "properties": {
               "url": {"type": "string", "description": "target URL; {FUZZ} placeholder optional for path/segment fuzzing"},
               "params": {"type": "object", "description": "seed params dict, e.g. {\"q\":\"normal\"}"},
               "headers": {"type": "object", "description": "base headers to send"},
               "max_requests": {"type": "integer", "default": 300},
               "target_param": {"type": "string", "description": "fuzz only this param"},
-              "wordlist": {"type": "string", "description": "data/wordlists name WITHOUT .txt, e.g. 'common.txt' — appended after the mutation corpus"},
+              "wordlist": {"type": "string", "description": "data/wordlists name WITHOUT .txt, e.g. 'common' (the .txt is appended) — applied after the mutation corpus"},
               "seeds": {"type": "object", "description": "learned param values to prepend (pass crash_triage_next's 'fuzz_seeds' here)"}},
               "required": ["url"]},
           danger="careful")
@@ -80,7 +80,12 @@ def fuzz_attack_surface(url, params=None, headers=None, max_requests=300,
         # Sans cette garde, wordlist="..\..\..\.ssh\id_rsa" lisait n'importe
         # quel fichier lisible et en versait le contenu dans le corpus.
         _wdir = os.path.realpath(os.path.join(ROOT, "data", "wordlists"))
-        _wl = os.path.realpath(os.path.join(_wdir, f"{str(wordlist)}.txt"))
+        # C-FZ3b : tolérer une extension passée par erreur — 'common.txt'
+        # ne doit pas devenir common.txt.txt (le sweep sautait en silence).
+        _wname = str(wordlist)
+        if _wname.lower().endswith(".txt"):
+            _wname = _wname[:-4]
+        _wl = os.path.realpath(os.path.join(_wdir, f"{_wname}.txt"))
         if not _wl.startswith(_wdir + os.sep):
             return ("TOOL ERROR [ARGS]: wordlist refuse (hors data/wordlists/) "
                     f"— {str(wordlist)[:60]}")
