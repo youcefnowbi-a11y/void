@@ -1512,11 +1512,14 @@ async def _run_mission_streaming(mission: str, mode: str, ws: WebSocket,
                                                                   os.path.basename(report_path)))
                     except Exception:
                         pass
-                    # livrable n°2 : le dossier de findings lisible
+                    # livrables n°2 et n°3 : dossier de findings lisible +
+                    # état de l'application (boucle de correction du harnais)
                     try:
                         final_text = next((t for k, t in reversed(transcript)
                                            if k == "agent" and t), "")
                         _ws.write_findings_dossier(transcript=transcript, board=board,
+                                                   final_text=final_text)
+                        _ws.write_app_state_report(transcript=transcript,
                                                    final_text=final_text)
                     except Exception:
                         pass
