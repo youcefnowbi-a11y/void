@@ -1,9 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 // ═══════════════════════════════════════════════════════════════════
-// VOIDFORGE — DIMENSION, reconstruit de zéro.
-// void canvas #0A0A0A · graphite #161616 · verre dépoli · pills 9999px
-// hairlines 1px · UN violet (#6B62F2) en wash seulement · weight 500.
-// La source de vérité : design/DESIGN.md (extraction Refero de dimension.dev).
+// VOIDFORGE — DIMENSION. Les tokens vivent en variables CSS :
+// deux thèmes (crépuscule par défaut, aurore en clair) sortent du
+// même système. Source : design/DESIGN.md + design/ref/.
 // ═══════════════════════════════════════════════════════════════════
 export default {
   content: [
@@ -13,37 +12,41 @@ export default {
   theme: {
     extend: {
       colors: {
-        // surfaces — la pile Dimension
-        mist:   '#0A0A0A',                 // void canvas — niveau 0
-        paper:  '#161616',                 // graphite — niveau 1
-        wash:   '#1D1D1F',                 // inset — un cran au-dessus du graphite
-        frost:  'rgba(212,212,212,0.08)',  // frosted glass — niveau 2 (translucide)
-        snow:   '#FFFFFF',                 // snow white — niveau 3, le seul plein
+        // surfaces — canaux RGB thémables (alpha via <alpha-value>)
+        mist:   'rgb(var(--mist) / <alpha-value>)',   // void canvas — niveau 0
+        paper:  'rgb(var(--paper) / <alpha-value>)',  // graphite — niveau 1
+        wash:   'rgb(var(--wash) / <alpha-value>)',   // inset — niveau 1.5
+        snow:   '#FFFFFF',                            // le seul plein, toujours blanc
 
-        // texte — bone en premier, jamais blanc pur
-        ink:    '#EDEDED',                 // bone — texte primaire sur sombre
-        ash:    '#C2C2C2',                 // texte secondaire
-        smoke:  '#B2B2B2',                 // texte désactivé / idle
-        slate:  '#686868',                 // tertiaire, timestamps
-        mut:    '#8E8E99',                 // labels discrets
-        faint:  '#5C5C66',                 // le plus faible lisible
+        // texte — bone en premier, jamais blanc pur sur sombre
+        ink:    'rgb(var(--ink) / <alpha-value>)',
+        ash:    'rgb(var(--ash) / <alpha-value>)',
+        smoke:  'rgb(var(--smoke) / <alpha-value>)',
+        slate:  'rgb(var(--slate) / <alpha-value>)',
+        mut:    'rgb(var(--mut) / <alpha-value>)',
+        faint:  'rgb(var(--faint) / <alpha-value>)',
 
         // hairlines — jamais d'ombre pour la définition
-        line:   'rgba(255,255,255,0.09)',
-        line2:  'rgba(255,255,255,0.16)',
+        line:   'var(--line)',
+        line2:  'var(--line2)',
+        frost:  'var(--frost)',
+        inset:  'var(--inset)',
+        insetstrong: 'var(--inset-strong)',
+        hover:  'var(--hover)',
 
         // le seul accent chromatique — washes et lueurs, JAMAIS de plein
-        volt:   '#6B62F2',
-        voltlite: 'rgba(107,98,242,0.12)',
-        cyan:   '#A78BFA',
-        cyantint: 'rgba(167,139,250,0.10)',
+        volt:   'rgb(var(--volt) / <alpha-value>)',
+        voltsoft: 'var(--volt-soft)',
+        voltlite: 'var(--voltlite)',
+        cyan:   'rgb(var(--cyan) / <alpha-value>)',
+        cyantint: 'var(--cyantint)',
 
         // signaux opérationnels — la sémantique prime (console de guerre)
-        danger: '#F87171', dangertint: 'rgba(248,113,113,0.10)',
-        warn:   '#FBBF24', warntint:   'rgba(251,191,36,0.10)',
-        ok:     '#3DD68C', oktint:     'rgba(61,214,140,0.10)',
-        info:   '#818CF8', infotint:   'rgba(129,140,248,0.10)',
-        gold:   '#EDB36B', goldtint:   'rgba(237,179,107,0.10)', // ambre crépusculaire
+        danger: 'rgb(var(--danger) / <alpha-value>)', dangertint: 'var(--dangertint)',
+        warn:   'rgb(var(--warn) / <alpha-value>)',   warntint:   'var(--warntint)',
+        ok:     'rgb(var(--ok) / <alpha-value>)',     oktint:     'var(--oktint)',
+        info:   'rgb(var(--info) / <alpha-value>)',   infotint:   'var(--infotint)',
+        gold:   'rgb(var(--gold) / <alpha-value>)',   goldtint:   'var(--goldtint)',
       },
       fontFamily: {
         sans: ['"DM Sans"', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],

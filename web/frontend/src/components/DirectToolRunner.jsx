@@ -183,7 +183,7 @@ export default function DirectToolRunner({ onToolExecuted }) {
   const properties = currentTool.parameters?.properties || {};
   const requiredFields = currentTool.parameters?.required || [];
 
-  const inputCls = "w-full rounded-ui border border-line bg-white/[0.04] px-3 py-2 text-[12.5px] font-mono text-ink focus:outline-none focus:border-volt/60 transition-colors placeholder:text-faint";
+  const inputCls = "w-full rounded-ui border border-line bg-inset px-3 py-2 text-[12.5px] font-mono text-ink focus:outline-none focus:border-volt/60 transition-colors placeholder:text-faint";
 
   return (
     <div className="space-y-4">
@@ -208,15 +208,15 @@ export default function DirectToolRunner({ onToolExecuted }) {
             placeholder="Filtrer..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-24 rounded-ui border border-line bg-white/[0.04] px-2.5 py-2 text-[11.5px] font-mono text-ink focus:outline-none focus:border-volt/60 transition-colors placeholder:text-faint"
+            className="w-24 rounded-ui border border-line bg-inset px-2.5 py-2 text-[11.5px] font-mono text-ink focus:outline-none focus:border-volt/60 transition-colors placeholder:text-faint"
           />
         </div>
 
         {/* Description de l'outil sélectionné */}
         {currentTool.description && (
-          <div className="rounded-ui border border-line bg-white/[0.03] px-3 py-2.5 text-[12px] text-ash leading-relaxed">
+          <div className="rounded-ui border border-line bg-hover px-3 py-2.5 text-[12px] text-ash leading-relaxed">
             <div className="flex items-center gap-2 mb-1">
-              <span className="font-mono font-medium text-[#C4B5FD]">{currentTool.name}</span>
+              <span className="font-mono font-medium text-cyan">{currentTool.name}</span>
               <span className={`text-[9px] uppercase px-1.5 py-0.5 rounded-full border font-medium ${
                 currentTool.danger === 'destructive' ? 'border-danger/30 text-danger bg-dangertint' :
                 currentTool.danger === 'active' ? 'border-warn/30 text-warn bg-warntint' :
@@ -250,7 +250,7 @@ export default function DirectToolRunner({ onToolExecuted }) {
               onChange={(e) => handleRawJsonChange(e.target.value)}
               rows={5}
               placeholder={'{\n  "param": "valeur"\n}'}
-              className="w-full rounded-ui border border-line bg-white/[0.04] text-ink font-mono text-[11px] p-2.5 resize-y focus:outline-none focus:border-volt/60 transition-colors placeholder:text-faint"
+              className="w-full rounded-ui border border-line bg-inset text-ink font-mono text-[11px] p-2.5 resize-y focus:outline-none focus:border-volt/60 transition-colors placeholder:text-faint"
             />
             {jsonError && <p className="text-danger text-[10.5px] mt-1">{jsonError}</p>}
           </div>
@@ -270,7 +270,7 @@ export default function DirectToolRunner({ onToolExecuted }) {
                         type="checkbox"
                         checked={Boolean(val)}
                         onChange={(e) => handleFieldChange(propName, e.target.checked, 'boolean')}
-                        className="accent-[#6B62F2]"
+                        className="accent-volt"
                       />
                       <span className="text-ash">{propName} {isRequired && <span className="text-danger">*</span>}</span>
                       {schema.description && <span className="text-[10px] text-faint">({schema.description})</span>}
@@ -344,7 +344,7 @@ export default function DirectToolRunner({ onToolExecuted }) {
 
       {/* RÉSULTAT DU LANCEMENT DIRECT */}
       {result && (
-        <div className="rounded-2xl border border-line bg-white/[0.03] p-3.5 space-y-2.5 animate-fadeIn">
+        <div className="rounded-2xl border border-line bg-hover p-3.5 space-y-2.5 animate-fadeIn">
           <div className="flex items-center justify-between border-b border-line pb-2.5">
             <div className="flex items-center gap-2">
               <span className={`inline-block w-2 h-2 rounded-full ${result.success ? 'bg-ok' : 'bg-danger animate-pulse'}`} />

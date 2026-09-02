@@ -69,7 +69,7 @@ export default function WarRoom({ chatLog = [], onSend, busy = false,
             <div className={`max-w-[92%] rounded-2xl px-3.5 py-2.5 ${
               m.role === 'user'
                 ? 'bg-voltlite border border-volt/30 rounded-tr-md'
-                : 'bg-white/[0.04] border border-line rounded-tl-md'
+                : 'bg-inset border border-line rounded-tl-md'
             }`}>
               <div className={`text-[9px] uppercase tracking-[.18em] mb-1.5 ${m.role === 'user' ? 'text-cyan' : 'text-mut'}`}>
                 {m.role === 'user' ? 'commandant' : 'stratège'}{m.time ? ` · ${m.time}s` : ''}
@@ -82,7 +82,7 @@ export default function WarRoom({ chatLog = [], onSend, busy = false,
         ))}
         {(streaming || (busy && !streaming)) && (
           <div className="flex justify-start">
-            <div className="max-w-[92%] rounded-2xl px-3.5 py-2.5 bg-white/[0.04] border border-line rounded-tl-md">
+            <div className="max-w-[92%] rounded-2xl px-3.5 py-2.5 bg-inset border border-line rounded-tl-md">
               <div className="text-[9px] uppercase tracking-[.18em] mb-1.5 text-mut">
                 stratège{streaming ? ' · écrit' : ' · réfléchit'}
               </div>
@@ -109,7 +109,7 @@ export default function WarRoom({ chatLog = [], onSend, busy = false,
           placeholder={warMode
             ? 'ex : le keypool tourne sur FastAPI, 60 req/min max, focus /api/admin…'
             : 'ordre pour l\'agente…'}
-          className="flex-1 bg-black/30 border border-line rounded-ui px-3 py-2 text-[12.5px] leading-relaxed text-ink placeholder:text-faint focus:outline-none focus:border-volt/60 resize-none transition-colors"
+          className="flex-1 bg-insetstrong border border-line rounded-ui px-3 py-2 text-[12.5px] leading-relaxed text-ink placeholder:text-faint focus:outline-none focus:border-volt/60 resize-none transition-colors"
         />
         <button type="submit" disabled={!draft.trim() || busy}
           className="pill-cta btn-strike px-4 py-2.5 text-[11px] shrink-0">

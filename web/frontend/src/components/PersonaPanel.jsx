@@ -105,7 +105,7 @@ export default function PersonaPanel() {
     stealth: 'volume minimal, sources passives d\'abord',
   }[form.mission_focus] || '';
 
-  const inputCls = "w-full rounded-ui border border-line bg-white/[0.04] px-3 py-2 text-[12.5px] text-ink focus:outline-none focus:border-volt/60 transition-colors placeholder:text-faint";
+  const inputCls = "w-full rounded-ui border border-line bg-inset px-3 py-2 text-[12.5px] text-ink focus:outline-none focus:border-volt/60 transition-colors placeholder:text-faint";
   const labelCls = "text-[9.5px] uppercase tracking-[.16em] text-mut";
 
   return (
@@ -140,11 +140,11 @@ export default function PersonaPanel() {
           <span className={labelCls}>
             {key === 'mission_focus' ? 'doctrine' : key === 'verbosity' ? 'verbeux' : 'langue'}
           </span>
-          <div className="flex rounded-full border border-line bg-black/30 p-0.5 w-fit">
+          <div className="flex rounded-full border border-line bg-insetstrong p-0.5 w-fit">
             {options.map((o) => (
               <button key={o} type="button" onClick={() => set(key, o)}
                 className={`px-2.5 py-1 rounded-full text-[10px] uppercase tracking-[.08em] transition-all
-                  ${form[key] === o ? 'bg-snow text-[#0A0A0A] font-medium' : 'text-mut hover:text-ink'}`}>
+                  ${form[key] === o ? 'pill-solid font-medium' : 'text-mut hover:text-ink'}`}>
                 {o}
               </button>
             ))}
@@ -171,7 +171,7 @@ export default function PersonaPanel() {
           <textarea id="pe-extra" value={form.extra_directives} rows={16}
             onChange={(e) => set('extra_directives', e.target.value)}
             placeholder={'Doctrine libre — priorités, habitudes, rituels.\nex : Prioritize Supabase exposures. Always check GraphQL before REST.'}
-            className="w-full rounded-ui border border-line bg-white/[0.04] px-3 py-2 text-[12.5px] leading-relaxed resize-y text-ink focus:outline-none focus:border-volt/60 transition-colors max-h-[340px] placeholder:text-faint" />
+            className="w-full rounded-ui border border-line bg-inset px-3 py-2 text-[12.5px] leading-relaxed resize-y text-ink focus:outline-none focus:border-volt/60 transition-colors max-h-[340px] placeholder:text-faint" />
           <p className="mt-1.5 text-[10px] text-faint">
             {form.extra_directives.length.toLocaleString()} caractères chargés — {form.extra_directives.length > 4000
               ? 'ta directive longue est bien là, intégralement (la fenêtre défile).'

@@ -52,7 +52,7 @@ export default function FreshSessionPanel({ onPurge }) {
   const Box = ({ id }) => (
     <label className="flex items-start gap-2.5 cursor-pointer group">
       <input type="checkbox" checked={!!sel[id]} onChange={() => toggle(id)}
-        className="mt-0.5 accent-[#6B62F2] shrink-0" />
+        className="mt-0.5 accent-volt shrink-0" />
       <span className="min-w-0">
         <span className="block text-[12px] text-ash group-hover:text-ink transition-colors">
           {STORES.find(s => s.id === id)?.label}
@@ -71,7 +71,7 @@ export default function FreshSessionPanel({ onPurge }) {
         <div className="border-t border-line pt-2.5">
           <label className="flex items-start gap-2.5 cursor-pointer group">
             <input type="checkbox" checked={!!sel.intel} onChange={() => toggle('intel')}
-              className="mt-0.5 accent-[#6B62F2] shrink-0" />
+              className="mt-0.5 accent-volt shrink-0" />
             <span className="min-w-0 flex-1">
               <span className="block text-[12px] text-ash group-hover:text-ink transition-colors">
                 intel Living Graph
@@ -84,7 +84,7 @@ export default function FreshSessionPanel({ onPurge }) {
           {sel.intel && (
             <input value={target} onChange={(e) => setTarget(e.target.value)}
               placeholder="domaine (vide = TOUTES les cibles)"
-              className="mt-2 w-full bg-black/30 border border-line rounded-ui px-2.5 py-1.5 font-mono text-[11px] text-ink focus:outline-none focus:border-volt/60 transition-colors placeholder:text-faint" />
+              className="mt-2 w-full bg-insetstrong border border-line rounded-ui px-2.5 py-1.5 font-mono text-[11px] text-ink focus:outline-none focus:border-volt/60 transition-colors placeholder:text-faint" />
           )}
         </div>
       </div>

@@ -3,26 +3,120 @@
 @tailwind utilities;
 
 /* ═══════════════════════════════════════════════════════════════════
-   VOIDFORGE — DIMENSION, reconstruit de zéro.
-   Un canvas void, du verre dépoli, des pills, des hairlines,
-   un seul battement de cœur violet. Rien d'autre.
+   VOIDFORGE — DIMENSION. Deux thèmes, un seul système.
+   · CRÉPUSCULE (défaut) — le dark de la référence : void canvas, verre
+     dépoli, bone sur graphite, le violet en wash.
+   · AURORE — le même système au lever du jour : canevas chaud, graphite
+     en texte, la pill CTA s'inverse (noire). Le terminal reste la nuit —
+     la guerre ne dort jamais.
+   Tout token est une variable : aucun composant ne connaît le thème.
    ═══════════════════════════════════════════════════════════════════ */
 
 @layer base {
-  :root {
-    --mist: #0A0A0A; --paper: #161616; --wash: #1D1D1F;
-    --ink: #EDEDED; --ash: #C2C2C2; --mut: #8E8E99; --faint: #5C5C66;
-    --line: rgba(255,255,255,0.09); --line2: rgba(255,255,255,0.16);
+  :root,
+  [data-theme="crepuscule"] {
+    color-scheme: dark;
+
+    /* surfaces (canaux RGB pour l'alpha Tailwind) */
+    --mist: 10 10 10;
+    --paper: 22 22 22;
+    --wash: 29 29 31;
+
+    /* texte */
+    --ink: 237 237 237;      /* bone */
+    --ash: 194 194 194;
+    --smoke: 178 178 178;
+    --slate: 104 104 104;
+    --mut: 142 142 153;
+    --faint: 92 92 102;
+
+    /* hairlines & verres */
+    --line: rgba(255,255,255,0.09);
+    --line2: rgba(255,255,255,0.16);
     --frost: rgba(212,212,212,0.08);
-    --volt: #6B62F2;
-    --ok: #3DD68C; --warn: #FBBF24; --danger: #F87171; --gold: #EDB36B;
+    --inset: rgba(255,255,255,0.04);
+    --inset-strong: rgba(0,0,0,0.40);
+    --hover: rgba(255,255,255,0.03);
+    --navbg: rgba(22,22,22,0.82);
+    --raise1: rgba(255,255,255,0.06);
+    --raise2: rgba(255,255,255,0.03);
+    --scrollthumb: rgba(255,255,255,0.12);
+
+    /* le violet — washes et lueurs, jamais de plein */
+    --volt: 107 98 242;
+    --volt-soft: rgba(107,98,242,0.55);
+    --voltlite: rgba(107,98,242,0.12);
+    --cyan: 167 139 250;
+    --cyantint: rgba(167,139,250,0.10);
+
+    /* signaux opérationnels */
+    --ok: 61 214 140;   --oktint: rgba(61,214,140,0.10);
+    --warn: 251 191 36; --warntint: rgba(251,191,36,0.10);
+    --danger: 248 113 113; --dangertint: rgba(248,113,113,0.10);
+    --info: 129 140 248; --infotint: rgba(129,140,248,0.10);
+    --gold: 237 179 107; --goldtint: rgba(237,179,107,0.10);
+
+    /* terminal — la nuit opérative */
+    --termbg: #0B0B0E;
+
+    /* la white pill — le seul plein (s'inverse en aurore) */
+    --cta-bg: #FFFFFF;
+    --cta-fg: #0A0A0A;
+
+    /* l'élévation unique */
+    --shadow-nav: rgba(255,255,255,0.02) 0px 3px 4.5px, rgba(0,0,0,0.04) 0px 10px 8px, rgba(0,0,0,0.1) 0px 4px 3px;
   }
 
-  html { color-scheme: dark; }
+  [data-theme="aurore"] {
+    color-scheme: light;
+
+    --mist: 244 243 240;     /* canevas de l'aube — chaud */
+    --paper: 255 255 255;
+    --wash: 237 237 237;     /* bone en inset */
+
+    --ink: 22 22 22;         /* graphite en texte */
+    --ash: 74 74 80;
+    --smoke: 120 120 128;
+    --slate: 104 104 104;    /* le slate de la référence survit tel quel */
+    --mut: 110 110 120;
+    --faint: 154 154 164;
+
+    --line: rgba(0,0,0,0.10);
+    --line2: rgba(0,0,0,0.18);
+    --frost: rgba(22,22,22,0.05);
+    --inset: rgba(0,0,0,0.04);
+    --inset-strong: rgba(0,0,0,0.06);
+    --hover: rgba(0,0,0,0.03);
+    --navbg: rgba(255,255,255,0.78);
+    --raise1: rgba(255,255,255,0.9);
+    --raise2: rgba(255,255,255,0.4);
+    --scrollthumb: rgba(0,0,0,0.18);
+
+    --volt: 107 98 242;      /* le même violet — la signature ne change pas */
+    --volt-soft: rgba(107,98,242,0.55);
+    --voltlite: rgba(107,98,242,0.10);
+    --cyan: 124 108 232;
+    --cyantint: rgba(107,98,242,0.08);
+
+    --ok: 24 156 105;   --oktint: rgba(24,156,105,0.10);
+    --warn: 180 124 12; --warntint: rgba(180,124,12,0.10);
+    --danger: 214 69 69; --dangertint: rgba(214,69,69,0.08);
+    --info: 88 96 224;  --infotint: rgba(88,96,224,0.08);
+    --gold: 176 118 40; --goldtint: rgba(176,118,40,0.10);
+
+    /* le terminal reste la nuit — la guerre ne dort jamais */
+    --termbg: #101014;
+
+    /* la pill s'inverse — graphite plein, texte neige */
+    --cta-bg: #0A0A0A;
+    --cta-fg: #FFFFFF;
+
+    --shadow-nav: rgba(0,0,0,0.04) 0px 2px 4px, rgba(0,0,0,0.06) 0px 8px 20px;
+  }
 
   body {
-    background-color: var(--mist);
-    color: var(--ink);
+    background-color: rgb(var(--mist));
+    color: rgb(var(--ink));
     font-family: "DM Sans", Inter, ui-sans-serif, system-ui, sans-serif;
     font-size: 14px;
     -webkit-font-smoothing: antialiased;
@@ -33,11 +127,11 @@
 
   ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 999px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(107,98,242,0.55); }
+  ::-webkit-scrollbar-thumb { background: var(--scrollthumb); border-radius: 999px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--volt-soft); }
 
   :focus-visible {
-    outline: 1.5px solid rgba(107,98,242,0.7);
+    outline: 1.5px solid var(--volt-soft);
     outline-offset: 1.5px;
     border-radius: 4px;
   }
@@ -68,7 +162,7 @@
     animation: heartbeat-travel 1.25s cubic-bezier(.4, 0, .2, 1) infinite;
   }
   .heartbeat.complete { background: linear-gradient(90deg, #EDB36B, #4C5BD4); }
-  .heartbeat.error    { background: var(--danger); }
+  .heartbeat.error    { background: rgb(var(--danger)); }
 
   @keyframes heartbeat-travel {
     from { transform: translateX(-100%); }
@@ -82,7 +176,7 @@
     letter-spacing: .18em;
     font-size: 10px;
     font-weight: 500;
-    color: var(--mut);
+    color: rgb(var(--mut));
   }
   /* display DM Sans — 500 jamais bold, tracking serré (l'anti-convention) */
   .display {
@@ -94,12 +188,12 @@
 
   /* ── surfaces ── */
   .panel {
-    background: var(--paper);
+    background: rgb(var(--paper));
     border: 1px solid var(--line);
     border-radius: 24px;
   }
   .panel-raised {
-    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)), var(--paper);
+    background: linear-gradient(180deg, var(--raise1), var(--raise2)), rgb(var(--paper));
     border: 1px solid var(--line2);
     border-radius: 24px;
   }
@@ -112,15 +206,16 @@
     border-radius: 24px;
   }
   .nav-float {
-    background: rgba(22,22,22,0.82);
+    background: var(--navbg);
     backdrop-filter: blur(14px);
     -webkit-backdrop-filter: blur(14px);
     border: 1px solid var(--line);
     border-radius: 9999px;
+    box-shadow: var(--shadow-nav);
   }
 
   /* ── pills — la silhouette du système ── */
-  .pill, .pill-cta, .pill-ghost {
+  .pill, .pill-cta, .pill-ghost, .pill-solid {
     border-radius: 9999px;
     display: inline-flex;
     align-items: center;
@@ -130,14 +225,15 @@
     transition: transform .12s ease, background .12s ease, color .12s ease,
                 border-color .12s ease, opacity .12s ease;
   }
-  /* White Pill CTA — le seul remplissage plein du système */
-  .pill-cta { background: #FFFFFF; color: #0A0A0A; }
-  .pill-cta:hover:not(:disabled) { transform: translateY(-1px); opacity: .96; }
-  .pill-cta:active:not(:disabled) { transform: translateY(0); opacity: 1; }
+  /* la pill pleine — le seul remplissage plein du système (s'inverse avec le thème) */
+  .pill-cta, .pill-solid { background: var(--cta-bg); color: var(--cta-fg); }
+  .bar-solid { background: var(--cta-bg); color: var(--cta-fg); }
+  .pill-cta:hover:not(:disabled), .pill-solid:hover:not(:disabled) { transform: translateY(-1px); opacity: .92; }
+  .pill-cta:active:not(:disabled), .pill-solid:active:not(:disabled) { transform: translateY(0); opacity: 1; }
   .pill-cta:disabled { opacity: .4; cursor: not-allowed; }
   /* ghost pill — le contrepoint hairline */
-  .pill-ghost { background: transparent; color: var(--ink); border: 1px solid var(--line2); }
-  .pill-ghost:hover:not(:disabled) { border-color: rgba(107,98,242,0.55); }
+  .pill-ghost { background: transparent; color: rgb(var(--ink)); border: 1px solid var(--line2); }
+  .pill-ghost:hover:not(:disabled) { border-color: var(--volt-soft); }
   .pill-ghost:disabled { opacity: .4; cursor: not-allowed; }
 
   .btn-strike { transition: transform .12s ease, opacity .12s ease, background .12s ease, color .12s ease, border-color .12s ease; }
@@ -148,13 +244,13 @@
     font-family: "Geist", sans-serif;
     text-transform: uppercase;
     letter-spacing: .16em;
-    color: var(--danger);
+    color: rgb(var(--danger));
     border: 1px solid rgba(248,113,113,.35);
     background: rgba(248,113,113,.07);
     padding: 4px 14px;
     border-radius: 999px;
   }
-  .stamp.ok { color: var(--ok); border-color: rgba(61,214,140,.35); background: rgba(61,214,140,.07); }
+  .stamp.ok { color: rgb(var(--ok)); border-color: rgba(61,214,140,.35); background: rgba(61,214,140,.07); }
 
   /* ── les trois gradients — héros, liseré, tache de lumière. Rien d'autre. ── */
   .wash-violet {
@@ -168,10 +264,10 @@
     background: radial-gradient(circle at 50% 50%, rgba(107,98,242,0.565), rgba(255,255,255,0) 70%);
   }
 
-  /* ═══ TERMINAL — le mono ne parle qu'opératif ═══ */
+  /* ═══ TERMINAL — le mono ne parle qu'opératif, et la nuit ne dort jamais ═══ */
   .terminal-bg {
-    background: #0B0B0E;
-    color: var(--ink);
+    background: var(--termbg);
+    color: rgb(var(--ink));
     font-family: "IBM Plex Mono", Consolas, "Liberation Mono", Menlo, Courier, monospace;
     font-size: 11.5px;
     line-height: 1.65;
@@ -207,7 +303,7 @@
 
   .cursor-block::after {
     content: "▮";
-    color: var(--volt);
+    color: rgb(var(--volt));
     animation: blink 1.05s steps(1) infinite;
     margin-left: 2px;
   }

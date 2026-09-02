@@ -7,9 +7,9 @@ import React from 'react'
 const SEV_STYLES = {
   critical: { border: 'border-danger', dot: 'bg-danger',    tint: 'bg-dangertint', label: 'CRITIQUE' },
   high:     { border: 'border-warn',   dot: 'bg-warn',     tint: 'bg-warntint',   label: 'ÉLEVÉ' },
-  medium:   { border: 'border-warn/60', dot: 'bg-warn/70', tint: 'bg-white/[0.03]', label: 'MOYEN' },
+  medium:   { border: 'border-warn/60', dot: 'bg-warn/70', tint: 'bg-hover', label: 'MOYEN' },
   low:      { border: 'border-ok/50',  dot: 'bg-ok',       tint: 'bg-oktint',     label: 'FAIBLE' },
-  info:     { border: 'border-line2',  dot: 'bg-mut',      tint: 'bg-white/[0.03]', label: 'INFO' },
+  info:     { border: 'border-line2',  dot: 'bg-mut',      tint: 'bg-hover', label: 'INFO' },
 }
 
 export default function FindingsLive({ findings }) {
