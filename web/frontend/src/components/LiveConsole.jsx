@@ -28,7 +28,7 @@ function fmtTime(ts) {
 
 const H_MIN = 140, H_MAX = 700
 
-export default function LiveConsole({ logs, status, onClear }) {
+export default function LiveConsole({ logs, status, onClear, onClose }) {
   const endRef = useRef(null)
   const containerRef = useRef(null)
   const [pinned, setPinned] = useState(true)
@@ -108,7 +108,7 @@ export default function LiveConsole({ logs, status, onClear }) {
     return (
       <div className="panel overflow-hidden select-none">
         <button onClick={() => setIsFolded(false)}
-          className="w-full px-4 py-2.5 flex items-center gap-3 text-left hover:bg-white/[0.03] transition-colors group">
+          className="w-full px-4 py-2.5 flex items-center gap-3 text-left hover:bg-hover transition-colors group">
           <span className="text-[9px] uppercase tracking-[.24em] text-mut shrink-0">console</span>
           <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-volt animate-pulse" />
           <span className="flex-1 font-mono text-[11px] text-ash truncate">
@@ -149,11 +149,11 @@ export default function LiveConsole({ logs, status, onClear }) {
         </div>
 
         <div className="flex items-center gap-1.5 flex-wrap">
-          <div className="flex gap-px rounded-full p-0.5 border border-line bg-black/30">
+          <div className="flex gap-px rounded-full p-0.5 border border-line bg-insetstrong">
             {filters.map(f => (
               <button key={f.key} onClick={() => setFilter(f.key)}
                 className={`px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-[.08em] transition-colors ${
-                  filter === f.key ? 'bg-snow text-[#0A0A0A] font-medium' : 'text-mut hover:text-ink'
+                  filter === f.key ? 'pill-solid font-medium' : 'text-mut hover:text-ink'
                 }`}>
                 {f.label} {f.count > 0 && <span className="opacity-60 text-[9px]">({f.count})</span>}
               </button>
@@ -180,6 +180,12 @@ export default function LiveConsole({ logs, status, onClear }) {
             className="px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-[.08em] border border-line text-mut hover:text-ink hover:border-line2 transition-colors">
             {isExpanded ? 'réduire' : 'plein écran'}
           </button>
+          {onClose && (
+            <button onClick={onClose} title="Refermer la console — elle reviendra à l'activité"
+              className="px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-[.08em] border border-line text-mut hover:text-danger hover:border-danger/40 transition-colors">
+              ×
+            </button>
+          )}
         </div>
       </div>
 
@@ -206,7 +212,7 @@ export default function LiveConsole({ logs, status, onClear }) {
             }
             const cfg = LINE_CONFIG[line.type] || LINE_CONFIG.system
             return (
-              <div key={i} className="flex items-start gap-2 rounded px-1 py-0.5 transition-colors group hover:bg-white/[0.03]">
+              <div key={i} className="flex items-start gap-2 rounded px-1 py-0.5 transition-colors group hover:bg-hover">
                 <span className="text-[11px] select-none font-mono shrink-0 pt-0.5 text-faint">
                   [{fmtTime(line.ts)}]
                 </span>
@@ -225,7 +231,7 @@ export default function LiveConsole({ logs, status, onClear }) {
 
       {!pinned && (
         <button onClick={() => { setPinned(true); endRef.current?.scrollIntoView({ behavior: 'smooth' }) }}
-          className="w-full py-2.5 text-center text-[10px] uppercase tracking-[.14em] bg-snow text-[#0A0A0A] hover:opacity-90 transition-opacity font-medium flex items-center justify-center gap-1">
+          className="w-full py-2.5 text-center text-[10px] uppercase tracking-[.14em] bar-solid hover:opacity-90 transition-opacity font-medium flex items-center justify-center gap-1">
           <span>↓ flux en pause — cliquer pour suivre</span>
         </button>
       )}

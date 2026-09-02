@@ -12,16 +12,22 @@ import { API_BASE } from './api.js';
 const DOC_NO = `VF-${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}`;
 
 /* ═══════════════════════════════════════════════════════════════════
-   VOIDFORGE — DIMENSION, deuxième édition. Reconstruit de zéro.
-   Nav flottante détachée, verre dépoli, pills, hairlines, un violet
-   en wash. DM Sans fait la voix, le mono fait la guerre.
+   VOIDFORGE — DIMENSION. La géographie du pont :
+   · GAUCHE   — les registres (rapports, provider, masque, arsenal, purge)
+   · CENTRE   — la conversation (héros de veille, puis la ligne sécurisée)
+                + les verdicts (plan, rapport de puissance, findings)
+   · DROITE   — la console de campagne, qui N'APPARAÎT qu'à l'activité
+                (le feed vit à droite, la voix vit au centre)
+   Deux thèmes : crépuscule (défaut) et aurore — mêmes tokens, autre heure.
    ═══════════════════════════════════════════════════════════════════ */
 
 const Ic = {
   doc:   () => <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M6 3h9l4 4v14H6z"/><path d="M10 10h6M10 14h6M10 18h3"/></svg>,
   stop:  () => <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>,
-  chat:  () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 1 1 17 0z"/></svg>,
   gear:  () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>,
+  term:  () => <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>,
+  sun:   () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.9" y1="4.9" x2="6.3" y2="6.3"/><line x1="17.7" y1="17.7" x2="19.1" y2="19.1"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.9" y1="19.1" x2="6.3" y2="17.7"/><line x1="17.7" y1="6.3" x2="19.1" y2="4.9"/></svg>,
+  moon:  () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>,
 };
 
 /* chiffres display — Geist, tabulaire, weight 500 */
@@ -38,7 +44,7 @@ function Stat({ value, label, tone = 'ink' }) {
 function Section({ title, children, defaultOpen = false }) {
   return (
     <details className="panel group overflow-hidden" open={defaultOpen}>
-      <summary className="px-4 py-3 flex items-center justify-between cursor-pointer select-none list-none hover:bg-white/[0.03] transition-colors">
+      <summary className="px-4 py-3 flex items-center justify-between cursor-pointer select-none list-none hover:bg-hover transition-colors">
         <span className="text-[12.5px] font-medium text-ink">{title}</span>
         <span className="text-[13px] text-faint group-open:text-cyan group-open:rotate-45 transition-all duration-200 shrink-0">+</span>
       </summary>
@@ -58,11 +64,11 @@ function IdleHero({ onOrder, busy }) {
     onOrder(t);
   };
   return (
-    <div className="panel-frost relative overflow-hidden px-8 py-14 animate-fadeIn">
+    <div className="panel-frost relative overflow-hidden px-8 py-12 animate-fadeIn">
       <div aria-hidden className="spotlight pointer-events-none absolute -top-32 left-1/2 -translate-x-1/2 w-[560px] h-[280px] opacity-25" />
       <div className="relative max-w-2xl mx-auto text-center">
         <p className="eyebrow mb-5">voidforge · ops console</p>
-        <h2 className="display text-[34px] text-ink mb-4">
+        <h2 className="display text-[32px] text-ink mb-4">
           Un ordre, et la nuit se met au travail.
         </h2>
         <p className="text-[14px] leading-relaxed text-ash mb-8">
@@ -74,8 +80,8 @@ function IdleHero({ onOrder, busy }) {
           <input
             value={order}
             onChange={(e) => setOrder(e.target.value)}
-            placeholder="ex : cartographie le surface de attack-surface.example — focus exposés Supabase…"
-            className="w-full h-[52px] rounded-full border border-line2 bg-black/40 backdrop-blur px-6 pr-36 text-[13.5px] text-ink placeholder:text-faint focus:outline-none focus:border-volt/60 transition-colors"
+            placeholder="ex : cartographie la surface de attack-surface.example — focus exposés Supabase…"
+            className="w-full h-[52px] rounded-full border border-line2 bg-insetstrong backdrop-blur px-6 pr-36 text-[13.5px] text-ink placeholder:text-faint focus:outline-none focus:border-volt/60 transition-colors"
           />
           <button type="submit" disabled={busy || !order.trim()}
             className="pill-cta btn-strike absolute right-[5px] top-[5px] bottom-[5px] px-6 text-[12.5px] tracking-[.04em]">
@@ -111,8 +117,19 @@ function App() {
   } = useMissionSocket();
   const [editedPlan, setEditedPlan] = useState('');
   const [strikeMode, setStrikeMode] = useState('IA');
-  const [showLeft, setShowLeft] = useState(true);
-  const [leftTab, setLeftTab] = useState('chat'); // 'chat' | 'registres'
+
+  /* ── panneaux ── */
+  const [showRegistres, setShowRegistres] = useState(true);
+  const [consolePinned, setConsolePinned] = useState(null); // null = auto (l'activité décide)
+  const hasActivity = logs.length > 0 || chatLog.length > 0 || wsStatus !== 'idle';
+  const consoleOpen = consolePinned !== null ? consolePinned : hasActivity;
+
+  /* ── thème — crépuscule par défaut, aurore au clic, mémorisé ── */
+  const [theme, setTheme] = useState(() => localStorage.getItem('vf-theme') || 'crepuscule');
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem('vf-theme', theme);
+  }, [theme]);
 
   // le plan arrive → le textarea s'arme pour l'édition (Option B)
   useEffect(() => {
@@ -163,6 +180,7 @@ function App() {
     reset();
     setMission('');
     setWorkspace(null);
+    setConsolePinned(null); // la console se rendormez avec la session
   };
 
   const saveProvider = async (e) => {
@@ -198,7 +216,7 @@ function App() {
   const ss = String(elapsed % 60).padStart(2, '0');
   const hbClass = wsStatus === 'running' ? 'running' : wsStatus === 'complete' ? 'complete' : wsStatus === 'error' ? 'error' : '';
 
-  const inputCls = "w-full rounded-ui border border-line bg-white/[0.04] px-3 py-2 text-[13px] text-ink focus:outline-none focus:border-volt/60 transition-colors placeholder:text-faint";
+  const inputCls = "w-full rounded-ui border border-line bg-inset px-3 py-2 text-[13px] text-ink focus:outline-none focus:border-volt/60 transition-colors placeholder:text-faint";
 
   const idle = wsStatus === 'idle' && !pendingPlan;
 
@@ -210,7 +228,7 @@ function App() {
 
       {/* ── nav flottante — la signature Dimension, détachée des bords (16px) ── */}
       <div className="shrink-0 px-4 pt-4 pb-3 relative z-10">
-        <header className="nav-float h-12 px-5 flex items-center gap-3.5 shadow-nav">
+        <header className="nav-float h-12 px-5 flex items-center gap-3.5">
           <h1 className="font-disp text-[15px] font-medium tracking-[-0.03em] shrink-0 relative">
             <span className="text-ink">VOID</span><span className="text-ash">FORGE</span>
             <span aria-hidden className="wash-violet absolute left-0 -bottom-[3px] h-[2px] w-full" />
@@ -241,121 +259,103 @@ function App() {
               reset
             </button>
           )}
-          <button onClick={() => {
-            if (showLeft && leftTab === 'chat') setShowLeft(false);
-            else { setShowLeft(true); setLeftTab('chat'); }
-          }}
-            title={showLeft && leftTab === 'chat' ? 'fermer la barre latérale' : 'ouvrir le chat'}
-            className={`rounded-full px-2.5 py-1.5 border transition-colors shrink-0 ${showLeft && leftTab === 'chat' ? 'bg-voltlite text-cyan border-volt/30' : 'bg-white/[0.04] text-mut border-line hover:text-ink'}`}>
-            <Ic.chat />
+          <button onClick={() => setConsolePinned(!consoleOpen)}
+            title={consoleOpen ? 'fermer la console' : 'ouvrir la console de campagne'}
+            className={`rounded-full px-2.5 py-1.5 border transition-colors shrink-0 ${consoleOpen ? 'bg-voltlite text-cyan border-volt/30' : 'bg-inset text-mut border-line hover:text-ink'}`}>
+            <Ic.term />
           </button>
-          <button onClick={() => {
-            if (showLeft && leftTab === 'registres') setShowLeft(false);
-            else { setShowLeft(true); setLeftTab('registres'); }
-          }}
-            title={showLeft && leftTab === 'registres' ? 'fermer la barre latérale' : 'ouvrir les registres'}
-            className={`rounded-full px-2.5 py-1.5 border transition-colors shrink-0 ${showLeft && leftTab === 'registres' ? 'bg-voltlite text-cyan border-volt/30' : 'bg-white/[0.04] text-mut border-line hover:text-ink'}`}>
+          <button onClick={() => setShowRegistres(!showRegistres)}
+            title={showRegistres ? 'fermer les registres' : 'ouvrir les registres'}
+            className={`rounded-full px-2.5 py-1.5 border transition-colors shrink-0 ${showRegistres ? 'bg-voltlite text-cyan border-volt/30' : 'bg-inset text-mut border-line hover:text-ink'}`}>
             <Ic.gear />
+          </button>
+          <button onClick={() => setTheme(t => t === 'crepuscule' ? 'aurore' : 'crepuscule')}
+            title={theme === 'crepuscule' ? 'passer à l\'aurore' : 'passer au crépuscule'}
+            className="rounded-full px-2.5 py-1.5 border bg-inset text-mut border-line hover:text-ink transition-colors shrink-0">
+            {theme === 'crepuscule' ? <Ic.sun /> : <Ic.moon />}
           </button>
           <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${connected ? 'bg-ok' : 'bg-danger animate-pulse'}`} title={connected ? 'flux live' : 'flux coupé'} />
         </header>
       </div>
 
-      {/* ── corps : SALON · CENTRE · REGISTRES ── */}
+      {/* ── corps : REGISTRES · CONVERSATION · CONSOLE ── */}
       <div className="relative z-10 flex flex-1 min-h-0 gap-3 px-4 pb-4">
 
-        {/* ══ BARRE LATÉRALE — la ligne sécurisée ou les registres ══ */}
-        {showLeft && (
-          <aside className="w-[360px] shrink-0 min-h-0">
-            {leftTab === 'chat' ? (
-              <div className="h-full min-h-0">
-                <WarRoom
-                  chatLog={chatLog}
-                  onSend={sendChatMessage}
-                  busy={chatBusy}
-                  wsStatus={wsStatus}
-                  missionId={missionId}
-                  onSendOperator={sendOperatorMessage}
-                  onClear={clearChat}
-                  streaming={chatStreaming}
-                />
-              </div>
-            ) : (
-              <div className="h-full min-h-0 panel p-3.5 space-y-3 overflow-y-auto">
-                <Section title="rapports">
-                  {reports.length === 0
-                    ? <p className="text-[12.5px] text-mut">Aucun rapport archivé.</p>
-                    : <ul className="divide-y divide-line max-h-48 overflow-y-auto">
-                        {reports.map(r => (
-                          <li key={r.name} onClick={() => openReport(r.name)}
-                            className="py-2 px-1.5 -mx-1.5 rounded-ui flex items-center gap-2 group cursor-pointer hover:bg-white/[0.04] transition-colors">
-                            <span className="text-faint group-hover:text-cyan transition-colors"><Ic.doc /></span>
-                            <span className="text-[12.5px] text-ash group-hover:text-ink transition-colors truncate">{r.name.replace(/report_|\.md/g, '')}</span>
-                            <span className="ml-auto font-mono text-[10px] text-faint shrink-0">{(r.size / 1024).toFixed(0)}K</span>
-                          </li>
-                        ))}
-                      </ul>}
-                </Section>
+        {/* ══ GAUCHE — LES REGISTRES ══ */}
+        {showRegistres && (
+          <aside className="w-[320px] shrink-0 min-h-0 panel p-3.5 space-y-3 overflow-y-auto">
+            <Section title="rapports">
+              {reports.length === 0
+                ? <p className="text-[12.5px] text-mut">Aucun rapport archivé.</p>
+                : <ul className="divide-y divide-line max-h-48 overflow-y-auto">
+                    {reports.map(r => (
+                      <li key={r.name} onClick={() => openReport(r.name)}
+                        className="py-2 px-1.5 -mx-1.5 rounded-ui flex items-center gap-2 group cursor-pointer hover:bg-hover transition-colors">
+                        <span className="text-faint group-hover:text-cyan transition-colors"><Ic.doc /></span>
+                        <span className="text-[12.5px] text-ash group-hover:text-ink transition-colors truncate">{r.name.replace(/report_|\.md/g, '')}</span>
+                        <span className="ml-auto font-mono text-[10px] text-faint shrink-0">{(r.size / 1024).toFixed(0)}K</span>
+                      </li>
+                    ))}
+                  </ul>}
+            </Section>
 
-                <Section title="cerveau — provider">
-                  <form onSubmit={saveProvider} className="space-y-2.5">
-                    <input value={provForm.base_url} onChange={(e) => setProvForm(f => ({ ...f, base_url: e.target.value }))}
-                      placeholder="https://api.deepseek.com/v1" className={inputCls} />
-                    <input type="password" value={provForm.api_key} onChange={(e) => setProvForm(f => ({ ...f, api_key: e.target.value }))}
-                      placeholder={provider?.api_key_masked ? `${provider.api_key_masked} (inchangée)` : 'sk-…'}
-                      autoComplete="new-password" className={inputCls} />
-                    <input value={provForm.model} onChange={(e) => setProvForm(f => ({ ...f, model: e.target.value }))}
-                      placeholder="deepseek-chat" className={inputCls} />
-                    <div className="flex items-center gap-2">
-                      <label className="text-[10px] uppercase tracking-[.14em] text-mut shrink-0">
-                        plafond chat
-                      </label>
-                      <input type="number" min="256" step="100"
-                        value={provForm.max_tokens}
-                        onChange={(e) => setProvForm(f => ({ ...f, max_tokens: e.target.value }))}
-                        className={`${inputCls} w-24 shrink-0`} />
-                      <span className="text-[10.5px] text-faint">tokens — missions non plafonnées</span>
-                    </div>
-                    <div className="flex items-center justify-between gap-2 pt-1">
-                      <span className={`text-[11px] break-words flex-1 ${
-                        provMsg?.ok === true ? 'text-ok' : provMsg?.ok === false ? 'text-danger' :
-                        isTestingProv ? 'text-warn animate-pulse' : provider?.api_key_set ? 'text-mut' : 'text-danger'}`}>
-                        {provMsg ? provMsg.text : provider?.api_key_set ? `clé ${provider.api_key_masked}` : 'aucune clé'}
-                      </span>
-                      <button type="submit" disabled={isTestingProv} className="pill-cta btn-strike px-5 py-1.5 text-[11px] uppercase tracking-[.1em] shrink-0">
-                        {isTestingProv ? '...' : 'armer'}
-                      </button>
-                    </div>
-                  </form>
-                </Section>
+            <Section title="cerveau — provider">
+              <form onSubmit={saveProvider} className="space-y-2.5">
+                <input value={provForm.base_url} onChange={(e) => setProvForm(f => ({ ...f, base_url: e.target.value }))}
+                  placeholder="https://api.deepseek.com/v1" className={inputCls} />
+                <input type="password" value={provForm.api_key} onChange={(e) => setProvForm(f => ({ ...f, api_key: e.target.value }))}
+                  placeholder={provider?.api_key_masked ? `${provider.api_key_masked} (inchangée)` : 'sk-…'}
+                  autoComplete="new-password" className={inputCls} />
+                <input value={provForm.model} onChange={(e) => setProvForm(f => ({ ...f, model: e.target.value }))}
+                  placeholder="deepseek-chat" className={inputCls} />
+                <div className="flex items-center gap-2">
+                  <label className="text-[10px] uppercase tracking-[.14em] text-mut shrink-0">
+                    plafond chat
+                  </label>
+                  <input type="number" min="256" step="100"
+                    value={provForm.max_tokens}
+                    onChange={(e) => setProvForm(f => ({ ...f, max_tokens: e.target.value }))}
+                    className={`${inputCls} w-24 shrink-0`} />
+                  <span className="text-[10.5px] text-faint">tokens — missions non plafonnées</span>
+                </div>
+                <div className="flex items-center justify-between gap-2 pt-1">
+                  <span className={`text-[11px] break-words flex-1 ${
+                    provMsg?.ok === true ? 'text-ok' : provMsg?.ok === false ? 'text-danger' :
+                    isTestingProv ? 'text-warn animate-pulse' : provider?.api_key_set ? 'text-mut' : 'text-danger'}`}>
+                    {provMsg ? provMsg.text : provider?.api_key_set ? `clé ${provider.api_key_masked}` : 'aucune clé'}
+                  </span>
+                  <button type="submit" disabled={isTestingProv} className="pill-cta btn-strike px-5 py-1.5 text-[11px] uppercase tracking-[.1em] shrink-0">
+                    {isTestingProv ? '...' : 'armer'}
+                  </button>
+                </div>
+              </form>
+            </Section>
 
-                <Section title="masque — personnalité">
-                  <PersonaPanel />
-                </Section>
+            <Section title="masque — personnalité">
+              <PersonaPanel />
+            </Section>
 
-                <Section title="frappe directe — l'arsenal à la main" defaultOpen={false}>
-                  <DirectToolRunner onToolExecuted={() => { fetchReports(); }} />
-                </Section>
+            <Section title="frappe directe — l'arsenal à la main" defaultOpen={false}>
+              <DirectToolRunner onToolExecuted={() => { fetchReports(); }} />
+            </Section>
 
-                <Section title="session neuve — purge mémoire" defaultOpen={false}>
-                  <FreshSessionPanel
-                    onPurge={() => { reset(); setMission(''); setWorkspace(null); setReading(null); }} />
-                </Section>
+            <Section title="session neuve — purge mémoire" defaultOpen={false}>
+              <FreshSessionPanel
+                onPurge={() => { reset(); setMission(''); setWorkspace(null); setReading(null); }} />
+            </Section>
 
-                <p className="px-1 pt-1 pb-1 text-[9px] tracking-[.18em] text-faint uppercase">
-                  forge opérative · forgé par voidforge
-                </p>
-              </div>
-            )}
+            <p className="px-1 pt-1 pb-1 text-[9px] tracking-[.18em] text-faint uppercase">
+              forge opérative · forgé par voidforge
+            </p>
           </aside>
         )}
 
-        {/* ══ CENTRE — LA SALLE DES MACHINES ══ */}
-        <main className="flex-1 min-w-0 overflow-y-auto">
-          <div className="space-y-4">
+        {/* ══ CENTRE — LA CONVERSATION ET SES VERDICTS ══ */}
+        <main className="flex-1 min-w-0 flex flex-col gap-3 min-h-0">
 
-            {/* héros de veille — la forge dort, l'ordre l'éveille */}
-            {idle && <IdleHero onOrder={(t) => { setMission(t); setShowLeft(true); setLeftTab('chat'); sendChatMessage(t); }} busy={chatBusy} />}
+          {/* la zone haute défile : héros, stats, plan, rapport, findings */}
+          <div className="flex-1 min-h-0 overflow-y-auto space-y-4">
+            {idle && <IdleHero onOrder={(t) => { setMission(t); sendChatMessage(t); }} busy={chatBusy} />}
 
             {/* barre d'état — cinq chiffres */}
             <div className="panel grid grid-cols-5 divide-x divide-line overflow-hidden">
@@ -365,9 +365,6 @@ function App() {
               <Stat value={stats.findings} label="findings" tone={stats.findings > 0 ? 'danger' : 'ink'} />
               <Stat value={graph.nodes.length} label="nœuds" tone={wsStatus === 'complete' ? 'gold' : 'ink'} />
             </div>
-
-            {/* LA CONSOLE — toujours vivante */}
-            <LiveConsole logs={logs} status={wsStatus} onClear={clearConsole} />
 
             {/* PLAN EN ATTENTE — l'opérateur lit, corrige, tranche */}
             {pendingPlan && (
@@ -379,7 +376,7 @@ function App() {
                     {['IA', 'Swarm'].map(m => (
                       <button key={m} type="button" onClick={() => setStrikeMode(m)}
                         className={`px-3.5 py-1.5 rounded-full text-[11px] uppercase tracking-[.1em] transition-all
-                          ${strikeMode === m ? 'bg-snow text-[#0A0A0A] font-medium' : 'border border-line text-mut hover:text-ink'}`}>
+                          ${strikeMode === m ? 'pill-solid font-medium' : 'border border-line text-mut hover:text-ink'}`}>
                         {m.toLowerCase()}
                       </button>
                     ))}
@@ -389,7 +386,7 @@ function App() {
                   rows={16}
                   className="w-full terminal-bg text-[11.5px] leading-relaxed text-ink p-4 resize-y focus:outline-none border-0 bg-transparent"
                   spellCheck="false" />
-                <div className="px-5 py-3.5 border-t border-line bg-white/[0.03] flex items-center justify-between gap-3">
+                <div className="px-5 py-3.5 border-t border-line bg-hover flex items-center justify-between gap-3">
                   <span className="text-[11px] text-mut">
                     corrige librement — ta version part à la frappe · mode {strikeMode.toLowerCase()}
                     {strikeMode === 'Swarm' ? ' : subagents du plan' : ' : agent unique plan-guidé'}
@@ -450,11 +447,37 @@ function App() {
             {/* findings — que quand il y a du sang sur le sol */}
             {findings.length > 0 && <FindingsLive findings={findings} />}
           </div>
+
+          {/* la ligne sécurisée — la voix, toujours en bas du centre */}
+          <div className="shrink-0 h-[38%] min-h-[260px] flex">
+            <div className="flex-1 min-h-0">
+              <WarRoom
+                chatLog={chatLog}
+                onSend={sendChatMessage}
+                busy={chatBusy}
+                wsStatus={wsStatus}
+                missionId={missionId}
+                onSendOperator={sendOperatorMessage}
+                onClear={clearChat}
+                streaming={chatStreaming}
+              />
+            </div>
+          </div>
         </main>
+
+        {/* ══ DROITE — LA CONSOLE DE CAMPAGNE (à l'activité seulement) ══ */}
+        {consoleOpen && (
+          <aside className="w-[380px] shrink-0 min-h-0 flex">
+            <div className="flex-1 min-h-0">
+              <LiveConsole logs={logs} status={wsStatus} onClear={clearConsole}
+                onClose={() => setConsolePinned(false)} />
+            </div>
+          </aside>
+        )}
       </div>
 
       {reading && (
-        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 md:p-8" onClick={() => setReading(null)}>
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 md:p-8" onClick={() => setReading(null)}>
           <div className="w-full max-w-3xl max-h-[85vh] panel flex flex-col overflow-hidden animate-fadeIn" onClick={(e) => e.stopPropagation()}>
             <div className="px-5 py-3 border-b border-line flex items-center justify-between gap-3">
               <span className="font-mono text-[11px] uppercase tracking-[.16em] text-ash truncate">{reading.name}</span>
