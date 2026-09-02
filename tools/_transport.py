@@ -164,8 +164,8 @@ def _roe_gate():
 # governor stays ABOVE the pool — a proxy never changes the allowed cadence.
 _POOL = []
 _POOL_LOADED = [False]
-_WAF_SIGS = ("cloudflare", "captcha", "access denied", "request denied",
-             "attention required", "just a moment", "blocked", "sucuri")
+_WAF_SIGS = ("waf", "cloudflare", "sucuri", "captcha", "just a moment",
+             "cf-mitigated", "attention required")
 
 def _looks_blocked(body):
     low = (body or "").lower()[:1500]
@@ -339,10 +339,21 @@ def _imp_profile():
 
 def _cache_key(method, url, headers, body):
     auth = ""
+    hdr_digest = ""
     if headers:
         auth = "|".join(f"{k}={v}" for k, v in sorted(headers.items())
                         if k.lower() in ("authorization", "apikey", "cookie"))
-    raw = f"{method}|{url}|{auth}|{json.dumps(body, sort_keys=True) if body else ''}"
+        # C-T3: les headers NON-cred participent aussi à la clé — deux GET
+        # même URL avec des headers différents (UA custom, X-Session, …)
+        # ne doivent pas partager l'entrée de cache (bleed inter-sessions).
+        try:
+            hdr_digest = hashlib.blake2b(
+                json.dumps(sorted(headers.items()), default=str).encode()
+            ).hexdigest()[:8]
+        except Exception:
+            hdr_digest = ""  # headers non-serialisables → comportement d'avant
+    raw = (f"{method}|{url}|{auth}|{hdr_digest}|"
+           f"{json.dumps(body, sort_keys=True) if body else ''}")
     return hashlib.sha256(raw.encode()).hexdigest()
 
 
@@ -475,7 +486,44 @@ def fetch(url, method="GET", headers=None, body=None, timeout=25,
                            "redirect_chain": redirect_chain, "cache_hit": False,
                            "attempts": 1, "impersonated": prof}
                     break
-                # 3xx: on retombe sur urllib qui gère la chaîne de redirects
+                # C-T1: la réponse 3xx curl EST le résultat — jamais de
+                # re-send identique via urllib (double request). On suit le
+                # redirect avec la MÊME logique que le chemin urllib
+                # (HTTPError 3xx): chaîne + strip creds cross-host (R3-31) +
+                # 307/308 + budget — donc urllib n'auto-suit plus en
+                # contournant le strip.
+                loc = r.headers.get("Location")
+                if loc and _redirects < 5:
+                    if time.time() > deadline:
+                        return _budget_out(url, redirect_chain, attempt,
+                                           status=r.status_code,
+                                           headers={k.lower(): v
+                                                    for k, v in r.headers.items()})
+                    nxt = urllib.parse.urljoin(url, loc)
+                    redirect_chain.append({"status": r.status_code,
+                                           "from": url, "to": nxt})
+                    m2 = "GET" if r.status_code in (301, 302, 303) else method
+                    rbody = None if m2 == "GET" else body  # E-2: payload jamais sur un GET
+                    rheaders = headers
+                    if urllib.parse.urlsplit(nxt).netloc != host:
+                        # R3-31: cross-host → les credentials restent à la maison
+                        rheaders = {k: v for k, v in (headers or {}).items()
+                                    if k.lower() not in _CRED_HDRS}
+                    res = fetch(nxt, method=m2, headers=rheaders, body=rbody,
+                                timeout=timeout, use_cache=use_cache,
+                                retries=retries, _redirects=_redirects + 1,
+                                redirect_chain=redirect_chain,
+                                _proxy_tried=_proxy_tried, deadline=deadline)
+                    res["redirect_status"] = r.status_code
+                    return res
+                # 3xx sans Location (ou budget redirects épuisé) → rendu tel quel
+                raw = r.text
+                out = {"status": r.status_code, "body": raw,
+                       "headers": {k.lower(): v for k, v in r.headers.items()},
+                       "size": len(raw), "url": url, "final_url": str(r.url),
+                       "redirect_chain": redirect_chain, "cache_hit": False,
+                       "attempts": 1, "impersonated": prof}
+                break
             except Exception:
                 pass  # curl_cffi absent/err — chemin urllib standard
         rq = urllib.request.Request(url, method=method, headers=h)
