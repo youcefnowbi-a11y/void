@@ -2,19 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ═══════════════════════════════════════════════════════════════════
+   VOIDFORGE — DIMENSION, reconstruit de zéro.
+   Un canvas void, du verre dépoli, des pills, des hairlines,
+   un seul battement de cœur violet. Rien d'autre.
+   ═══════════════════════════════════════════════════════════════════ */
+
 @layer base {
   :root {
-    /* ══ DIMENSION — dusk-lit workspace ══
-       void canvas, frosted graphite, hairlines, pills,
-       dusk violet #6B62F2 as the only chromatic breath. */
     --mist: #0A0A0A; --paper: #161616; --wash: #1D1D1F;
-    --ink: #EDEDED; --slate: #C2C2C2; --mut: #8E8E99; --faint: #5C5C66;
+    --ink: #EDEDED; --ash: #C2C2C2; --mut: #8E8E99; --faint: #5C5C66;
     --line: rgba(255,255,255,0.09); --line2: rgba(255,255,255,0.16);
-    --volt: #6B62F2; --cyan: #A78BFA; --gold: #EDB36B;
-    --ok: #3DD68C; --warn: #FBBF24; --danger: #F87171;
-    --info: #818CF8;
-    --hairline: rgba(255,255,255,0.09);
-    --frost: rgba(255,255,255,0.06);
+    --frost: rgba(212,212,212,0.08);
+    --volt: #6B62F2;
+    --ok: #3DD68C; --warn: #FBBF24; --danger: #F87171; --gold: #EDB36B;
   }
 
   html { color-scheme: dark; }
@@ -22,18 +23,18 @@
   body {
     background-color: var(--mist);
     color: var(--ink);
-    font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+    font-family: "DM Sans", Inter, ui-sans-serif, system-ui, sans-serif;
+    font-size: 14px;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
-  /* ni voile, ni vignette, ni scanline — la propreté EST le luxe 2026 */
 
   ::selection { background: rgba(107,98,242,0.45); color: #FFFFFF; }
 
   ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 999px; }
-  ::-webkit-scrollbar-thumb:hover { background: var(--volt); }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(107,98,242,0.55); }
 
   :focus-visible {
     outline: 1.5px solid rgba(107,98,242,0.7);
@@ -47,7 +48,7 @@
 }
 
 @layer utilities {
-  /* ── the living pulse line — le crépuscule voyage ── */
+  /* ── la ligne de pouls — le crépuscule voyage ── */
   .heartbeat {
     position: fixed; top: 0; left: 0; right: 0; height: 2px;
     background: var(--line);
@@ -57,7 +58,7 @@
   .heartbeat::after {
     content: "";
     position: absolute; inset: 0;
-    /* Dusk Violet Wash — la signature Dimension (alpha .565, bande centrale) */
+    /* Dusk Violet Wash — la signature (alpha .565, bande centrale) */
     background: linear-gradient(90deg, transparent, rgba(107,98,242,0.565) 50%, transparent);
     transform: translateX(-100%);
     opacity: 0;
@@ -66,7 +67,6 @@
     opacity: 1;
     animation: heartbeat-travel 1.25s cubic-bezier(.4, 0, .2, 1) infinite;
   }
-  /* complete = l'horizon Dimension — ambre crépusculaire → cobalt */
   .heartbeat.complete { background: linear-gradient(90deg, #EDB36B, #4C5BD4); }
   .heartbeat.error    { background: var(--danger); }
 
@@ -75,35 +75,42 @@
     to   { transform: translateX(100%); }
   }
 
+  /* ── typographie ── */
   .eyebrow {
     font-family: "Geist", "DM Sans", sans-serif;
     text-transform: uppercase;
-    letter-spacing: .16em;
-    font-size: 10.5px;
+    letter-spacing: .18em;
+    font-size: 10px;
     font-weight: 500;
     color: var(--mut);
   }
+  /* display DM Sans — 500 jamais bold, tracking serré (l'anti-convention) */
+  .display {
+    font-family: "DM Sans", Inter, sans-serif;
+    font-weight: 500;
+    letter-spacing: -0.035em;
+    line-height: 1.05;
+  }
 
-  /* ── surfaces — frosted graphite, hairline, pas d'ombre lourde ── */
+  /* ── surfaces ── */
   .panel {
     background: var(--paper);
     border: 1px solid var(--line);
     border-radius: 24px;
   }
   .panel-raised {
-    background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.04)), var(--paper);
+    background: linear-gradient(180deg, rgba(255,255,255,0.06), rgba(255,255,255,0.03)), var(--paper);
     border: 1px solid var(--line2);
     border-radius: 24px;
   }
-  /* verre dépoli — la signature Dimension (translucide + blur, zéro shadow) */
-  .frosted {
+  /* verre dépoli — translucide + blur, zéro shadow (la profondeur EST la translucence) */
+  .panel-frost {
     background: var(--frost);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--line);
     border-radius: 24px;
   }
-  /* nav flottante détachée — 16-24px des bords, toujours */
   .nav-float {
     background: rgba(22,22,22,0.82);
     backdrop-filter: blur(14px);
@@ -121,21 +128,20 @@
     gap: 6px;
     font-weight: 500;
     transition: transform .12s ease, background .12s ease, color .12s ease,
-                border-color .12s ease, box-shadow .12s ease;
+                border-color .12s ease, opacity .12s ease;
   }
   /* White Pill CTA — le seul remplissage plein du système */
   .pill-cta { background: #FFFFFF; color: #0A0A0A; }
-  .pill-cta:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 2px 12px rgba(255,255,255,.12); }
-  .pill-cta:active:not(:disabled) { transform: translateY(0); }
-  /* ghost pill — le contrepoint */
+  .pill-cta:hover:not(:disabled) { transform: translateY(-1px); opacity: .96; }
+  .pill-cta:active:not(:disabled) { transform: translateY(0); opacity: 1; }
+  .pill-cta:disabled { opacity: .4; cursor: not-allowed; }
+  /* ghost pill — le contrepoint hairline */
   .pill-ghost { background: transparent; color: var(--ink); border: 1px solid var(--line2); }
   .pill-ghost:hover:not(:disabled) { border-color: rgba(107,98,242,0.55); }
+  .pill-ghost:disabled { opacity: .4; cursor: not-allowed; }
 
-  .btn-strike { transition: transform .12s ease, box-shadow .12s ease, background .12s ease, color .12s ease, border-color .12s ease; }
-  .btn-strike:hover:not(:disabled) {
-    transform: translateY(-1px);
-    box-shadow: 0 0 0 1px rgba(255,255,255,0.10), 0 4px 14px rgba(0,0,0,.35);
-  }
+  .btn-strike { transition: transform .12s ease, opacity .12s ease, background .12s ease, color .12s ease, border-color .12s ease; }
+  .btn-strike:hover:not(:disabled) { transform: translateY(-1px); }
   .btn-strike:active:not(:disabled) { transform: translateY(0); }
 
   .stamp {
@@ -150,12 +156,11 @@
   }
   .stamp.ok { color: var(--ok); border-color: rgba(61,214,140,.35); background: rgba(61,214,140,.07); }
 
-  .glow-text { color: var(--volt); }
-
-  /* ── gradient moments — héros et taches de lumière, rien d'autre ── */
+  /* ── les trois gradients — héros, liseré, tache de lumière. Rien d'autre. ── */
   .wash-violet {
     background: linear-gradient(90deg, transparent, rgba(107,98,242,0.565) 50%, transparent);
   }
+  /* Hero Horizon — ambre crépusculaire → cobalt. Héros et moments complets UNIQUEMENT. */
   .horizon {
     background: linear-gradient(90deg, #EDB36B, #4C5BD4);
   }
@@ -163,7 +168,7 @@
     background: radial-gradient(circle at 50% 50%, rgba(107,98,242,0.565), rgba(255,255,255,0) 70%);
   }
 
-  /* ═══ TERMINAL — dense black, le mono reste au операционный ═══ */
+  /* ═══ TERMINAL — le mono ne parle qu'opératif ═══ */
   .terminal-bg {
     background: #0B0B0E;
     color: var(--ink);
@@ -172,7 +177,6 @@
     line-height: 1.65;
     letter-spacing: 0.005em;
   }
-  .terminal-dark { background: #0B0B0E; color: #FAFAFA; }
 
   .log-system  { color: #9CA8FF; }
   .log-plan    { color: #F5C97B; font-weight: 600; }
