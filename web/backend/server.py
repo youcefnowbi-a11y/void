@@ -1562,7 +1562,8 @@ async def ws_mission(websocket: WebSocket):
         if qtok != OPERATOR_TOKEN:
             await websocket.close(code=4401)
             return
-    elif origin and origin not in ("http://localhost:5173", "http://127.0.0.1:5173"):
+    elif origin and origin not in ("http://localhost:5173", "http://127.0.0.1:5173",
+                                    "http://localhost:8000", "http://127.0.0.1:8000"):
         await websocket.close(code=4403)
         return
     await manager.connect(websocket)
