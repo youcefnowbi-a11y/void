@@ -333,7 +333,6 @@ export default function DirectToolRunner({ onToolExecuted }) {
             </>
           ) : (
             <>
-              <span>⚡</span>
               <span>LANCER L'OUTIL DIRECTEMENT</span>
             </>
           )}

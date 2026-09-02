@@ -192,8 +192,8 @@ export default function LiveConsole({ logs, status, onClear }) {
         className={`terminal-bg px-4 py-3 overflow-y-auto select-text flex-1 min-h-0 ${isExpanded ? '' : ''}`}>
         {filtered.length === 0 && (
           <div className="text-center py-14 text-xs flex flex-col items-center gap-2 text-faint">
-            <span className="text-2xl text-gold">⚡</span>
-            <span>{status === 'idle' ? "▶ le journal est ouvert — un ordre de frappe l’animera." : 'aucune entrée pour ce filtre.'}</span>
+            <span className="font-disp text-2xl text-faint">◇</span>
+            <span>{status === 'idle' ? "» le journal est ouvert — un ordre de frappe l’animera." : 'aucune entrée pour ce filtre.'}</span>
           </div>
         )}
 

@@ -117,7 +117,7 @@ export function useMissionSocket() {
                       ts: ev.timestamp, raw: r,
                     }, ...prev].slice(0, 80));
                     setStats(s => ({ ...s, findings: s.findings + 1 }));
-                    push({ type: 'finding', text: `🎯 [${sev}] ${ev.tool} — ${r.summary || ''}`, ts: ev.timestamp });
+                    push({ type: 'finding', text: `◆ [${sev}] ${ev.tool} — ${r.summary || ''}`, ts: ev.timestamp });
                   } else {
                     push({ type: 'ok', text: `○ ${ev.tool} — négatif (${ev.duration}s)`, ts: ev.timestamp });
                   }
@@ -137,16 +137,16 @@ export function useMissionSocket() {
               break;
 
             case 'tool_heal':
-              push({ type: 'heal', text: `🩹 auto-correction : ${ev.field || ev.tool || ''} ${ev.detail || ''}`, ts: ev.timestamp });
+              push({ type: 'heal', text: `✚ auto-correction : ${ev.field || ev.tool || ''} ${ev.detail || ''}`, ts: ev.timestamp });
               break;
 
             case 'agent_thinking':
               setStats(s => ({ ...s, rounds: s.rounds + 1 }));
-              push({ type: 'think', text: (ev.reasoning ? '🧠 ' : '') + (ev.content || ''), ts: ev.timestamp });
+              push({ type: 'think', text: (ev.reasoning ? '▸ ' : '') + (ev.content || ''), ts: ev.timestamp });
               break;
 
             case 'ops':
-              push({ type: 'ops', text: `💬 ${ev.mode === 'continuation' ? '[continuation] ' : '[live] '}${ev.text || ''}`, ts: ev.timestamp });
+              push({ type: 'ops', text: `» ${ev.mode === 'continuation' ? '[continuation] ' : '[live] '}${ev.text || ''}`, ts: ev.timestamp });
               break;
 
             case 'chat':
@@ -167,7 +167,7 @@ export function useMissionSocket() {
 
             case 'plan_ready':
               setPendingPlan({ missionId: ev.mission_id || null, plan: ev.plan || '' });
-              push({ type: 'plan', text: '🗺 PLAN D\'ATTAQUE PRÊT — approbation de l\'opérateur requise', ts: ev.timestamp });
+              push({ type: 'plan', text: '■ PLAN D\'ATTAQUE PRÊT — approbation de l\'opérateur requise', ts: ev.timestamp });
               flushBatch();
               break;
 

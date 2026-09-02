@@ -90,7 +90,7 @@ export default function FreshSessionPanel({ onPurge }) {
       </div>
       <button onClick={purge} disabled={busy}
         className="w-full btn-strike rounded-full border border-danger/50 text-danger font-disp font-semibold uppercase tracking-[.12em] text-[10.5px] px-3 py-2 hover:bg-danger hover:text-white transition-colors disabled:opacity-40">
-        {busy ? '···' : '⚡ purger — session neuve'}
+        {busy ? '···' : 'purger — session neuve'}
       </button>
       {msg && (
         <p className={`text-[10px] leading-snug ${msg.ok ? 'text-ok' : 'text-danger'}`}>

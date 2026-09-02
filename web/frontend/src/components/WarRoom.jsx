@@ -47,7 +47,7 @@ export default function WarRoom({ chatLog = [], onSend, busy = false,
           <span className="text-[10px] text-faint">{label}</span>
           {warMode && chatLog.length > 0 && onClear && (
             <button onClick={onClear} title="nettoyer la salle de guerre"
-              className="text-[11px] text-mut hover:text-danger transition-colors">🧹</button>
+              className="text-[11px] text-mut hover:text-danger transition-colors">×</button>
           )}
         </div>
       </div>
@@ -56,7 +56,7 @@ export default function WarRoom({ chatLog = [], onSend, busy = false,
       <div className="flex-1 min-h-0 overflow-y-auto px-3 py-3 space-y-2.5">
         {chatLog.length === 0 && (
           <div className="text-center py-10 px-2">
-            <div className="text-2xl mb-2">⚡</div>
+            <div className="font-disp text-xl text-faint mb-2">◇</div>
             <p className="text-[11.5px] text-mut leading-relaxed">
               {warMode
                 ? <>La ligne est ouverte.<br />Donne ton contexte, pose tes questions,<br />répète tes contraintes —<br /><span className="text-volt">ici, aucun outil ne tire.</span></>
@@ -72,7 +72,7 @@ export default function WarRoom({ chatLog = [], onSend, busy = false,
                 : 'bg-[#0E1E38]/60 border border-[#60A5FA]/25 rounded-tl-sm'
             }`}>
               <div className={`text-[9px] uppercase tracking-[.18em] mb-1 ${m.role === 'user' ? 'text-volt' : 'text-[#93C5FD]'}`}>
-                {m.role === 'user' ? '👤 commandant' : '⚡ stratège'}{m.time ? ` · ${m.time}s` : ''}
+                {m.role === 'user' ? 'commandant' : 'stratège'}{m.time ? ` · ${m.time}s` : ''}
               </div>
               <p className="text-[12px] leading-relaxed text-slate whitespace-pre-wrap break-words">
                 {m.text}
@@ -84,7 +84,7 @@ export default function WarRoom({ chatLog = [], onSend, busy = false,
           <div className="flex justify-start">
             <div className="max-w-[92%] rounded-xl px-3 py-2 bg-[#0E1E38]/60 border border-[#60A5FA]/25 rounded-tl-sm">
               <div className="text-[9px] uppercase tracking-[.18em] mb-1 text-[#93C5FD]">
-                ⚡ stratège{streaming ? ' · écrit' : ' · réfléchit'}
+                stratège{streaming ? ' · écrit' : ' · réfléchit'}
               </div>
               {streaming
                 ? <p className="text-[12px] leading-relaxed text-slate whitespace-pre-wrap break-words">
