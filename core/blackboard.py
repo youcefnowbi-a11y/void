@@ -107,15 +107,23 @@ class Blackboard:
                                "evidence": evidence[:300]})
             a = self.assets.get(key)
             if a:
-                a["confidence"] = _fuse([a["confidence"], confidence],
-                                        a["sources"] + [source_tool])
+                # D-B2 : rejouer les observations BRUTES. L'ancienne forme
+                # _fuse([fusé, nouveau], …) re-stackait prior +1.0 ET le
+                # logit du résultat précédent à chaque ré-observation
+                # (0.60 → 0.83 → 0.94 → 0.995 — runaway). Le replay des raw
+                # rend le discount 0.4^k stable (l'écho même-source plafonne
+                # ~0.842) et la corroboration indépendante reprend la main.
+                a.setdefault("_raw", []).append((confidence, source_tool))
+                a["confidence"] = _fuse([c for c, _ in a["_raw"]],
+                                        [s for _, s in a["_raw"]])
                 if props:
                     a["props"].update({k: v for k, v in props.items() if v not in (None, "")})
                 if source_tool not in a["sources"]:
                     a["sources"].append(source_tool)
             else:
                 self.assets[key] = {"kind": kind, "value": value, "props": dict(props or {}),
-                                    "confidence": confidence, "sources": [source_tool], "ts": _now()}
+                                    "confidence": confidence, "sources": [source_tool], "ts": _now(),
+                                    "_raw": [(confidence, source_tool)]}
             self._append_event({"seq": self._seq, "op": "asset", "key": key})
             return key
 
@@ -130,12 +138,15 @@ class Blackboard:
                                "confidence": confidence, "source": source_tool})
             e = self.edges.get(ekey)
             if e:
-                e["confidence"] = _fuse([e["confidence"], confidence],
-                                        e["sources"] + [source_tool])
+                # D-B2 : même replay raw que les assets (pas de re-stack du prior).
+                e.setdefault("_raw", []).append((confidence, source_tool))
+                e["confidence"] = _fuse([c for c, _ in e["_raw"]],
+                                        [s for _, s in e["_raw"]])
                 if source_tool not in e["sources"]:
                     e["sources"].append(source_tool)
             else:
-                self.edges[ekey] = {"confidence": confidence, "sources": [source_tool], "ts": _now()}
+                self.edges[ekey] = {"confidence": confidence, "sources": [source_tool], "ts": _now(),
+                                    "_raw": [(confidence, source_tool)]}
             self._append_event({"seq": self._seq, "op": "link", "key": str(ekey)})
             return ekey
 
