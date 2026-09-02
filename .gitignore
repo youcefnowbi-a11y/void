@@ -18,6 +18,9 @@ uploads/
 *.db-wal
 *.db-shm
 *.log
+core/bandit.json
+data/intel/
+reports/
 
 # ── transitoires ──
 *.tmp
