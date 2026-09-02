@@ -2,23 +2,20 @@ import React, { useRef, useEffect, useState, useCallback } from 'react'
 
 /* LA CONSOLE-DOCK — citoyenne de première classe du PONT UNIQUE.
    Elle ne disparaît JAMAIS : ni au sol, ni en campagne, ni après.
-   • poignée de redimensionnement (drag la lisière haute)
-   • rabat en liseron 34px qui montre la dernière ligne
-   • plein écran pour les longues campagnes
-   • séparateurs de session : le journal traverse les missions. */
+   Terminal noir, badges mono, pills — le mono ne parle qu'opératif. */
 
 const LINE_CONFIG = {
-  separator: { color: 'log-system',  tag: '····', badge: 'bg-wash text-faint border-line' },
+  separator: { color: 'log-system',  tag: '····', badge: 'bg-white/[0.05] text-faint border-line' },
   system:    { color: 'log-system',  tag: 'SYS',   badge: 'bg-infotint text-info border-info/25' },
   plan:      { color: 'log-plan',    tag: 'PLAN',  badge: 'bg-warntint text-warn border-warn/25' },
-  tool:      { color: 'log-tool',    tag: 'TOOL',  badge: 'bg-[#1B1533] text-[#C4B5FD] border-[#A78BFA]/25' },
+  tool:      { color: 'log-tool',    tag: 'TOOL',  badge: 'bg-voltlite text-[#C4B5FD] border-volt/25' },
   ok:        { color: 'log-ok',      tag: 'OK',    badge: 'bg-oktint text-ok border-ok/25' },
   error:     { color: 'log-error',   tag: 'ERR',   badge: 'bg-dangertint text-danger border-danger/25' },
   heal:      { color: 'log-heal',    tag: 'HEAL',  badge: 'bg-warntint text-warn border-warn/25' },
-  think:     { color: 'log-think',   tag: 'BRAIN', badge: 'bg-[#0E1E38] text-[#93C5FD] border-[#60A5FA]/25' },
-  round:     { color: 'log-tool',    tag: 'ROUND', badge: 'bg-[#1B1533] text-[#C4B5FD] border-[#A78BFA]/25' },
+  think:     { color: 'log-think',   tag: 'BRAIN', badge: 'bg-white/[0.05] text-[#A5B4FC] border-line' },
+  round:     { color: 'log-tool',    tag: 'ROUND', badge: 'bg-voltlite text-[#C4B5FD] border-volt/25' },
   ops:       { color: 'log-plan',    tag: 'OPS',   badge: 'bg-cyantint text-cyan border-cyan/25' },
-  chat:      { color: 'log-think',   tag: 'CHAT',  badge: 'bg-[#0E1E38] text-[#93C5FD] border-[#60A5FA]/25' },
+  chat:      { color: 'log-think',   tag: 'CHAT',  badge: 'bg-white/[0.05] text-[#A5B4FC] border-line' },
   finding:   { color: 'log-finding', tag: 'ALERT', badge: 'bg-dangertint text-danger border-danger/35' },
 }
 
@@ -109,79 +106,78 @@ export default function LiveConsole({ logs, status, onClear }) {
   /* ── LIZERON : la console rabattue, une ligne de vie ── */
   if (isFolded && !isExpanded) {
     return (
-      <div className="panel-raised overflow-hidden select-none">
+      <div className="panel overflow-hidden select-none">
         <button onClick={() => setIsFolded(false)}
-          className="w-full px-4 py-2 flex items-center gap-3 text-left hover:bg-wash transition-colors group">
+          className="w-full px-4 py-2.5 flex items-center gap-3 text-left hover:bg-white/[0.03] transition-colors group">
           <span className="text-[9px] uppercase tracking-[.24em] text-mut shrink-0">console</span>
           <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-volt animate-pulse" />
-          <span className="flex-1 font-mono text-[11px] text-slate truncate">
+          <span className="flex-1 font-mono text-[11px] text-ash truncate">
             {lastLine ? `${lastLine.type === 'separator' ? '— ' : ''}${lastLine.text}` : 'en attente…'}
           </span>
           <span className="font-mono text-[10px] text-faint shrink-0">{logs.length} lignes</span>
-          <span className="text-[11px] text-faint group-hover:text-volt transition-colors shrink-0">▲ déplier</span>
+          <span className="text-[11px] text-faint group-hover:text-cyan transition-colors shrink-0">▲ déplier</span>
         </button>
       </div>
     )
   }
 
   return (
-    <div className={`panel-raised overflow-hidden flex flex-col transition-all ${
+    <div className={`panel overflow-hidden flex flex-col transition-all ${
       isExpanded ? 'fixed inset-4 z-50' : ''
     }`} style={isExpanded ? undefined : { height }}>
 
       {/* ── poignée de redimensionnement ── */}
       {!isExpanded && (
         <div onPointerDown={onHandleDown}
-          className="h-2 shrink-0 cursor-row-resize bg-transparent hover:bg-volt/20 transition-colors relative group"
+          className="h-2 shrink-0 cursor-row-resize bg-transparent hover:bg-voltlite transition-colors relative group"
           title="glisser pour redimensionner">
           <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-[3px] rounded-full bg-line2 group-hover:bg-volt transition-colors" />
         </div>
       )}
 
       {/* Header */}
-      <div className={`px-3.5 py-2 border-b flex items-center justify-between flex-wrap gap-2 border-line bg-wash`}>
-        <div className="flex items-center gap-2">
-          <span className="font-disp text-[13px] font-medium text-volt">06</span>
-          <span className="eyebrow">console de campagne — toujours vivante</span>
+      <div className="px-4 py-2.5 border-b border-line flex items-center justify-between flex-wrap gap-2">
+        <div className="flex items-center gap-2.5">
+          <span className="eyebrow">console de campagne</span>
           {status === 'running' && (
-            <span className="flex items-center gap-1.5 ml-2 px-2 py-0.5 rounded-full border bg-voltlite border-volt/30">
+            <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full border bg-voltlite border-volt/30">
               <span className="w-1.5 h-1.5 bg-volt rounded-full animate-pulse" />
-              <span className="text-[10px] text-volt tracking-widest uppercase font-bold">live</span>
+              <span className="text-[10px] text-cyan tracking-[.14em] uppercase">live</span>
             </span>
           )}
-          <span className="font-mono text-[10px] ml-1 text-faint">{logs.length} lignes</span>
+          <span className="font-mono text-[10px] text-faint">{logs.length} lignes</span>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          <div className="flex gap-px rounded-full p-0.5 border bg-paper border-line">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <div className="flex gap-px rounded-full p-0.5 border border-line bg-black/30">
             {filters.map(f => (
               <button key={f.key} onClick={() => setFilter(f.key)}
-                className={`px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider transition-colors ${
-                  filter === f.key ? 'bg-snow text-[#0A0A0A] font-bold' : 'text-mut hover:text-ink'
+                className={`px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-[.08em] transition-colors ${
+                  filter === f.key ? 'bg-snow text-[#0A0A0A] font-medium' : 'text-mut hover:text-ink'
                 }`}>
-                {f.label} {f.count > 0 && <span className="opacity-70 text-[9px]">({f.count})</span>}
+                {f.label} {f.count > 0 && <span className="opacity-60 text-[9px]">({f.count})</span>}
               </button>
             ))}
           </div>
 
           <button onClick={copyLogs} disabled={filtered.length === 0} title="Copier le journal"
-            className="px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider border border-line text-mut hover:text-volt hover:border-volt/40 transition-colors">
+            className="px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-[.08em] border border-line text-mut hover:text-ink hover:border-line2 transition-colors">
             {copied ? '✓ copié' : 'copier'}
           </button>
 
           {onClear && (
             <button onClick={onClear} title="Effacer le journal (les sessions passées aussi)"
-              className="px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider border border-line text-mut hover:text-danger hover:border-danger/40 transition-colors">
+              className="px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-[.08em] border border-line text-mut hover:text-danger hover:border-danger/40 transition-colors">
               vider
             </button>
           )}
 
           <button onClick={() => setIsFolded(true)} title="Rabattre en liseron"
-            className="px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider border border-line text-mut hover:text-volt hover:border-volt/40 transition-colors">
+            className="px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-[.08em] border border-line text-mut hover:text-ink hover:border-line2 transition-colors">
             ▼ rabattre
           </button>
           <button onClick={() => setIsExpanded(!isExpanded)} title={isExpanded ? 'Réduire' : 'Plein écran'}
-            className="px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider border border-line text-mut hover:text-volt hover:border-volt/40 transition-colors">
+            className="px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-[.08em] border border-line text-mut hover:text-ink hover:border-line2 transition-colors">
             {isExpanded ? 'réduire' : 'plein écran'}
           </button>
         </div>
@@ -189,7 +185,7 @@ export default function LiveConsole({ logs, status, onClear }) {
 
       {/* Terminal body */}
       <div ref={containerRef} onScroll={handleScroll}
-        className={`terminal-bg px-4 py-3 overflow-y-auto select-text flex-1 min-h-0 ${isExpanded ? '' : ''}`}>
+        className="terminal-bg px-4 py-3 overflow-y-auto select-text flex-1 min-h-0">
         {filtered.length === 0 && (
           <div className="text-center py-14 text-xs flex flex-col items-center gap-2 text-faint">
             <span className="font-disp text-2xl text-faint">◇</span>
@@ -211,13 +207,13 @@ export default function LiveConsole({ logs, status, onClear }) {
             const cfg = LINE_CONFIG[line.type] || LINE_CONFIG.system
             return (
               <div key={i} className="flex items-start gap-2 rounded px-1 py-0.5 transition-colors group hover:bg-white/[0.03]">
-                <span className="text-[11.5px] select-none font-mono shrink-0 pt-0.5 text-faint">
+                <span className="text-[11px] select-none font-mono shrink-0 pt-0.5 text-faint">
                   [{fmtTime(line.ts)}]
                 </span>
-                <span className={`text-[9px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded-full border shrink-0 select-none ${cfg.badge}`}>
+                <span className={`text-[9px] uppercase font-medium tracking-[.14em] px-1.5 py-0.5 rounded-full border shrink-0 select-none ${cfg.badge}`}>
                   {cfg.tag}
                 </span>
-                <span className={`flex-1 break-words font-mono text-[12.5px] leading-relaxed ${cfg.color}`}>
+                <span className={`flex-1 break-words font-mono text-[12px] leading-relaxed ${cfg.color}`}>
                   {line.text}
                 </span>
               </div>
@@ -229,7 +225,7 @@ export default function LiveConsole({ logs, status, onClear }) {
 
       {!pinned && (
         <button onClick={() => { setPinned(true); endRef.current?.scrollIntoView({ behavior: 'smooth' }) }}
-          className="w-full py-2 text-center text-[10px] text-[#0A0A0A] bg-snow hover:opacity-90 transition-opacity uppercase tracking-widest font-semibold flex items-center justify-center gap-1">
+          className="w-full py-2.5 text-center text-[10px] uppercase tracking-[.14em] bg-snow text-[#0A0A0A] hover:opacity-90 transition-opacity font-medium flex items-center justify-center gap-1">
           <span>↓ flux en pause — cliquer pour suivre</span>
         </button>
       )}

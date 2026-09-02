@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_BASE } from '../api.js';
 
+/* FRAPPE DIRECTE — l'arsenal à la main. Verre dépoli, inputs 10px,
+   la white pill comme seule arme pleine. */
+
 export default function DirectToolRunner({ onToolExecuted }) {
   const [tools, setTools] = useState([]);
   const [loadingTools, setLoadingTools] = useState(false);
@@ -180,6 +183,8 @@ export default function DirectToolRunner({ onToolExecuted }) {
   const properties = currentTool.parameters?.properties || {};
   const requiredFields = currentTool.parameters?.required || [];
 
+  const inputCls = "w-full rounded-ui border border-line bg-white/[0.04] px-3 py-2 text-[12.5px] font-mono text-ink focus:outline-none focus:border-volt/60 transition-colors placeholder:text-faint";
+
   return (
     <div className="space-y-4">
       {/* Sélecteur d'outil & Recherche */}
@@ -189,7 +194,7 @@ export default function DirectToolRunner({ onToolExecuted }) {
             value={selectedToolName}
             onChange={(e) => handleToolChange(e.target.value)}
             disabled={executing || loadingTools}
-            className="w-full rounded-[10px] border border-line bg-wash px-3 py-2 text-[12.5px] font-mono text-ink focus:outline-none focus:border-volt focus:bg-paper transition-colors cursor-pointer"
+            className={`${inputCls} cursor-pointer`}
           >
             {tools.length === 0 && <option>Chargement de l'arsenal...</option>}
             {filteredTools.map(t => (
@@ -203,16 +208,16 @@ export default function DirectToolRunner({ onToolExecuted }) {
             placeholder="Filtrer..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-24 rounded-[10px] border border-line bg-wash px-2.5 py-2 text-[11.5px] font-mono text-ink focus:outline-none focus:border-volt focus:bg-paper transition-colors"
+            className="w-24 rounded-ui border border-line bg-white/[0.04] px-2.5 py-2 text-[11.5px] font-mono text-ink focus:outline-none focus:border-volt/60 transition-colors placeholder:text-faint"
           />
         </div>
 
         {/* Description de l'outil sélectionné */}
         {currentTool.description && (
-          <div className="rounded-lg border border-line border-l-2 border-l-volt/50 bg-wash px-3 py-2 text-[11.5px] text-slate leading-relaxed">
-            <div className="flex items-center gap-2 mb-0.5">
-              <span className="font-mono font-bold text-volt">{currentTool.name}</span>
-              <span className={`text-[9px] uppercase px-1.5 py-0.5 rounded-full border font-semibold ${
+          <div className="rounded-ui border border-line bg-white/[0.03] px-3 py-2.5 text-[12px] text-ash leading-relaxed">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="font-mono font-medium text-[#C4B5FD]">{currentTool.name}</span>
+              <span className={`text-[9px] uppercase px-1.5 py-0.5 rounded-full border font-medium ${
                 currentTool.danger === 'destructive' ? 'border-danger/30 text-danger bg-dangertint' :
                 currentTool.danger === 'active' ? 'border-warn/30 text-warn bg-warntint' :
                 'border-ok/30 text-ok bg-oktint'
@@ -228,13 +233,13 @@ export default function DirectToolRunner({ onToolExecuted }) {
       {/* Paramètres de l'outil */}
       <div className="pt-1">
         <div className="flex items-center justify-between mb-2">
-          <span className="eyebrow">Paramètres de frappe</span>
+          <span className="eyebrow">paramètres de frappe</span>
           <button
             type="button"
             onClick={() => setRawJsonMode(!rawJsonMode)}
-            className="text-[10px] text-mut hover:text-volt hover:underline uppercase tracking-wider font-semibold"
+            className="text-[10px] text-mut hover:text-ink uppercase tracking-[.1em] font-medium transition-colors"
           >
-            {rawJsonMode ? 'Mode Formulaire' : 'Mode JSON Brut'}
+            {rawJsonMode ? 'mode formulaire' : 'mode JSON brut'}
           </button>
         </div>
 
@@ -245,14 +250,14 @@ export default function DirectToolRunner({ onToolExecuted }) {
               onChange={(e) => handleRawJsonChange(e.target.value)}
               rows={5}
               placeholder={'{\n  "param": "valeur"\n}'}
-              className="w-full rounded-[10px] border border-line bg-wash text-ink font-mono text-[11px] p-2.5 resize-y focus:outline-none focus:border-volt focus:bg-paper transition-colors"
+              className="w-full rounded-ui border border-line bg-white/[0.04] text-ink font-mono text-[11px] p-2.5 resize-y focus:outline-none focus:border-volt/60 transition-colors placeholder:text-faint"
             />
-            {jsonError && <p className="text-danger text-[10px] mt-1">{jsonError}</p>}
+            {jsonError && <p className="text-danger text-[10.5px] mt-1">{jsonError}</p>}
           </div>
         ) : (
           <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
             {Object.keys(properties).length === 0 ? (
-              <p className="text-[11px] text-mut italic py-1">Cet outil ne requiert aucun paramètre.</p>
+              <p className="text-[12px] text-mut italic py-1">Cet outil ne requiert aucun paramètre.</p>
             ) : (
               Object.entries(properties).map(([propName, schema]) => {
                 const isRequired = requiredFields.includes(propName);
@@ -260,14 +265,14 @@ export default function DirectToolRunner({ onToolExecuted }) {
 
                 if (schema.type === 'boolean') {
                   return (
-                    <label key={propName} className="flex items-center gap-2 text-[11.5px] font-mono cursor-pointer">
+                    <label key={propName} className="flex items-center gap-2 text-[12px] font-mono cursor-pointer">
                       <input
                         type="checkbox"
                         checked={Boolean(val)}
                         onChange={(e) => handleFieldChange(propName, e.target.checked, 'boolean')}
-                        className="accent-volt"
+                        className="accent-[#6B62F2]"
                       />
-                      <span className="text-slate">{propName} {isRequired && <span className="text-danger">*</span>}</span>
+                      <span className="text-ash">{propName} {isRequired && <span className="text-danger">*</span>}</span>
                       {schema.description && <span className="text-[10px] text-faint">({schema.description})</span>}
                     </label>
                   );
@@ -276,16 +281,16 @@ export default function DirectToolRunner({ onToolExecuted }) {
                 if (schema.type === 'array') {
                   return (
                     <div key={propName} className="space-y-1">
-                      <label className="flex items-center justify-between text-[11px] font-mono uppercase tracking-wider">
-                        <span className="text-slate">{propName} {isRequired && <span className="text-danger">*</span>}</span>
-                        <span className="text-[9px] text-faint lowercase">{schema.description || 'séparer par des virgules'}</span>
+                      <label className="flex items-center justify-between text-[10.5px] font-mono uppercase tracking-[.08em]">
+                        <span className="text-ash">{propName} {isRequired && <span className="text-danger">*</span>}</span>
+                        <span className="text-[9px] text-faint lowercase normal-case">{schema.description || 'séparer par des virgules'}</span>
                       </label>
                       <input
                         type="text"
                         value={Array.isArray(val) ? val.join(', ') : val}
                         onChange={(e) => handleFieldChange(propName, e.target.value, 'array')}
-                        placeholder="ex: val1, val2, val3"
-                        className="w-full rounded-[10px] border border-line bg-wash px-2.5 py-1.5 text-[12px] font-mono text-ink focus:outline-none focus:border-volt focus:bg-paper transition-colors"
+                        placeholder="ex : val1, val2, val3"
+                        className={inputCls}
                       />
                     </div>
                   );
@@ -293,16 +298,16 @@ export default function DirectToolRunner({ onToolExecuted }) {
 
                 return (
                   <div key={propName} className="space-y-1">
-                    <label className="flex items-center justify-between text-[11px] font-mono uppercase tracking-wider">
-                      <span className="text-slate">{propName} {isRequired && <span className="text-danger">*</span>}</span>
-                      {schema.description && <span className="text-[9px] text-faint lowercase truncate max-w-[200px]" title={schema.description}>{schema.description}</span>}
+                    <label className="flex items-center justify-between text-[10.5px] font-mono uppercase tracking-[.08em]">
+                      <span className="text-ash">{propName} {isRequired && <span className="text-danger">*</span>}</span>
+                      {schema.description && <span className="text-[9px] text-faint lowercase normal-case truncate max-w-[200px]" title={schema.description}>{schema.description}</span>}
                     </label>
                     <input
                       type={schema.type === 'integer' || schema.type === 'number' ? 'number' : 'text'}
                       value={val}
                       onChange={(e) => handleFieldChange(propName, e.target.value, schema.type)}
                       placeholder={schema.description || `Entrez ${propName}...`}
-                      className="w-full rounded-[10px] border border-line bg-wash px-2.5 py-1.5 text-[12px] font-mono text-ink focus:outline-none focus:border-volt focus:bg-paper transition-colors"
+                      className={inputCls}
                     />
                   </div>
                 );
@@ -314,61 +319,59 @@ export default function DirectToolRunner({ onToolExecuted }) {
 
       {/* BOUTON D'EXÉCUTION DIRECTE */}
       <div className="pt-3 border-t border-line flex items-center justify-between gap-3">
-        <span className="text-[10px] text-mut">
+        <span className="text-[11px] text-mut">
           {executing ? 'Traitement en cours...' : 'Prêt pour frappe ciblée'}
         </span>
         <button
           type="button"
           onClick={runSelectedTool}
           disabled={executing || !selectedToolName}
-          className="btn-strike rounded-full bg-snow text-[#0A0A0A] font-disp font-semibold uppercase tracking-[.14em] text-[12.5px] px-5 py-2 flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none cursor-pointer"
+          className="pill-cta btn-strike px-5 py-2 text-[11.5px] uppercase tracking-[.1em]"
         >
           {executing ? (
             <>
-              <svg className="animate-spin h-4 w-4 text-[#0A0A0A]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <svg className="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
               </svg>
-              <span>Exécution en cours...</span>
+              <span>exécution...</span>
             </>
           ) : (
-            <>
-              <span>LANCER L'OUTIL DIRECTEMENT</span>
-            </>
+            <span>lancer l'outil</span>
           )}
         </button>
       </div>
 
       {/* RÉSULTAT DU LANCEMENT DIRECT */}
       {result && (
-        <div className="mt-3 rounded-xl border border-line bg-wash p-3 space-y-2 animate-fadeIn">
-          <div className="flex items-center justify-between border-b border-line pb-2">
+        <div className="rounded-2xl border border-line bg-white/[0.03] p-3.5 space-y-2.5 animate-fadeIn">
+          <div className="flex items-center justify-between border-b border-line pb-2.5">
             <div className="flex items-center gap-2">
-              <span className={`inline-block w-2.5 h-2.5 rounded-full ${result.success ? 'bg-ok' : 'bg-danger animate-pulse'}`} />
-              <span className="text-[11px] uppercase font-bold tracking-wider text-ink">
-                {result.success ? 'RÉSULTAT OBTENU' : 'ÉCHEC / ALERTE'}
+              <span className={`inline-block w-2 h-2 rounded-full ${result.success ? 'bg-ok' : 'bg-danger animate-pulse'}`} />
+              <span className="text-[10.5px] uppercase font-medium tracking-[.12em] text-ink">
+                {result.success ? 'résultat obtenu' : 'échec / alerte'}
               </span>
               <span className="font-mono text-[10px] text-faint">({result.duration}s · {result.timestamp})</span>
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2.5">
               <button
                 type="button"
                 onClick={copyResult}
-                className="text-[10px] text-mut hover:text-volt hover:underline uppercase font-semibold"
+                className="text-[10px] text-mut hover:text-ink uppercase tracking-[.1em] font-medium transition-colors"
               >
-                {copied ? '✓ Copié !' : 'Copier'}
+                {copied ? '✓ copié' : 'copier'}
               </button>
               <button
                 type="button"
                 onClick={() => setResult(null)}
-                className="text-[10px] text-mut hover:text-ink uppercase"
+                className="text-[10px] text-mut hover:text-ink uppercase tracking-[.1em] font-medium transition-colors"
               >
-                Fermer
+                fermer
               </button>
             </div>
           </div>
 
-          <pre className="max-h-60 overflow-y-auto rounded-lg bg-paper border border-line text-ink p-2.5 font-mono text-[11px] leading-relaxed whitespace-pre-wrap break-words">
+          <pre className="max-h-60 overflow-y-auto rounded-ui terminal-bg border border-line p-2.5 whitespace-pre-wrap break-words">
             {typeof result.data === 'object' ? JSON.stringify(result.data, null, 2) : String(result.data)}
           </pre>
         </div>

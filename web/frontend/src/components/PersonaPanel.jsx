@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_BASE } from '../api.js';
 
+/* LE MASQUE — la personnalité de la forge. Inputs 10px, toggles en pills,
+   la white pill grave le masque. */
+
 const TOGGLES = {
   verbosity: ['terse', 'medium', 'detailed'],
   language: ['en', 'fr', 'mixed'],
@@ -102,43 +105,46 @@ export default function PersonaPanel() {
     stealth: 'volume minimal, sources passives d\'abord',
   }[form.mission_focus] || '';
 
+  const inputCls = "w-full rounded-ui border border-line bg-white/[0.04] px-3 py-2 text-[12.5px] text-ink focus:outline-none focus:border-volt/60 transition-colors placeholder:text-faint";
+  const labelCls = "text-[9.5px] uppercase tracking-[.16em] text-mut";
+
   return (
-    <form onSubmit={save} className="p-1 space-y-3">
+    <form onSubmit={save} className="space-y-3.5">
       {/* identité */}
-      <div className="grid grid-cols-[90px_1fr] gap-x-3 gap-y-2.5 items-center">
-        <label htmlFor="pe-name" className="text-[10px] uppercase tracking-widest text-mut">nom</label>
+      <div className="grid grid-cols-[88px_1fr] gap-x-3 gap-y-2.5 items-center">
+        <label htmlFor="pe-name" className={labelCls}>nom</label>
         <input id="pe-name" value={form.name}
           onChange={(e) => set('name', e.target.value)}
           placeholder="VOIDFORGE"
-          className="rounded-[10px] border border-line bg-wash px-2.5 py-1.5 text-[12px] text-ink focus:outline-none focus:border-volt focus:bg-paper transition-colors" />
+          className={inputCls} />
 
-        <label htmlFor="pe-arch" className="text-[10px] uppercase tracking-widest text-mut">archétype</label>
+        <label htmlFor="pe-arch" className={labelCls}>archétype</label>
         <input id="pe-arch" value={form.archetype}
           onChange={(e) => set('archetype', e.target.value)}
           placeholder="elite autonomous offensive-security operator"
-          className="rounded-[10px] border border-line bg-wash px-2.5 py-1.5 text-[12px] text-ink focus:outline-none focus:border-volt focus:bg-paper transition-colors" />
+          className={inputCls} />
 
-        <label htmlFor="pe-tone" className="text-[10px] uppercase tracking-widest text-mut">ton</label>
+        <label htmlFor="pe-tone" className={labelCls}>ton</label>
         <input id="pe-tone" value={form.tone} list="tone-suggestions"
           onChange={(e) => set('tone', e.target.value)}
           placeholder="surgical and decisive"
-          className="rounded-[10px] border border-line bg-wash px-2.5 py-1.5 text-[12px] text-ink focus:outline-none focus:border-volt focus:bg-paper transition-colors" />
+          className={inputCls} />
         <datalist id="tone-suggestions">
           {TONE_SUGGESTIONS.map(t => <option key={t} value={t} />)}
         </datalist>
       </div>
 
-      {/* interrupteurs */}
+      {/* interrupteurs — le segment actif est la white pill */}
       {Object.entries(TOGGLES).map(([key, options]) => (
-        <div key={key} className="grid grid-cols-[90px_1fr] gap-x-3 items-center">
-          <span className="text-[10px] uppercase tracking-widest text-mut">
+        <div key={key} className="grid grid-cols-[88px_1fr] gap-x-3 items-center">
+          <span className={labelCls}>
             {key === 'mission_focus' ? 'doctrine' : key === 'verbosity' ? 'verbeux' : 'langue'}
           </span>
-          <div className="flex rounded-full border border-line bg-wash p-0.5 w-fit">
+          <div className="flex rounded-full border border-line bg-black/30 p-0.5 w-fit">
             {options.map((o) => (
               <button key={o} type="button" onClick={() => set(key, o)}
-                className={`px-2.5 py-1 rounded-full text-[10px] uppercase tracking-wider transition-all
-                  ${form[key] === o ? 'bg-snow text-[#0A0A0A] font-semibold' : 'text-mut hover:text-ink'}`}>
+                className={`px-2.5 py-1 rounded-full text-[10px] uppercase tracking-[.08em] transition-all
+                  ${form[key] === o ? 'bg-snow text-[#0A0A0A] font-medium' : 'text-mut hover:text-ink'}`}>
                 {o}
               </button>
             ))}
@@ -146,27 +152,27 @@ export default function PersonaPanel() {
         </div>
       ))}
       {focusHint && (
-        <p className="text-[10px] text-mut -mt-1 ml-[102px]">↳ {focusHint}</p>
+        <p className="text-[10.5px] text-faint -mt-1 ml-[100px]">↳ {focusHint}</p>
       )}
 
       {/* phrases signature */}
-      <div className="grid grid-cols-[90px_1fr] gap-x-3 items-center">
-        <label htmlFor="pe-catch" className="text-[10px] uppercase tracking-widest text-mut">signature</label>
+      <div className="grid grid-cols-[88px_1fr] gap-x-3 items-center">
+        <label htmlFor="pe-catch" className={labelCls}>signature</label>
         <input id="pe-catch" value={form.catchphrases}
           onChange={(e) => set('catchphrases', e.target.value)}
           placeholder="Mapping the attack surface., Nothing hides from the void."
-          className="rounded-[10px] border border-line bg-wash px-2.5 py-1.5 text-[12px] text-ink focus:outline-none focus:border-volt focus:bg-paper transition-colors" />
+          className={inputCls} />
       </div>
 
       {/* directives libres */}
-      <div className="grid grid-cols-[90px_1fr] gap-x-3 items-start">
-        <label htmlFor="pe-extra" className="text-[10px] uppercase tracking-widest text-mut pt-1.5">directives</label>
+      <div className="grid grid-cols-[88px_1fr] gap-x-3 items-start">
+        <label htmlFor="pe-extra" className={`${labelCls} pt-2`}>directives</label>
         <div>
           <textarea id="pe-extra" value={form.extra_directives} rows={16}
             onChange={(e) => set('extra_directives', e.target.value)}
             placeholder={'Doctrine libre — priorités, habitudes, rituels.\nex : Prioritize Supabase exposures. Always check GraphQL before REST.'}
-            className="w-full rounded-[10px] border border-line bg-wash px-2.5 py-1.5 text-[12px] leading-relaxed resize-y text-ink focus:outline-none focus:border-volt focus:bg-paper transition-colors max-h-[340px]" />
-          <p className="mt-1 text-[9.5px] text-faint">
+            className="w-full rounded-ui border border-line bg-white/[0.04] px-3 py-2 text-[12.5px] leading-relaxed resize-y text-ink focus:outline-none focus:border-volt/60 transition-colors max-h-[340px] placeholder:text-faint" />
+          <p className="mt-1.5 text-[10px] text-faint">
             {form.extra_directives.length.toLocaleString()} caractères chargés — {form.extra_directives.length > 4000
               ? 'ta directive longue est bien là, intégralement (la fenêtre défile).'
               : 'directive courte chargée.'}
@@ -176,22 +182,20 @@ export default function PersonaPanel() {
 
       {/* statut + actions */}
       <div className="flex items-center justify-between pt-1 gap-3">
-        <span className={`text-[10px] break-words flex-1 ${
-          msg?.ok === true ? 'text-ok font-semibold' :
-          msg?.ok === false ? 'text-danger font-semibold' :
+        <span className={`text-[10.5px] break-words flex-1 ${
+          msg?.ok === true ? 'text-ok' :
+          msg?.ok === false ? 'text-danger' :
           loaded ? 'text-mut' : 'text-warn animate-pulse'
         }`}>
           {msg ? msg.text : loaded ? 'masque actif — appliqué à la prochaine mission (CLI + dashboard)' : 'chargement du masque...'}
         </span>
         <div className="flex gap-2 shrink-0">
           <button type="button" onClick={reset} disabled={saving}
-            className="btn-strike rounded-full border border-line2 bg-paper text-ink font-disp font-semibold uppercase tracking-[.14em] text-[11px] px-3.5 py-1.5 disabled:opacity-50">
+            className="pill-ghost btn-strike px-3.5 py-1.5 text-[10.5px] uppercase tracking-[.1em]">
             défaut
           </button>
           <button type="submit" disabled={saving}
-            className={`btn-strike rounded-full bg-snow text-[#0A0A0A] font-disp font-semibold uppercase tracking-[.14em] text-[11.5px] px-4 py-1.5 transition-all ${
-              saving ? 'opacity-50 cursor-wait' : ''
-            }`}>
+            className="pill-cta btn-strike px-4 py-1.5 text-[10.5px] uppercase tracking-[.1em]">
             {saving ? '...' : 'graver'}
           </button>
         </div>
@@ -200,10 +204,10 @@ export default function PersonaPanel() {
       {/* aperçu du prompt réellement injecté */}
       {rendered && (
         <details className="pt-1">
-          <summary className="text-[10px] uppercase tracking-widest text-mut cursor-pointer hover:text-volt select-none">
+          <summary className="text-[10px] uppercase tracking-[.14em] text-mut cursor-pointer hover:text-ink select-none transition-colors">
             aperçu du prompt injecté
           </summary>
-          <pre className="mt-2 max-h-52 overflow-y-auto terminal-bg rounded-lg border border-line p-2.5 whitespace-pre-wrap break-words text-slate">
+          <pre className="mt-2 max-h-52 overflow-y-auto terminal-bg rounded-ui border border-line p-2.5 whitespace-pre-wrap break-words">
             {rendered}
           </pre>
         </details>

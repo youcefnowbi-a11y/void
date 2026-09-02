@@ -50,14 +50,14 @@ export default function FreshSessionPanel({ onPurge }) {
   }
 
   const Box = ({ id }) => (
-    <label className="flex items-start gap-2 cursor-pointer group">
+    <label className="flex items-start gap-2.5 cursor-pointer group">
       <input type="checkbox" checked={!!sel[id]} onChange={() => toggle(id)}
-        className="mt-0.5 accent-gold shrink-0" />
+        className="mt-0.5 accent-[#6B62F2] shrink-0" />
       <span className="min-w-0">
-        <span className="block text-[11px] text-ink group-hover:text-volt transition-colors">
+        <span className="block text-[12px] text-ash group-hover:text-ink transition-colors">
           {STORES.find(s => s.id === id)?.label}
         </span>
-        <span className="block text-[9px] text-faint leading-snug">
+        <span className="block text-[10px] text-faint leading-snug">
           {STORES.find(s => s.id === id)?.hint}
         </span>
       </span>
@@ -65,18 +65,18 @@ export default function FreshSessionPanel({ onPurge }) {
   )
 
   return (
-    <div className="space-y-2.5">
-      <div className="space-y-2">
+    <div className="space-y-3">
+      <div className="space-y-2.5">
         {STORES.map(s => <Box key={s.id} id={s.id} />)}
-        <div className="border-t border-line pt-2">
-          <label className="flex items-start gap-2 cursor-pointer group">
+        <div className="border-t border-line pt-2.5">
+          <label className="flex items-start gap-2.5 cursor-pointer group">
             <input type="checkbox" checked={!!sel.intel} onChange={() => toggle('intel')}
-              className="mt-0.5 accent-gold shrink-0" />
+              className="mt-0.5 accent-[#6B62F2] shrink-0" />
             <span className="min-w-0 flex-1">
-              <span className="block text-[11px] text-ink group-hover:text-volt transition-colors">
+              <span className="block text-[12px] text-ash group-hover:text-ink transition-colors">
                 intel Living Graph
               </span>
-              <span className="block text-[9px] text-faint leading-snug">
+              <span className="block text-[10px] text-faint leading-snug">
                 la carte vivante d'une cible (data/intel)
               </span>
             </span>
@@ -84,20 +84,20 @@ export default function FreshSessionPanel({ onPurge }) {
           {sel.intel && (
             <input value={target} onChange={(e) => setTarget(e.target.value)}
               placeholder="domaine (vide = TOUTES les cibles)"
-              className="mt-1.5 w-full bg-mist border border-line rounded-[10px] px-2 py-1 font-mono text-[10.5px] text-ink focus:outline-none focus:border-volt" />
+              className="mt-2 w-full bg-black/30 border border-line rounded-ui px-2.5 py-1.5 font-mono text-[11px] text-ink focus:outline-none focus:border-volt/60 transition-colors placeholder:text-faint" />
           )}
         </div>
       </div>
       <button onClick={purge} disabled={busy}
-        className="w-full btn-strike rounded-full border border-danger/50 text-danger font-disp font-semibold uppercase tracking-[.12em] text-[10.5px] px-3 py-2 hover:bg-danger hover:text-white transition-colors disabled:opacity-40">
+        className="w-full pill-ghost btn-strike !border-danger/50 !text-danger hover:!border-danger hover:!bg-dangertint px-3 py-2 text-[10.5px] uppercase tracking-[.12em]">
         {busy ? '···' : 'purger — session neuve'}
       </button>
       {msg && (
-        <p className={`text-[10px] leading-snug ${msg.ok ? 'text-ok' : 'text-danger'}`}>
+        <p className={`text-[10.5px] leading-snug ${msg.ok ? 'text-ok' : 'text-danger'}`}>
           {msg.text}
         </p>
       )}
-      <p className="text-[9px] text-faint leading-relaxed">
+      <p className="text-[9.5px] text-faint leading-relaxed">
         jamais touché : outils forgés, historique des missions (missions.db), rapports
       </p>
     </div>
