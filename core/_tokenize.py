@@ -40,11 +40,6 @@ _URL_CRED_RX = re.compile(
 # suffixe trop court → ligne laissée en clair plutôt que masquée à moitié).
 
 
-def _classify(value):
-    """HOST pour IP/domaine, CRED sinon."""
-    return "CRED"
-
-
 def _issue_token(value, kind):
     with _LOCK:
         if value in _REVERSE:
