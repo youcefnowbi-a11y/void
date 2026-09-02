@@ -23,6 +23,8 @@ const DOC_NO = `VF-${new Date().getFullYear()}-${String(new Date().getMonth() + 
 const Ic = {
   doc:  () => <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M6 3h9l4 4v14H6z"/><path d="M10 10h6M10 14h6M10 18h3"/></svg>,
   stop: () => <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>,
+  chat: () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 1 1 17 0z"/></svg>,
+  gear: () => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>,
 };
 
 function Stat({ value, label, tone = 'ink' }) {
@@ -160,14 +162,16 @@ function App() {
   const inputCls = "w-full rounded-[10px] border border-line bg-white/[0.04] px-2.5 py-1.5 text-[12.5px] text-ink focus:outline-none focus:border-volt/60 transition-colors placeholder:text-faint";
 
   return (
-    <div className="h-screen flex flex-col overflow-hidden">
+    <div className="h-screen flex flex-col overflow-hidden relative">
       <div className={`heartbeat ${hbClass}`} aria-hidden />
+      {/* spotlight d'ambiance — le crépuscule entre par la fenêtre (usage sparing, doctrine Dimension) */}
+      <div aria-hidden className="spotlight pointer-events-none fixed -top-28 left-1/2 -translate-x-1/2 w-[640px] h-[240px] opacity-[0.13] z-0" />
 
-      {/* ── barre de commandement — 44px ── */}
-      <header className="shrink-0 border-b border-line bg-paper">
-        <div className="h-[44px] px-3.5 flex items-center gap-3">
-          <h1 className="font-disp font-medium text-[15px] tracking-tight shrink-0 relative">
-            <span className="text-ink">VOID</span><span className="text-ink">FORGE</span>
+      {/* ── nav flottante — la signature Dimension, détachée des bords (16px) ── */}
+      <div className="shrink-0 px-4 pt-4 pb-2 relative z-10">
+        <header className="nav-float h-[46px] px-4 flex items-center gap-3 shadow-nav">
+          <h1 className="font-disp font-medium text-[15px] tracking-[-0.03em] shrink-0 relative">
+            <span className="text-ink">VOID</span><span className="text-ash">FORGE</span>
             <span aria-hidden className="wash-violet absolute left-0 -bottom-[3px] h-[2px] w-full" />
           </h1>
           <span className="hidden md:inline font-mono text-[8.5px] uppercase tracking-[.2em] text-faint shrink-0">{DOC_NO}</span>
@@ -202,7 +206,7 @@ function App() {
           }}
             title={showLeft && leftTab === 'chat' ? 'fermer la barre latérale' : 'ouvrir le chat'}
             className={`rounded-full px-2.5 py-1 text-[11px] transition-colors ${showLeft && leftTab === 'chat' ? 'bg-voltlite text-cyan border border-volt/30' : 'bg-white/[0.04] text-mut border border-line hover:text-ink'}`}>
-            💬
+            <Ic.chat />
           </button>
           <button onClick={() => {
             if (showLeft && leftTab === 'registres') setShowLeft(false);
@@ -210,11 +214,11 @@ function App() {
           }}
             title={showLeft && leftTab === 'registres' ? 'fermer la barre latérale' : 'ouvrir les registres'}
             className={`rounded-full px-2.5 py-1 text-[11px] transition-colors ${showLeft && leftTab === 'registres' ? 'bg-voltlite text-cyan border border-volt/30' : 'bg-white/[0.04] text-mut border border-line hover:text-ink'}`}>
-            ⚙
+            <Ic.gear />
           </button>
           <span className={`w-1.5 h-1.5 rounded-full ${connected ? 'bg-ok' : 'bg-danger animate-pulse'}`} title={connected ? 'flux live' : 'flux coupé'} />
-        </div>
-      </header>
+        </header>
+      </div>
 
       {/* ── corps : CHAT · CENTRE · COMMANDEMENT ── */}
       <div className="flex flex-1 min-h-0">
@@ -306,7 +310,7 @@ function App() {
             </Section>
 
             <p className="px-1 pt-1 pb-2 text-[8.5px] tracking-[.18em] text-faint uppercase">
-              forge opérative · forgé par VOIDFORGE ⚡
+              forge opérative · forgé par VOIDFORGE
             </p>
           </div>
           </div>
@@ -334,7 +338,6 @@ function App() {
               <div className="panel-raised overflow-hidden animate-fadeIn border-volt/40">
                 <div className="px-3 py-2 border-b border-line bg-voltlite flex items-center justify-between gap-3">
                   <span className="flex items-center gap-2">
-                    <span className="font-disp text-[13px] text-gold">🗺</span>
                     <span className="eyebrow">plan d'attaque — approbation requise</span>
                   </span>
                   <div className="flex items-center gap-1.5">
@@ -364,7 +367,7 @@ function App() {
                     <button onClick={() => approvePlan(true, editedPlan, strikeMode)}
                       disabled={!editedPlan.trim()}
                       className="btn-strike rounded-full bg-snow text-[#0A0A0A] font-disp font-medium uppercase tracking-[.1em] text-[10.5px] px-5 py-1.5 disabled:opacity-40 flex items-center gap-1.5">
-                      ⚡ approuver — lancer la frappe
+                      approuver — lancer la frappe
                     </button>
                   </div>
                 </div>
@@ -376,7 +379,6 @@ function App() {
               <div className="panel-raised overflow-hidden animate-fadeIn">
                 <div className="px-3 py-2 border-b border-line bg-wash flex items-center justify-between gap-3">
                   <span className="flex items-center gap-2">
-                    <span className="font-disp text-[13px] text-gold">💪</span>
                     <span className="eyebrow">rapport de puissance — missions/{workspace.target}/</span>
                   </span>
                   <span className="font-mono text-[10px] text-mut">
@@ -397,7 +399,7 @@ function App() {
                     <div>
                       <p className="eyebrow mb-1">extractions ({workspace.extractions.length})</p>
                       <ul className="space-y-0.5 max-h-28 overflow-y-auto">{workspace.extractions.slice(0, 12).map(x => (
-                        <li key={x} className="font-mono text-[11.5px] text-slate truncate">📦 {x}</li>))}
+                        <li key={x} className="font-mono text-[11.5px] text-slate truncate">▸ {x}</li>))}
                       </ul>
                     </div>
                     {workspace.final_report && (

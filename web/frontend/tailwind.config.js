@@ -46,6 +46,7 @@ export default {
         raised: '0 1px 2px rgba(0,0,0,.45), 0 8px 24px rgba(0,0,0,.35)',
         pop:    '0 0 0 1px rgba(255,255,255,0.10), 0 4px 16px rgba(0,0,0,.4)',
         glow:   '0 0 0 1px rgba(107,98,242,0.35)',
+        nav:    'rgba(255,255,255,0.02) 0px 3px 4.5px, rgba(0,0,0,0.04) 0px 10px 8px, rgba(0,0,0,0.1) 0px 4px 3px',
       },
     },
   },
