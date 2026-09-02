@@ -46,7 +46,10 @@ def _extract_findings(transcript):
                 findings.append({"severity": sev, "evidence": snippet[:cap], "context": line})
     order = {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2}
     findings.sort(key=lambda f: order.get(f["severity"], 3))
-    return findings[:40]
+    # B-R4 : la troncature à 40 ne se fait plus en silence — write_report
+    # affiche le total réel et une ligne "+N additional findings suppressed".
+    suppressed = max(0, len(findings) - 40)
+    return findings[:40], suppressed
 
 def _tool_ledger(transcript):
     """Aggregate tool usage: counts per module, order of first appearance.
@@ -70,7 +73,7 @@ def write_report(mission, transcript, folder, board=None):
     eng = (_load_engagement() or {}).get("engagement", {}) or {}
     roe = eng.get("rules_of_engagement", {}) or {}
 
-    findings = _extract_findings(transcript)
+    findings, suppressed = _extract_findings(transcript)
     ledger = _tool_ledger(transcript)
     tool_calls = sum(n for _, n in ledger)
 
@@ -87,7 +90,7 @@ def write_report(mission, transcript, folder, board=None):
         "## EXECUTIVE SUMMARY",
         f"- **Mission:** {_or(mission)[:200]}",
         f"- **Outcome:** {tool_calls} tool executions across {len(ledger)} distinct modules",
-        f"- **Findings:** {len(findings)} "
+        f"- **Findings:** {len(findings) + suppressed} "
         f"({sum(1 for f in findings if f['severity']=='CRITICAL')} critical / "
         f"{sum(1 for f in findings if f['severity']=='HIGH')} high / "
         f"{sum(1 for f in findings if f['severity']=='MEDIUM')} medium)",
@@ -116,6 +119,8 @@ def write_report(mission, transcript, folder, board=None):
         lines += ["## FINDINGS (severity-ranked)", ""]
         for f in findings:
             lines.append(f"- **[{f['severity']}]** `{f['evidence']}`\n  - context: `{f['context']}`")
+        if suppressed:
+            lines.append(f"- [+{suppressed} additional findings suppressed]")
         lines.append("")
 
     if ledger:
