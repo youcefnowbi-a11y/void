@@ -132,7 +132,7 @@ export default function PersonaPanel() {
       {/* interrupteurs */}
       {Object.entries(TOGGLES).map(([key, options]) => (
         <div key={key} className="grid grid-cols-[90px_1fr] gap-x-3 items-center">
-          <span className="font-mono text-[10px] uppercase tracking-widest text-mut">
+          <span className="text-[10px] uppercase tracking-widest text-mut">
             {key === 'mission_focus' ? 'doctrine' : key === 'verbosity' ? 'verbeux' : 'langue'}
           </span>
           <div className="flex rounded-full border border-line bg-wash p-0.5 w-fit">
