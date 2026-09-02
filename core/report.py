@@ -32,7 +32,10 @@ def _extract_findings(transcript):
     for kind, text in transcript:
         for sev, pat in SEVERITY_RULES:
             for m in pat.finditer(text or ""):
-                key = (sev, m.group(0)[:80])
+                # B-R2 : clé de dédup = match COMPLET. Le préfixe [:80] avalait
+                # deux secrets DISTINCTS partageant 80 chars (JWTs du même
+                # issuer) — le second disparaissait du livrable client.
+                key = (sev, m.group(0))
                 if key in seen:
                     continue
                 seen.add(key)
