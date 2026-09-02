@@ -666,13 +666,27 @@ async def mission_abort(req: OperatorMessage):
     # (le boot sweep marque les zombies au restart). Un vrai cancellation-token
     # sondé par les tools + client LLM toucherait core/agent — hors scope ici.
     inbox = RUNNING_INBOXES.get(req.mission_id) if req.mission_id else None
-    if inbox is None:
-        raise HTTPException(status_code=404, detail="aucune mission vivante avec cet id")
-    inbox.put("__ABORT__")
-    await manager.broadcast({"type": "system",
-                             "text": "⏹ rupture demandée par l'opérateur — signal transmis.",
-                             "timestamp": datetime.now().isoformat()})
-    return {"status": "abort_sent", "mission_id": req.mission_id}
+    if inbox is not None:
+        inbox.put("__ABORT__")
+        await manager.broadcast({"type": "system",
+                                 "text": "⏹ rupture demandée par l'opérateur — signal transmis.",
+                                 "timestamp": datetime.now().isoformat()})
+        return {"status": "abort_sent", "mission_id": req.mission_id}
+    # B-S4 : Swarm/Offline n'ont pas d'inbox à sentinel — l'ancien 404 laissait
+    # l'opérateur sans recours et la clôture enregistrait « complete ». On
+    # enregistre la rupture : la boucle Offline la consomme entre deux tools
+    # (arrêt réel) et le bloc de fin honnêtise le status en « interrupted ».
+    running = mission_state.get_running_mission()
+    if running is not None and (not req.mission_id
+                                or req.mission_id == running["mission_id"]):
+        _PENDING_ABORTS[running["mission_id"]] = "operator_abort"
+        await manager.broadcast({"type": "system",
+                                 "text": "⏹ rupture demandée — mode sans sentinel : la campagne "
+                                         "sera clôturée « interrupted » (arrêt coopératif au "
+                                         "prochain point de vérification).",
+                                 "timestamp": datetime.now().isoformat()})
+        return {"status": "abort_recorded", "mission_id": running["mission_id"]}
+    raise HTTPException(status_code=404, detail="aucune mission vivante avec cet id")
 
 @app.get("/reports")
 async def list_reports():
@@ -757,6 +771,13 @@ manager = ConnectionManager()
 # mid -> queue.Queue of operator messages; the agent drains one per round.
 RUNNING_INBOXES: dict = {}
 _ACTIVE_MODE = {"mode": "IA"}
+# B-S4 : les modes SANS inbox (Swarm — pas de drain sentinel, Offline —
+# boucle tools sans agent) ne peuvent pas recevoir __ABORT__ via
+# RUNNING_INBOXES. Un abort demandé pendant ces modes est enregistré ici
+# (mid -> "operator_abort") et consommé par la boucle Offline (check
+# coopératif entre tools) ou par le bloc de fin de _run_mission_streaming
+# (honnêtisation du status en DB) — plus jamais un abort swarm -> "complete".
+_PENDING_ABORTS: dict = {}
 
 # ── CHAT PRÉ-MISSION: the war room. One free agent, the operator's voice. ──
 _CHAT = {"session": None}
@@ -1269,6 +1290,15 @@ async def _run_mission_streaming(mission: str, mode: str, ws: WebSocket,
             steps = plan(mission)
             sync_emit({"type": "plan", "steps": [{"tool": s[0], "args": s[1]} for s in steps]})
             for tool_name, args in steps:
+                # B-S4 : rupture coopérative — un abort demandé pendant un mode
+                # sans sentinel (offline) est consommé entre deux tools ; la
+                # chaîne s'arrête net et la clôture passe par le bloc d'honnêteté
+                # (status aborted, plus jamais « complete » après un abort).
+                if _PENDING_ABORTS.pop(mid, None):
+                    _agent_reason["v"] = "operator_abort"
+                    sync_emit({"type": "system",
+                               "text": "⏹ rupture opérateur — chaîne offline interrompue"})
+                    break
                 trid = mission_state.start_tool_run(mid, tool_name, args)
                 t0 = _t.time()
                 result = tools.execute(tool_name, args, on_event=sync_emit)
@@ -1311,7 +1341,12 @@ async def _run_mission_streaming(mission: str, mode: str, ws: WebSocket,
                     sync_emit({"type": "system",
                                "text": f"⚠ rapport « {intel_choice} » introuvable — départ fresh"})
             else:
-                # "last" : continuité auto — le rapport le plus récent qui matche la cible
+                # "last" : continuité auto — le rapport le plus récent qui matche la cible.
+                # B-S6 : le match exigera la cible de la mission dans le header —
+                # un match par n'importe-quel-token >4 chars (« target », « server »,
+                # « recon » dans tout header récent) chargeait le MAUVAIS rapport
+                # comme prior_intel. Le domaine cible est déjà calculé plus haut (_target).
+                tgt_domain = _target.lower()
                 try:
                     mission_lower = mission.lower().strip()
                     for rpt in sorted(os.listdir(REPORTS_DIR), reverse=True):
@@ -1323,10 +1358,11 @@ async def _run_mission_streaming(mission: str, mode: str, ws: WebSocket,
                         with open(rpt_path, "r", encoding="utf-8") as rf:
                             content = rf.read()
                         header = content[:500].lower()
-                        if mission_lower in header or any(
-                            tok in header for tok in mission_lower.split()
-                            if len(tok) > 4 and tok not in ("https", "http:", "mode:", "www.")
-                        ):
+                        if (tgt_domain in header
+                                and (mission_lower in header or any(
+                                    tok in header for tok in mission_lower.split()
+                                    if len(tok) > 4 and tok not in ("https", "http:", "mode:", "www.")
+                                ))):
                             prior_intel = _untrusted_block(content, rpt)
                             sync_emit({"type": "system",
                                        "text": f"📋 Rapport précédent trouvé : {rpt} ({len(content)} chars) — continuation activée"})
@@ -1356,7 +1392,11 @@ async def _run_mission_streaming(mission: str, mode: str, ws: WebSocket,
                            "text": "🕶 AUTONOMIE TOTALE — elle choisit sa propre stratégie"})
 
             # ── CHAT PRÉ-MISSION — la voix du commandant, autorité maximale ──
-            if chat_context:
+            # B-S5b : le broadcast ne doit parler que des modes qui consomment
+            # réellement chat_context (IA : commander_orders=… ; Plan : idem).
+            # Swarm/Offline ne le lisent jamais — annoncer « ordres armés »
+            # pour eux serait un mensonge d'état.
+            if chat_context and mode in ("IA", "Plan"):
                 sync_emit({"type": "system",
                            "text": "💬 Ordres du commandant armés (chat pré-mission)"})
 
@@ -1371,6 +1411,10 @@ async def _run_mission_streaming(mission: str, mode: str, ws: WebSocket,
                     transcript = agent.run(mission, on_event=sync_emit, mission_id=mid,
                                            prior_intel=prior_intel, operator_inbox=inbox,
                                            commander_orders=chat_context)
+                    # B-S4 (famille) : le mode Plan a une inbox sentinel mais ne
+                    # récoltait jamais last_abort_reason — un abort plan-mode
+                    # s'enregistrait « complete » comme pour Swarm/Offline.
+                    _agent_reason["v"] = getattr(agent, "last_abort_reason", "")
                 finally:
                     RUNNING_INBOXES.pop(mid, None)
                 plan_text = _extract_plan(transcript)
@@ -1454,7 +1498,11 @@ async def _run_mission_streaming(mission: str, mode: str, ws: WebSocket,
         duration = round(_t.time() - _start, 2)
         # audit#3: un abandon (opérateur, LLM mort, deadline) n'est PAS un
         # succès — l'agent expose last_abort_reason, le backend honnêtise.
-        _reason = (_agent_reason.get("v") or "").strip()
+        # B-S4 : Swarm/Offline n'ont pas d'agent pour exposer la raison — un
+        # abort enregistré pendant ces modes (mode sans sentinel) bascule la
+        # clôture ici, au lieu d'enregistrer « complete » + mission_complete.
+        _reason = (_agent_reason.get("v")
+                   or _PENDING_ABORTS.pop(mid, None) or "").strip()
         if _reason and _reason != "complete":
             _status = {"operator_abort": "aborted", "llm_dead": "aborted",
                        "timeout": "timeout"}.get(_reason, "aborted")
@@ -1488,6 +1536,9 @@ async def _run_mission_streaming(mission: str, mode: str, ws: WebSocket,
             "timestamp": datetime.now().isoformat()
         })
     finally:
+        # B-S4 : aucune demande d'abort ne doit survivre à sa mission
+        # (exception path / mission terminée sans la consommer).
+        _PENDING_ABORTS.pop(mid, None)
         _RUN_STATE["running"] = False
 
 
