@@ -1001,8 +1001,17 @@ async def chat_log():
 
 @app.post("/chat/clear")
 async def chat_clear():
-    _chat_session().clear()
-    _save_chat_log()
+    # B-S8 : mutation d'historique DERRIÈRE le lock de turn, acquisition
+    # non-bloquante — sinon une réponse en vol s'appendait à la liste vidée
+    # (bulle orpheline, drift de count()). Miroir du pattern /chat (956).
+    if not _CHAT_TURN_LOCK.acquire(blocking=False):
+        raise HTTPException(status_code=409,
+                            detail="chat turn en cours — réessaie dans un instant")
+    try:
+        _chat_session().clear()
+        _save_chat_log()
+    finally:
+        _CHAT_TURN_LOCK.release()
     return {"status": "cleared"}
 
 # ═══ SESSION NEUVE: the memory purge — each store is opt-in ═══
@@ -1020,8 +1029,17 @@ async def admin_fresh(req: FreshRequest):
     or reports — those are the campaign archive, deleted by hand only."""
     cleared = []
     if req.chat:
-        _chat_session().clear()
-        _save_chat_log()
+        # B-S8 : idem /chat/clear — purge d'historique sous le lock de turn,
+        # 409 non-bloquant si un turn est en vol (jamais d'acquire bloquant
+        # dans la boucle asyncio).
+        if not _CHAT_TURN_LOCK.acquire(blocking=False):
+            raise HTTPException(status_code=409,
+                                detail="chat turn en cours — réessaie dans un instant")
+        try:
+            _chat_session().clear()
+            _save_chat_log()
+        finally:
+            _CHAT_TURN_LOCK.release()
         cleared.append("chat")
     if req.pending:
         _PENDING_PLAN.clear()
@@ -1047,9 +1065,13 @@ async def admin_fresh(req: FreshRequest):
         n = 0
         if os.path.isdir(ipath):
             for fn in os.listdir(ipath):
-                # R4-20 : match EXACT du slug — purger « test.com » ne doit
-                # pas effacer « attest.com.json » (sous-chaîne = perte d'intel)
-                if tgt and fn.lower() != f"{tgt}.json" and not fn.lower().startswith(f"{tgt}."):
+                # R4-20 + B-S13 : suffixes EXACTS du slug blackboard — purger
+                # « test » ne doit ni effacer « test.local.json » (dots internes
+                # des slugs) ni « attest.com.json » (sous-chaîne = perte d'intel).
+                fn_l = fn.lower()
+                is_target_file = (fn_l == f"{tgt}.json"
+                                  or fn_l == f"{tgt}.events.jsonl")
+                if tgt and not is_target_file:
                     continue
                 try:
                     os.remove(os.path.join(ipath, fn))
