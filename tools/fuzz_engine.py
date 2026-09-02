@@ -117,6 +117,12 @@ def fuzz_attack_surface(url, params=None, headers=None, max_requests=300,
     if not params and split.query:
         params = {k: v for k, v in parse_qsl(split.query)}
     url = base
+    # C-FZ2: {FUZZ} dans l'URL + params → la branche de substitution path
+    # (pname=None) n'est jamais atteinte et le littéral partait brut dans
+    # la requête (404 garanti). Token baseline bénin AVANT toute
+    # construction de requête — baseline et mutations visent la même URL.
+    if params and "{FUZZ}" in url:
+        url = url.replace("{FUZZ}", "FUZZ")
     # baseline
     st0, body0, dt0 = paced_send(url, headers=headers, timeout=20)
     fp0 = body_fingerprint(body0)
@@ -140,6 +146,7 @@ def fuzz_attack_surface(url, params=None, headers=None, max_requests=300,
     param_names = ([target_param] if target_param else list(params.keys())) or [None]
 
     for pname in param_names:
+        waf_banned = False  # C-FZ1: abort per-param — plus de martèlement du banni
         for mut in (list(MUTATIONS) + _words):
             if sent >= max_requests:
                 break
@@ -182,7 +189,11 @@ def fuzz_attack_surface(url, params=None, headers=None, max_requests=300,
             for name, score in _classify(resp):
                 if name == "waf_blocked":
                     signals.append("waf_blocking — aborting this param")
-                    severity = 0.0
+                    # C-FZ1: le ban WAF doit être VISIBLE (gate severity >0.3)
+                    # — severity dédiée 0.45 au lieu du 0.0 qui supprimait le
+                    # finding ; max() garde un signal co-occurrent plus grave.
+                    severity = max(severity, 0.45)
+                    waf_banned = True
                     break
                 signals.append(f"error:{name}")
                 severity = max(severity, score)
@@ -199,6 +210,9 @@ def fuzz_attack_surface(url, params=None, headers=None, max_requests=300,
                                  "url_path": url.split("?")[0][:120]})
             elif st == 200 and len(ref) < 60:
                 ref.append(len(resp or ""))  # clean response -> reference window
+            if waf_banned:
+                break  # C-FZ1: bookkeeping fait (finding enregistré), on ne
+                       # martèle plus ce param — le suivant re-démarre à froid
 
     _save_findings(findings)
     _save_seeds(findings)
