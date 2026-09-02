@@ -23,7 +23,9 @@ Routing model (reverse-skill inspired, kept 200x lighter):
   anti-collision pattern: "jailbreak" iOS vs "jailbreak" LLM);
 - injection is PRIMARY (best match, full playbook) + secondaries as a
   one-line pointer list, with a confidence marker (hits count).
-Legacy skills without tier/not_when keep the exact old behavior.
+Legacy skills without tier/not_when keep the old routing model, except
+that ASCII keywords now use R1-1 underscore-boundary lookarounds in _hits
+(a mild narrowing vs the pre-R1-1 substring match).
 """
 import os, re
 
