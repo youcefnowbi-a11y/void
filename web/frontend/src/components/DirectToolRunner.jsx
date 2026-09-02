@@ -190,7 +190,7 @@ export default function DirectToolRunner({ onToolExecuted }) {
             value={selectedToolName}
             onChange={(e) => handleToolChange(e.target.value)}
             disabled={executing || loadingTools}
-            className="w-full rounded-lg border border-line bg-wash px-3 py-2 text-[12.5px] font-mono text-ink focus:outline-none focus:border-volt focus:bg-paper transition-colors cursor-pointer"
+            className="w-full rounded-[10px] border border-line bg-wash px-3 py-2 text-[12.5px] font-mono text-ink focus:outline-none focus:border-volt focus:bg-paper transition-colors cursor-pointer"
           >
             {tools.length === 0 && <option>Chargement de l'arsenal...</option>}
             {filteredTools.map(t => (
@@ -204,15 +204,15 @@ export default function DirectToolRunner({ onToolExecuted }) {
             placeholder="Filtrer..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-24 rounded-lg border border-line bg-wash px-2.5 py-2 text-[11.5px] font-mono text-ink focus:outline-none focus:border-volt focus:bg-paper transition-colors"
+            className="w-24 rounded-[10px] border border-line bg-wash px-2.5 py-2 text-[11.5px] font-mono text-ink focus:outline-none focus:border-volt focus:bg-paper transition-colors"
           />
         </div>
 
         {/* Description de l'outil sélectionné */}
         {currentTool.description && (
-          <div className="rounded-lg border border-line border-l-2 border-l-volt/50 bg-wash px-3 py-2 text-[11.5px] font-mono text-slate leading-relaxed">
+          <div className="rounded-lg border border-line border-l-2 border-l-volt/50 bg-wash px-3 py-2 text-[11.5px] text-slate leading-relaxed">
             <div className="flex items-center gap-2 mb-0.5">
-              <span className="font-bold text-volt">{currentTool.name}</span>
+              <span className="font-mono font-bold text-volt">{currentTool.name}</span>
               <span className={`text-[9px] uppercase px-1.5 py-0.5 rounded-full border font-semibold ${
                 currentTool.danger === 'destructive' ? 'border-danger/30 text-danger bg-dangertint' :
                 currentTool.danger === 'active' ? 'border-warn/30 text-warn bg-warntint' :
@@ -233,7 +233,7 @@ export default function DirectToolRunner({ onToolExecuted }) {
           <button
             type="button"
             onClick={() => setRawJsonMode(!rawJsonMode)}
-            className="font-mono text-[10px] text-volt hover:underline uppercase tracking-wider font-semibold"
+            className="text-[10px] text-mut hover:text-volt hover:underline uppercase tracking-wider font-semibold"
           >
             {rawJsonMode ? 'Mode Formulaire' : 'Mode JSON Brut'}
           </button>
@@ -246,14 +246,14 @@ export default function DirectToolRunner({ onToolExecuted }) {
               onChange={(e) => handleRawJsonChange(e.target.value)}
               rows={5}
               placeholder={'{\n  "param": "valeur"\n}'}
-              className="w-full rounded-lg border border-line bg-wash text-ink font-mono text-[11px] p-2.5 resize-y focus:outline-none focus:border-volt focus:bg-paper transition-colors"
+              className="w-full rounded-[10px] border border-line bg-wash text-ink font-mono text-[11px] p-2.5 resize-y focus:outline-none focus:border-volt focus:bg-paper transition-colors"
             />
-            {jsonError && <p className="text-danger text-[10px] font-mono mt-1">{jsonError}</p>}
+            {jsonError && <p className="text-danger text-[10px] mt-1">{jsonError}</p>}
           </div>
         ) : (
           <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
             {Object.keys(properties).length === 0 ? (
-              <p className="text-[11px] font-mono text-mut italic py-1">Cet outil ne requiert aucun paramètre.</p>
+              <p className="text-[11px] text-mut italic py-1">Cet outil ne requiert aucun paramètre.</p>
             ) : (
               Object.entries(properties).map(([propName, schema]) => {
                 const isRequired = requiredFields.includes(propName);
@@ -286,7 +286,7 @@ export default function DirectToolRunner({ onToolExecuted }) {
                         value={Array.isArray(val) ? val.join(', ') : val}
                         onChange={(e) => handleFieldChange(propName, e.target.value, 'array')}
                         placeholder="ex: val1, val2, val3"
-                        className="w-full rounded-lg border border-line bg-wash px-2.5 py-1.5 text-[12px] font-mono text-ink focus:outline-none focus:border-volt focus:bg-paper transition-colors"
+                        className="w-full rounded-[10px] border border-line bg-wash px-2.5 py-1.5 text-[12px] font-mono text-ink focus:outline-none focus:border-volt focus:bg-paper transition-colors"
                       />
                     </div>
                   );
@@ -303,7 +303,7 @@ export default function DirectToolRunner({ onToolExecuted }) {
                       value={val}
                       onChange={(e) => handleFieldChange(propName, e.target.value, schema.type)}
                       placeholder={schema.description || `Entrez ${propName}...`}
-                      className="w-full rounded-lg border border-line bg-wash px-2.5 py-1.5 text-[12px] font-mono text-ink focus:outline-none focus:border-volt focus:bg-paper transition-colors"
+                      className="w-full rounded-[10px] border border-line bg-wash px-2.5 py-1.5 text-[12px] font-mono text-ink focus:outline-none focus:border-volt focus:bg-paper transition-colors"
                     />
                   </div>
                 );
@@ -315,18 +315,18 @@ export default function DirectToolRunner({ onToolExecuted }) {
 
       {/* BOUTON D'EXÉCUTION DIRECTE */}
       <div className="pt-3 border-t border-line flex items-center justify-between gap-3">
-        <span className="font-mono text-[10px] text-mut">
+        <span className="text-[10px] text-mut">
           {executing ? 'Traitement en cours...' : 'Prêt pour frappe ciblée'}
         </span>
         <button
           type="button"
           onClick={runSelectedTool}
           disabled={executing || !selectedToolName}
-          className="btn-strike rounded-full bg-volt text-mist font-disp font-semibold uppercase tracking-[.14em] text-[12.5px] px-5 py-2 flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none cursor-pointer"
+          className="btn-strike rounded-full bg-snow text-[#0A0A0A] font-disp font-semibold uppercase tracking-[.14em] text-[12.5px] px-5 py-2 flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none cursor-pointer"
         >
           {executing ? (
             <>
-              <svg className="animate-spin h-4 w-4 text-mist" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <svg className="animate-spin h-4 w-4 text-[#0A0A0A]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
               </svg>
@@ -347,7 +347,7 @@ export default function DirectToolRunner({ onToolExecuted }) {
           <div className="flex items-center justify-between border-b border-line pb-2">
             <div className="flex items-center gap-2">
               <span className={`inline-block w-2.5 h-2.5 rounded-full ${result.success ? 'bg-ok' : 'bg-danger animate-pulse'}`} />
-              <span className="font-mono text-[11px] uppercase font-bold tracking-wider text-ink">
+              <span className="text-[11px] uppercase font-bold tracking-wider text-ink">
                 {result.success ? 'RÉSULTAT OBTENU' : 'ÉCHEC / ALERTE'}
               </span>
               <span className="font-mono text-[10px] text-faint">({result.duration}s · {result.timestamp})</span>
@@ -356,14 +356,14 @@ export default function DirectToolRunner({ onToolExecuted }) {
               <button
                 type="button"
                 onClick={copyResult}
-                className="font-mono text-[10px] text-volt hover:underline uppercase font-semibold"
+                className="text-[10px] text-mut hover:text-volt hover:underline uppercase font-semibold"
               >
                 {copied ? '✓ Copié !' : 'Copier'}
               </button>
               <button
                 type="button"
                 onClick={() => setResult(null)}
-                className="font-mono text-[10px] text-mut hover:text-ink uppercase"
+                className="text-[10px] text-mut hover:text-ink uppercase"
               >
                 Fermer
               </button>
