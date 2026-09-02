@@ -132,25 +132,39 @@ def vault_size():
         return len(_VAULT)
 
 
+_ENABLED_CACHE = None  # D-T5: provider.yaml lu/parsé une fois par process
+
+
 def reset_vault():
     """Nouvelle campagne → nouveau coffre (par process: les tokens ne
     survivent pas à un restart, c'est un choix de sécurité)."""
+    global _ENABLED_CACHE
     with _LOCK:
         _VAULT.clear()
         _REVERSE.clear()
         _COUNTER[0] = 0
+    # D-T5: frontière de campagne → re-lire la config (le seul autre écrivain
+    # de provider.yaml est le backend web, hors process agent).
+    _ENABLED_CACHE = None
 
 
 def enabled():
-    """Config provider.yaml provider.tokenize_secrets (défaut false)."""
+    """Config provider.yaml provider.tokenize_secrets (défaut false).
+    D-T5: parsée une seule fois par process (cache module, invalidé par
+    reset_vault) — appelée à chaque tour d'agent/chat, yaml.safe_load
+    à chaque call n'avait aucun sens."""
+    global _ENABLED_CACHE
+    if _ENABLED_CACHE is not None:
+        return _ENABLED_CACHE
     try:
         import yaml
         p = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
                          "config", "provider.yaml")
         d = yaml.safe_load(open(p, encoding="utf-8")) or {}
-        return bool((d.get("provider") or {}).get("tokenize_secrets", False))
+        _ENABLED_CACHE = bool((d.get("provider") or {}).get("tokenize_secrets", False))
     except Exception:
-        return False
+        _ENABLED_CACHE = False
+    return _ENABLED_CACHE
 
 
 def mask_msgs(msgs):
