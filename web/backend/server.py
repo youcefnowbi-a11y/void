@@ -918,6 +918,14 @@ async def _approve_and_strike(edited_plan: str = "", strike_mode: str = ""):
     except Exception:
         pass
     mission = _PENDING_PLAN.get("mission", "")
+    # R4-13/15: même garde lue-seule que POST /mission — PAS de claim ici, le
+    # check-and-set atomique vit dans _run_mission_streaming. Le 409 remonte
+    # à l'opérateur au lieu d'un "accepted" fantôme qui meurt en WS.
+    # B-S2 : la gate DOIT précéder le clear/_save — une approbation pendant une
+    # campagne ne détruit plus le plan encore en attente sur disque (le 409
+    # laisse _PENDING_PLAN intact, l'opérateur peut frapper après la campagne).
+    if _RUN_STATE["running"]:
+        raise HTTPException(status_code=409, detail="campagne déjà en cours — une seule à la fois")
     _PENDING_PLAN.clear()
     _save_pending_plan()
     mode = strike_mode if strike_mode in ("IA", "Swarm") else None
@@ -925,11 +933,6 @@ async def _approve_and_strike(edited_plan: str = "", strike_mode: str = ""):
         m = re.search(r'"mode"\s*:\s*"(swarm|single|ia)"', plan_doc, re.I)
         mode = "Swarm" if (m and m.group(1).lower() == "swarm") else "IA"
     _ACTIVE_MODE["mode"] = mode
-    # R4-13/15: même garde lue-seule que POST /mission — PAS de claim ici, le
-    # check-and-set atomique vit dans _run_mission_streaming. Le 409 remonte
-    # à l'opérateur au lieu d'un "accepted" fantôme qui meurt en WS.
-    if _RUN_STATE["running"]:
-        raise HTTPException(status_code=409, detail="campagne déjà en cours — une seule à la fois")
     loop = asyncio.get_running_loop()
     loop.create_task(_launch_mission(
         mission or plan_doc[:400], mode, None,
