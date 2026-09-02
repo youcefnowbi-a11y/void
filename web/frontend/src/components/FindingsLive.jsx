@@ -32,7 +32,7 @@ export default function FindingsLive({ findings }) {
             <div key={i} className={`finding-card px-4 py-3 border-l-2 ${s.border} ${s.tint}`}>
               <div className="flex items-center gap-2 mb-1">
                 <span className={`w-2 h-2 rounded-full ${s.dot}`} />
-                <span className="font-mono text-[10.5px] tracking-[.18em] uppercase font-bold text-ink">
+                <span className="text-[10.5px] tracking-[.18em] uppercase font-bold text-ink">
                   {s.label}
                 </span>
                 {f.tool && (
