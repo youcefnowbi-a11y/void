@@ -3,7 +3,7 @@
 **Objectif** : « est-ce que le code fait ce qu'il prétend ? » — conditions inversées, branches mortes, trous d'état, dérive docstring/réalité, contrats inter-modules, pertes silencieuses.
 **Périmètre exclu** : tout ce que docs/CODE_REVIEW.md a déjà trouvé (vérifié non re-flaggé). Couche d'acceptation (chat/framing normalize) exclue par ordre permanent.
 **Référence git** : baseline `ecc2464` (état vert 122/122) — chaque finding ancré `file:line` est valide contre cette référence.
-**Statut** : 🔄 en cours — lanes ENI-cerveau + A livrées et contre-vérifiées ; lanes B/C/D attendues.
+**Statut** : ✅ TERMINÉ — les 5 lanes (ENI-cerveau, A, B, C, D) livrées, persistées, contre-vérifiées (23/24, 1 corrigée). **Total : ~91 findings** — 2 LOGIC-CRIT (B-S1 wedge gate, D-M1 bandit mort), 13 HIGH. Synthèse en fin de doc.
 
 ---
 
@@ -228,7 +228,45 @@
 
 ### Non vérifiables (lane B) : abort coopératif côté outil ; ordering tail de chat_stream (mandat lane D) ; probabilité de contention sqlite pour la trace S-1 ; internals du retry llm.py.
 
-## LANE C — tool execution logic — ⏳ en attente de re-naissance
+## LANE C — tool execution logic (transport/batch/forge/fuzz + 8 tools) — 27 findings (1 corrigé à la contre-vérification)
+
+### C-H2 [LOGIC-CRIT] har_passive_scan.py:71 — comparaison exp INVERSÉE : chaque JWT normal est flaggé « long-vie », les vrais jamais-expirants sont épargnés — ✅ vérifié ENI
+- **Fait** : `exp*1000 < 4102444800000` (ms an 2100) — un token 2030 (1.89e12) matche, un token an 2500 (16.7e12) non. L'oracle « stale exp » n'existe pas ; le flag alimente le ranking jwt=2 sur chaque token de tout HAR — bruit total.
+- **Fix** : inverser en `>` ou comparer à now + horizon.
+- **Confiance** : 90 % (arithmétique re-faite deux fois)
+
+### C-FZ1 [HIGH — mécanique CORRIGÉE par la contre-vérification ENI] fuzz_engine.py:183-188 — le « aborting this param » n'abort rien — ⚠ lane C s'est trompée sur le détail : le `break` interne EXISTE (186)
+- **Fait réel** (vérifié ligne à ligne) : waf_blocked → signal appendu, severity=0.0, break interne. Conséquences : (a) `if signals and severity > 0.3` (195) échoue → **le finding WAF est entièrement supprimé — un ban WAF est INVISIBLE du verdict** ; (b) aucun flag n'existe pour la boucle externe → **le paramètre banni continue d'être martelé** (budget brûlé, fingerprint durci). La lane C avait inversé la mécanique (continuation interne + résurrection de sévérité — fausses) mais le bug de fond est réel : message menteur, oracle aveugle, campagne sans frein.
+- **Fix** : flag d'abort externe + enregistrer le finding WAF (severity dédiée) au lieu de le supprimer.
+- **Confiance ENI** : 100 % sur la mécanique corrigée
+
+### C-N1 [HIGH] nday_runner.py:76-95, 152 — la « stack-match gate » n'a jamais gaté — ✅ vérifié ENI (la condition d'exécution 152 ne lit jamais stack_match)
+- **Fait** : « never blind-fire a PoC at the wrong stack » — décoratif : `confident` = 1 seul mot du desc dans les 4000 premiers bytes, et même `confident: False` exécute quand execute+confirm sont là.
+- **Fix** : exiger `stack_match["confident"]` dans la condition ou avouer dans le docstring.
+- **Confiance** : 95 %
+
+### C-T1 [HIGH] _transport.py:460-483 — le chemin curl_cffi 3xx renvoie la requête DEUX fois — ✅ vérifié ENI (fall-through 478→481)
+- **Fait** : réponse curl 3xx jetée ; la même requête repart via urllib (481). Pour 301/302/303 urllib auto-suit nativement → le redirect block du fetch ne voit RIEN : creds replayées cross-host (bypass du strip R3-31), zéro redirect_chain, 307/308 non gérés comme promis.
+- **Fix** : construire `out` depuis la réponse curl et entrer le même bloc redirect.
+- **Confiance** : 92 %
+
+### C-FZ2 [HIGH] fuzz_engine.py:147-163 — la branche POST n'est atteignable que dans une config cassée
+- **Fait** : POST ne fire que quand `{FUZZ}` est dans l'URL + params passés + pas de target_param → POST vers une URL contenant le littéral `{FUZZ}` jamais substitué (404 garanti). POST sans `{FUZZ}` impossible. Le fuzzing POST par params est mort par interplay.
+- **Fix** : substituer/strip le placeholder avant la construction + déclencher POST sur la présence de params (ou un param method). **Confiance** : 88 %
+
+### C-N3 [MED→HIGH] nday_runner.py:184-186 — `exploitable=False` quand aucun PoC trouvé — l'intel downstream lit « cible propre » alors que RIEN n'a été testé (contrat tri-state violé). **Fix** : "partial" si non testé. **Confiance** : 90 %
+
+### Les MED de la lane C (ancres vérifiées par la lane, confiance ≥75 %)
+T-3 cache GET sous-clé (bleed inter-sessions, replay.py/auth_attack vivants) · T-4 URLs calculées par les outils jamais re-validées scope côté transport (moitié outil du R3-16, arbitrage opérateur) · T-5 `"blocked"` substring → rotation WAF fausse + cooldown d'un exit sain · FZ-3 baseline bare-URL vs mutations avec params (toutes les mutations « anomalies » si la page diffère) · FZ-7 oracle timing compte backoff Retry-After + attente ROE → FP structurels · H-1 Set-Cookie multi-header écrasés (dict) → analyse de flags sur le mauvais cookie · DX-1 early-stop `len < page_size` vs serveurs qui clampent → dumps silencieusement incomplets · D-2 stale `strings_dump.json` servi pour un autre bundle · D-1 slice eval 200k → zéro décodage silencieux sur gros bundles · C-3 oracle d'existence confond 500 et absent (tables erroring skipées) · WB-1 « relance op=break » est un no-op (pas de force-refresh) · N-2 keyword GitHub non encodé.
+
+### LOWs lane C : T-2 (rotation peut re-piquer le même proxy, flag proxy_used manquant) · T-6 (fenêtres blocked 1500 vs captcha full-body) · T-7 (santé proxy par string pas par exit) · T-8 (cache AF_INET force v4 pendant le TTL — trade-off E-1 documenté) · B-1 batch (exception remplit le premier slot None, erreur réattribuée puis écrasée) · B-2 (cap 22k coupe le JSON sans marqueur) · FG-1 (name='list' + code → listing silencieux, code ignoré) · FG-2 (schéma promis vs `**kwargs` avale tout) · D-3 (regex `[^\]]` coupe les tables au premier `]` d'une string) · D-4 (harness mort) · FZ-3b (desc annonce wordlist='common.txt', le code ajoute .txt → `.txt.txt`, sweep silencieusement sauté — la desc params dit le contraire) · FZ-5 (seeds tronqués 120 chars) · H-3 (regex IDOR raisonnable — clean) · H-4 (total compte les lignes) · DX-2 (branche REDIRECT quasi-morte) · C-1/C-2 composite (dégradations acceptables) · CF-1/CF-2 (clean) · SL-1 (double cap redondant, SKILL_CAP non lu).
+
+### Vérifiés-propres (lane C) : R3-25/26/31, E-2/E-3/E-5, budget partagé redirects — les fixes transport TIENNENT · R5-2/14 fuzz tiennent · R3-17 forge tiennent (regex full_module + salvage tracés) · R3-6/7 wall_breaker · R3-8 skill_loader · R3-10/37 cn_fingerprint · _save_findings avant sort = cosmetic clean.
+
+### Verdicts santé logique (lane C)
+_transport **7/10** · batch **9/10** · forge **8/10** · fuzz_engine **5/10** (le plus faible : abort menteur, POST inatteignable, baseline décalée, timing FPs) · nday_runner **6/10** (gate décorative) · deobfuscate **7/10** · wall_breaker **8/10** · har_passive_scan **4/10** (les deux oracles les plus fins sont émoussés) · composite **8/10** · data_exfil **7/10** · skill_loader **9/10** · cn_fingerprint **9/10**
+
+### Non vérifiables (lane C) : valeur de SKILL_CAP ; la course T-2 dépend du timing inter-threads ; T-8 jugement d'arbitrage E-1 ; frontières FZ-3b/R5-2 et T-4/R3-16 signalées à l'arbitrage.
 ## LANE D — memory/pipeline (8 fichiers) — 13 findings + convergence E5=M-7
 
 ### D-M1 [LOGIC-CRIT] `_seed_from_db` appelle `_record(...)` qui N'EXISTE PAS — NameError garantie — ✅ vérifié ENI (grep : seul `bandit_record` existe, mathcore.py:144)
@@ -289,4 +327,42 @@ mathcore **4/10** · _tokenize **5/10** · blackboard **5/10** · skills **6/10*
 **Lane A (13/13)** : A1 ✓ · A2 ✓ · A3 ✓ · A4 ✓ (substring pur 938 + nudge auto-référentiel 1350) · A5 ✓ (continue sans compteur 1346-1351) · A6 ✓ · A8 ✓ · H2 ✓ · H3 ✓ (load hors lock 10-17, open("w") en place 21) · H4 ✓ (premier http(s) quelconque 98, suffixe .js forcé 102) · H5 ✓ · M1 ✓ (kind non-slugifié 259) · H-LOW2 ✓ (NETWORK aliasing 93)
 **Lane B (3/3)** : B-S1 ✓ (flag 1159 hors try, start_mission 1160) · B-S2 ✓ (clear 921-922 avant gate 931) · B-C1 ✓ (fallback 236 hors guard 249)
 **Lane D (3/3)** : D-M1 ✓ (grep : `def _record` inexistant, CRIT mécanique) · D-T1 ✓ (classe `[^\\s…]{6,}` → `Bearer` masqué, JWT en clair) · D-B1 ✓ (`_dirty` posé 282, jamais lu ; callers save() = swarm seulement)
-**Total : 19/19 confirmées.**
+**Lane C (4/4, dont 1 correction)** : C-H2 ✓ (arithmétique exp re-faite : `exp*1000 < ms(2100)` vrai pour tout token normal — inversé) · C-N1 ✓ (condition d'exec 152 sans stack_match) · C-T1 ✓ (fall-through 478→481, double requête confirmée) · C-FZ1 ⚠ **corrigé** : le `break` interne existe (186) — la vraie mécanique est finding-WAF-supprimé + boucle externe sans frein (pas « continue interne + résurrection »)
+**Total : 23/24 confirmées (1 corrigée).**
+
+---
+
+# SYNTHÈSE FINALE — plan de vague de fixes proposé
+
+## Les 2 LOGIC-CRIT (fix immédiat, chaque fois <3 lignes)
+1. **B-S1** server.py:1159-1161 — envelopper le corps post-lock dans try/except qui relâche le flag. Une exception au claim wedge la gate single-campaign pour toujours.
+2. **D-M1** mathcore.py:141 — `_record` → `bandit_record`. Le bandit n'a jamais appris quoi que ce soit de l'historique, en silence.
+
+## Les 13 HIGH (par impact)
+| ID | Une ligne | Fix |
+|---|---|---|
+| A2 | batch bypass tous les filtres (plan-mode peint) | thread-local allowed_tools (pattern current_event) |
+| A1 | offline brain exécute le registry nu en plan-mode | filtrer les steps par self.tools |
+| A3 | wall-reflex casse l'ordre provider → 400 en cascade | injecter APRÈS les tool results |
+| B-S2 | approbation pendant campagne = plan détruit + 409 | gate 409 avant le clear |
+| B-C1 | erreurs chat canonisées en doctrine du commandant | préfixe `[LLM UNREACHABLE` |
+| B-R2 | dédup report sur préfixe 80 chars avale des secrets | clé sur le hash complet |
+| B-S3 | recon plan-mode non flushée au return | board.save() avant return |
+| D-T1 | masque de creds cache `Bearer`, JWT en clair | classe de valeur jusqu'au quote/EOL |
+| D-B1 | `_dirty` mort — fin de mission non persistée | flush au teardown |
+| D-S1 | lookarounds CJK ne matchent pas (fix R1-1 mort) | substring brut pour non-ASCII |
+| C-T1 | curl 3xx = double requête + bypass strip creds | construire out depuis curl |
+| C-N1 | gate stack-match décorative (nday) | l'exiger dans la condition |
+| C-FZ1 | ban WAF invisible + campagne sans frein (fuzz) | flag d'abort externe + finding WAF |
+
+## Les MED à fort levier
+B-S6 (intel_mode charge le mauvais rapport) · B-S8 (clear sans lock) · B-S4 (abort swarm = complete) · D-B2 (prior empilé) · D-M3 (AIMD accélère vers les hôtes morts) · D-L1/L2 (parsing réponse) · D-T2 (reset vault course le swarm) · C-T3 (cache inter-sessions) · C-FZ3 (baseline décalée) · C-FZ7 (timing FPs structurels) · C-H1 (Set-Cookie écrasés) · C-DX1 (dumps incomplets) · C-D2 (stale dump) · C-WB1 (refresh no-op) · C-N3 (non-testé = propre) · E1/E2 (planner offline : JWT vide, .fr invisible) · E4 (union dump sans vuln) · E3 (composite ref|key)
+
+## Arbitrages opérateur
+- **D-F1** (framing user-role evidence normalisée) — au bord de la couche d'acceptation exclue : mécanique nouvelle, pas les blocs exclus. Trancher.
+- **C-T4** (URLs calculées par les outils non re-validées) — frontière avec R3-16 : même site de fix probablement, moitié outil non couverte par le review.
+- **C-FZ3b** (desc wordlist mensongère) — frontière R5-2, moitié doc-drift.
+- **D-M2** — volet git corrigé (G-1, ff46e74) ; reste le volet tests (tmp path ou save=False).
+
+## Ce qui TIENT (positifs des 5 lanes)
+Les fixes de la session précédente sont majoritairement solides : transport R3-25/26/31 + budget redirects ✓, forge R3-14/17 ✓, fuzz R5-2/14 ✓, blackboard atomique R2-4 ✓, bandit save R2-3 ✓, mask/unmask roundtrip R1-2 ✓, skills veto-précédence ✓, state.py dédup 9/10 ✓, ROE fail-closed ✓, gates d'ordre ✓, UNTRUSTED delimiters ✓. La vague 1 a tenu ; cette vague répare les coutures laissées par la précédente (les « NEW fixes each left one seam » de la lane B) et les contrats entre modules que personne ne lit deux fois.
