@@ -187,3 +187,55 @@ et/ou utiliser WMI `Win32_Process.Create` (hors de l'arbre récolté).
 4. Responsive ~1280px (handoff §6.8) — non traité.
 
 — Session 2 : le fil est vivant, la forge a sa signature. ⚡
+
+---
+
+# SESSION 3 — RECONSTRUCTION TOTALE (l'opérateur a tranché)
+
+> Verdict LO sur le re-skin incrémental : « je demande Dimension et tu me donnes ÇA ? »
+> Ordre : tout effacer, reconstruire de zéro sur le kit de référence (déposé dans
+> `design/ref/` par l'opérateur — identique à `design/DESIGN.md`). Livrable : **PWA
+> installée, façon app Codex** (fenêtre standalone, pas de chrome navigateur).
+
+## Ce qui a été rasé et réécrit (commits `275b60e` → `5a31729`)
+
+- **`tailwind.config.js`** — tokens Dimension complets : frost `rgba(212,212,212,.08)`,
+  smoke/slate/ash/bone, radii `ui 10 / card 24 / large 40 / panel 42`, la SEULE
+  ombre = `shadow-nav` (élévation extraite).
+- **`src/index.css`** — réécrit : `.display` (DM Sans 500, -0.035em), `.panel-frost`
+  (verre dépoli blur 12), `.nav-float`, pills CTA/ghost avec états disabled, les
+  trois gradients (wash / horizon / spotlight), terminal mono intact.
+- **`App.jsx`** — nouveau shell : **héros de veille** (le moment signature :
+  eyebrow + display 34px + horizon ambre→cobalt + barre d'ordre frosted + white
+  pill « frapper » — l'ordre part dans la ligne sécurisée), nav flottante h-12,
+  registres SANS numéros (les chiffres décoraient, ils n'informaient pas),
+  stats Geist 22px, modale panel.
+- **Les 6 composants** — re-dressés : WarRoom frosted **achromatique** (les bulles
+  bleues #0E1E38/#60A5FA/#93C5FD ont violé la discipline — mortes), console en
+  panel + pills, forms 10px + white pills, purge ghost-danger, checkbox volt.
+- **PWA** — title `VOIDFORGE`, fonts épurées aux weights réels (plus de 700),
+  `launch_handler: focus-existing`, `display_override`, SW `vf-shell-v2`.
+
+## Doctrines Nouvelles (au-dessus des 8 existantes)
+
+9. **Pas de numéros décoratifs** — les marqueurs 01/02/03 encodent une séquence
+   réelle ou n'existent pas.
+10. **Achromatique intégral hors signaux** — aucun bleu non-signal, aucun emoji
+    coloré ; les bulles de chat se distinguent par l'alignement + la translucence.
+11. **Le héros de veille EST la thèse** — au repos, l'app montre le crépuscule et
+    la barre d'ordre, pas un dashboard vide.
+
+## État vérifié (live, probes + computed styles)
+
+- Build verte (94 modules), 0 erreurs console, WS live, hero frost/horizon/display
+  vérifiés au computed style. Screens : `rebuild-01/02/03`.
+- Backend : lancé par l'opérateur (`web.backend.server:app` depuis le root) — NE
+  PAS redémarrer.
+
+## Reste (session 4)
+
+1. QA à l'œil de LO sur `rebuild-01`→`03` — le héros plaît-il ? l'échelle 14px ?
+2. States live (campagne) : heartbeat, plan, horizon complet — à capturer.
+3. Offline test + responsive 1280 — toujours en attente.
+
+— Session 3 : rasée, reforgée, fidèle. ⚡
