@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- VOIDFORGE forge-mark — white hammer at 45° + dusk-violet bolt on void canvas
+       Doctrine Dimension: achromatic surfaces, ONE violet accent, no heavy chrome.
+       Maskable-safe: every glyph stays inside the center 80% circle (r=205). -->
+  <defs>
+    <radialGradient id="dusk" cx="32%" cy="24%" r="78%">
+      <stop offset="0%" stop-color="#6B62F2" stop-opacity="0.30"/>
+      <stop offset="55%" stop-color="#6B62F2" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#6B62F2" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="512" height="512" fill="#0A0A0A"/>
+  <rect width="512" height="512" fill="url(#dusk)"/>
+  <!-- hammer — rotated -45°, strikes down-left to up-right -->
+  <g transform="rotate(-45 256 256)">
+    <rect x="181" y="104" width="150" height="74" rx="18" fill="#FFFFFF"/>
+    <rect x="239" y="178" width="34" height="216" rx="17" fill="#EDEDED"/>
+  </g>
+  <!-- bolt — the spark the strike releases (dusk violet, feather-zap geometry) -->
+  <path d="M313 192 L203 324 L280 324 L269 412 L379 280 L302 280 Z" fill="#6B62F2"/>
+</svg>
