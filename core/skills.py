@@ -84,10 +84,16 @@ def load_skill(skill_id):
 
 
 def _hits(words, low):
-    # R1-1: frontière CJK-tolérante — \b ne marche pas autour des idéogrammes
-    # (\w est Unicode), ces lookarounds marchent pour l'ASCII ET le CJK.
-    return sum(1 for w in words
-               if re.search(rf"(?<![^\W_]){re.escape(w)}(?![^\W_])", low))
+    # R1-1: frontière underscore pour l'ASCII (le \b simple ne voit pas les _).
+    # D-S1: en CJK les lookarounds ne marchent pas — les idéogrammes SONT \w
+    # en Unicode Python, donc `越权` ne matchait jamais au milieu de texte CJK
+    # (triggers zh morts, vetos not_when CJK contournés). Keyword non-ASCII →
+    # substring brut ; keyword ASCII → lookarounds inchangés.
+    def _kw_hit(w):
+        if w.isascii():
+            return re.search(rf"(?<![^\W_]){re.escape(w)}(?![^\W_])", low)
+        return w in low
+    return sum(1 for w in words if _kw_hit(w))
 
 
 def select_for(mission_text, limit=3):

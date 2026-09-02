@@ -127,17 +127,32 @@ fs.writeFileSync({json.dumps(os.path.join(os.path.dirname(js_path), 'strings_dum
                  JSON.stringify(dumped, null, 1));
 console.log('dumped', Object.keys(dumped).length);
 """
+    dump_file = os.path.join(os.path.dirname(js_path), 'strings_dump.json')
+    try:
+        # C-D2: purge du dump périmé d'un bundle précédent — sinon un run
+        # Node raté « réussit » en servant les strings de l'AUTRE bundle
+        if os.path.exists(dump_file):
+            os.unlink(dump_file)
+    except Exception:
+        pass
     tmp = js_path + ".vm.js"
     try:
         # try/finally: le harness ne doit jamais fuiter sur erreur (R5-6)
         open(tmp, "w", encoding="utf-8").write(node_script)
         code, tail = run(["node", tmp], timeout_minutes=5)
-        dump_file = os.path.join(os.path.dirname(js_path), 'strings_dump.json')
         data = json.load(open(dump_file)) if os.path.exists(dump_file) else {}
     finally:
         if os.path.exists(tmp):
             os.remove(tmp)
     interesting = {k: v for k, v in data.items() if isinstance(v, str) and
                    any(kw in v.lower() for kw in ("http","key","token","api","bin","pass","secret","admin"))}
-    return json.dumps({"decoded_total": len(data),
-                       "interesting": list(interesting.values())[:60]}, ensure_ascii=False, indent=1)
+    out = {"decoded_total": len(data),
+           "interesting": list(interesting.values())[:60]}
+    if len(src) > 200_000:
+        # C-D1: le harness n'eval que les 200k premiers octets — sur un gros
+        # bundle les décoders peuvent être hors slice (zéro décodage). Le
+        # rendu doit l'EXPLIQUER au lieu d'un silence indistinguable d'un
+        # bundle sans strings. (Pas d'eval full-source par design.)
+        out["truncated_eval"] = True
+        out["eval_bytes"] = 200_000
+    return json.dumps(out, ensure_ascii=False, indent=1)
