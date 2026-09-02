@@ -10,7 +10,7 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 def extract_target(mission):
     m = re.search(r"https?://[^\s,;\"]+", mission)
     if m: return m.group(0).rstrip("/")
-    m = re.search(r"\b([a-z0-9\-]+(?:\.[a-z0-9\-]+)*\.(?:com|net|org|me|io|site|shop|store|xyz|tv|cc))\b", mission, re.I)
+    m = re.search(r"\b([a-z0-9\-]+(?:\.[a-z0-9\-]+)*\.(?:com|net|org|me|io|site|shop|store|xyz|tv|cc|fr|dev|app|biz|eu|de|uk|ca|info|online|cloud|ai))\b", mission, re.I)
     if m:
         t = m.group(1)
         return ("https://" + t) if not t.startswith("http") else t
@@ -81,10 +81,15 @@ def plan(mission):
             add("lfi_file_read", {"url_template": target + "?page={INJ}"})
             has_specific = True
         if re.search(r"\b(?:jwt|forge)\b", low):
+            # E1 : has_specific seulement si un token est réellement dans la
+            # mission — « jwt analysis of site.com » sans token doit retomber
+            # sur la chaîne de recon par défaut, pas produire un plan vide.
+            # (jwt_analyst exige un arg `token` : il ne peut pas soutenir un
+            # plan sans token, on ne l'ajoute donc pas en fallback.)
             tok_m = re.search(r"(eyJhbGci[A-Za-z0-9_\-.]+)", mission)
             if tok_m:
                 add("jwt_forge_replay", {"token": tok_m.group(1), "replay_url": target})
-            has_specific = True
+                has_specific = True
         if re.search(r"\b(?:idor|bola)\b", low):
             add("idor_enum", {"url_template": target + "/{ID}", "start": 1, "stop": 60})
             has_specific = True
