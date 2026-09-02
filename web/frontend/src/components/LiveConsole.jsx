@@ -112,13 +112,13 @@ export default function LiveConsole({ logs, status, onClear }) {
       <div className="panel-raised overflow-hidden select-none">
         <button onClick={() => setIsFolded(false)}
           className="w-full px-4 py-2 flex items-center gap-3 text-left hover:bg-wash transition-colors group">
-          <span className="font-mono text-[9px] uppercase tracking-[.24em] text-mut shrink-0">console</span>
+          <span className="text-[9px] uppercase tracking-[.24em] text-mut shrink-0">console</span>
           <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-volt animate-pulse" />
           <span className="flex-1 font-mono text-[11px] text-slate truncate">
             {lastLine ? `${lastLine.type === 'separator' ? '— ' : ''}${lastLine.text}` : 'en attente…'}
           </span>
           <span className="font-mono text-[10px] text-faint shrink-0">{logs.length} lignes</span>
-          <span className="font-mono text-[11px] text-faint group-hover:text-volt transition-colors shrink-0">▲ déplier</span>
+          <span className="text-[11px] text-faint group-hover:text-volt transition-colors shrink-0">▲ déplier</span>
         </button>
       </div>
     )
@@ -141,12 +141,12 @@ export default function LiveConsole({ logs, status, onClear }) {
       {/* Header */}
       <div className={`px-3.5 py-2 border-b flex items-center justify-between flex-wrap gap-2 border-line bg-wash`}>
         <div className="flex items-center gap-2">
-          <span className="font-disp text-[13px] font-bold text-volt">06</span>
+          <span className="font-disp text-[13px] font-medium text-volt">06</span>
           <span className="eyebrow">console de campagne — toujours vivante</span>
           {status === 'running' && (
             <span className="flex items-center gap-1.5 ml-2 px-2 py-0.5 rounded-full border bg-voltlite border-volt/30">
               <span className="w-1.5 h-1.5 bg-volt rounded-full animate-pulse" />
-              <span className="font-mono text-[10px] text-volt tracking-widest uppercase font-bold">live</span>
+              <span className="text-[10px] text-volt tracking-widest uppercase font-bold">live</span>
             </span>
           )}
           <span className="font-mono text-[10px] ml-1 text-faint">{logs.length} lignes</span>
@@ -156,8 +156,8 @@ export default function LiveConsole({ logs, status, onClear }) {
           <div className="flex gap-px rounded-full p-0.5 border bg-paper border-line">
             {filters.map(f => (
               <button key={f.key} onClick={() => setFilter(f.key)}
-                className={`px-2.5 py-0.5 rounded-full font-mono text-[10px] uppercase tracking-wider transition-colors ${
-                  filter === f.key ? 'bg-volt text-mist font-bold' : 'text-mut hover:text-ink'
+                className={`px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider transition-colors ${
+                  filter === f.key ? 'bg-snow text-[#0A0A0A] font-bold' : 'text-mut hover:text-ink'
                 }`}>
                 {f.label} {f.count > 0 && <span className="opacity-70 text-[9px]">({f.count})</span>}
               </button>
@@ -165,23 +165,23 @@ export default function LiveConsole({ logs, status, onClear }) {
           </div>
 
           <button onClick={copyLogs} disabled={filtered.length === 0} title="Copier le journal"
-            className="px-2.5 py-0.5 rounded-full font-mono text-[10px] uppercase tracking-wider border border-line text-mut hover:text-volt hover:border-volt/40 transition-colors">
+            className="px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider border border-line text-mut hover:text-volt hover:border-volt/40 transition-colors">
             {copied ? '✓ copié' : 'copier'}
           </button>
 
           {onClear && (
             <button onClick={onClear} title="Effacer le journal (les sessions passées aussi)"
-              className="px-2.5 py-0.5 rounded-full font-mono text-[10px] uppercase tracking-wider border border-line text-mut hover:text-danger hover:border-danger/40 transition-colors">
+              className="px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider border border-line text-mut hover:text-danger hover:border-danger/40 transition-colors">
               vider
             </button>
           )}
 
           <button onClick={() => setIsFolded(true)} title="Rabattre en liseron"
-            className="px-2.5 py-0.5 rounded-full font-mono text-[10px] uppercase tracking-wider border border-line text-mut hover:text-volt hover:border-volt/40 transition-colors">
+            className="px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider border border-line text-mut hover:text-volt hover:border-volt/40 transition-colors">
             ▼ rabattre
           </button>
           <button onClick={() => setIsExpanded(!isExpanded)} title={isExpanded ? 'Réduire' : 'Plein écran'}
-            className="px-2.5 py-0.5 rounded-full font-mono text-[10px] uppercase tracking-wider border border-line text-mut hover:text-volt hover:border-volt/40 transition-colors">
+            className="px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-wider border border-line text-mut hover:text-volt hover:border-volt/40 transition-colors">
             {isExpanded ? 'réduire' : 'plein écran'}
           </button>
         </div>
@@ -191,8 +191,8 @@ export default function LiveConsole({ logs, status, onClear }) {
       <div ref={containerRef} onScroll={handleScroll}
         className={`terminal-bg px-4 py-3 overflow-y-auto select-text flex-1 min-h-0 ${isExpanded ? '' : ''}`}>
         {filtered.length === 0 && (
-          <div className="text-center py-14 font-mono text-xs flex flex-col items-center gap-2 text-faint">
-            <span className="text-2xl text-volt">⚡</span>
+          <div className="text-center py-14 text-xs flex flex-col items-center gap-2 text-faint">
+            <span className="text-2xl text-gold">⚡</span>
             <span>{status === 'idle' ? "▶ le journal est ouvert — un ordre de frappe l’animera." : 'aucune entrée pour ce filtre.'}</span>
           </div>
         )}
@@ -214,7 +214,7 @@ export default function LiveConsole({ logs, status, onClear }) {
                 <span className="text-[11.5px] select-none font-mono shrink-0 pt-0.5 text-faint">
                   [{fmtTime(line.ts)}]
                 </span>
-                <span className={`text-[9px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded border shrink-0 select-none ${cfg.badge}`}>
+                <span className={`text-[9px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded-full border shrink-0 select-none ${cfg.badge}`}>
                   {cfg.tag}
                 </span>
                 <span className={`flex-1 break-words font-mono text-[12.5px] leading-relaxed ${cfg.color}`}>
@@ -229,7 +229,7 @@ export default function LiveConsole({ logs, status, onClear }) {
 
       {!pinned && (
         <button onClick={() => { setPinned(true); endRef.current?.scrollIntoView({ behavior: 'smooth' }) }}
-          className="w-full py-2 text-center font-mono text-[10px] text-mist bg-gradient-to-r from-volt to-cyan hover:opacity-90 transition-opacity uppercase tracking-widest font-semibold flex items-center justify-center gap-1">
+          className="w-full py-2 text-center text-[10px] text-[#0A0A0A] bg-snow hover:opacity-90 transition-opacity uppercase tracking-widest font-semibold flex items-center justify-center gap-1">
           <span>↓ flux en pause — cliquer pour suivre</span>
         </button>
       )}
