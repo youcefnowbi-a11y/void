@@ -4,12 +4,17 @@
 
 @layer base {
   :root {
-    --mist: #09090B; --paper: #101013; --wash: #141419;
-    --ink: #FAFAFA; --slate: #B4B4BD; --mut: #8E8E99; --faint: #5F5F6B;
-    --line: #1E1E23; --line2: #2A2A32;
-    --volt: #8B5CF6; --cyan: #A78BFA; --gold: #C084FC;
+    /* ══ DIMENSION — dusk-lit workspace ══
+       void canvas, frosted graphite, hairlines, pills,
+       dusk violet #6B62F2 as the only chromatic breath. */
+    --mist: #0A0A0A; --paper: #161616; --wash: #1D1D1F;
+    --ink: #EDEDED; --slate: #C2C2C2; --mut: #8E8E99; --faint: #5C5C66;
+    --line: rgba(255,255,255,0.09); --line2: rgba(255,255,255,0.16);
+    --volt: #6B62F2; --cyan: #A78BFA; --gold: #EDB36B;
     --ok: #3DD68C; --warn: #FBBF24; --danger: #F87171;
     --info: #818CF8;
+    --hairline: rgba(255,255,255,0.09);
+    --frost: rgba(255,255,255,0.06);
   }
 
   html { color-scheme: dark; }
@@ -17,23 +22,23 @@
   body {
     background-color: var(--mist);
     color: var(--ink);
-    font-family: "IBM Plex Mono", ui-monospace, monospace;
+    font-family: "DM Sans", ui-sans-serif, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
   }
   /* ni voile, ni vignette, ni scanline — la propreté EST le luxe 2026 */
 
-  ::selection { background: var(--volt); color: #FFFFFF; }
+  ::selection { background: rgba(107,98,242,0.45); color: #FFFFFF; }
 
   ::-webkit-scrollbar { width: 8px; height: 8px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: #2A2A32; border-radius: 999px; }
+  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 999px; }
   ::-webkit-scrollbar-thumb:hover { background: var(--volt); }
 
   :focus-visible {
-    outline: 1.5px solid var(--volt);
+    outline: 1.5px solid rgba(107,98,242,0.7);
     outline-offset: 1.5px;
-    border-radius: 3px;
+    border-radius: 4px;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -42,7 +47,7 @@
 }
 
 @layer utilities {
-  /* ── the living pulse line — 2px, sobre ── */
+  /* ── the living pulse line — le crépuscule voyage ── */
   .heartbeat {
     position: fixed; top: 0; left: 0; right: 0; height: 2px;
     background: var(--line);
@@ -52,7 +57,8 @@
   .heartbeat::after {
     content: "";
     position: absolute; inset: 0;
-    background: linear-gradient(90deg, transparent, var(--volt), var(--cyan), transparent);
+    /* Dusk Violet Wash — la signature Dimension (alpha .565, bande centrale) */
+    background: linear-gradient(90deg, transparent, rgba(107,98,242,0.565) 50%, transparent);
     transform: translateX(-100%);
     opacity: 0;
   }
@@ -60,7 +66,8 @@
     opacity: 1;
     animation: heartbeat-travel 1.25s cubic-bezier(.4, 0, .2, 1) infinite;
   }
-  .heartbeat.complete { background: var(--gold); }
+  /* complete = l'horizon Dimension — ambre crépusculaire → cobalt */
+  .heartbeat.complete { background: linear-gradient(90deg, #EDB36B, #4C5BD4); }
   .heartbeat.error    { background: var(--danger); }
 
   @keyframes heartbeat-travel {
@@ -69,35 +76,70 @@
   }
 
   .eyebrow {
-    font-family: "Space Grotesk", sans-serif;
+    font-family: "Geist", "DM Sans", sans-serif;
     text-transform: uppercase;
     letter-spacing: .16em;
     font-size: 10.5px;
-    font-weight: 600;
+    font-weight: 500;
     color: var(--mut);
   }
 
-  /* ── surfaces — flat, dense, precise ── */
+  /* ── surfaces — frosted graphite, hairline, pas d'ombre lourde ── */
   .panel {
     background: var(--paper);
     border: 1px solid var(--line);
-    border-radius: 10px;
+    border-radius: 24px;
   }
   .panel-raised {
-    background: linear-gradient(180deg, #111114, #0D0D10);
+    background: linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.04)), var(--paper);
     border: 1px solid var(--line2);
-    border-radius: 12px;
+    border-radius: 24px;
   }
+  /* verre dépoli — la signature Dimension (translucide + blur, zéro shadow) */
+  .frosted {
+    background: var(--frost);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--line);
+    border-radius: 24px;
+  }
+  /* nav flottante détachée — 16-24px des bords, toujours */
+  .nav-float {
+    background: rgba(22,22,22,0.82);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid var(--line);
+    border-radius: 9999px;
+  }
+
+  /* ── pills — la silhouette du système ── */
+  .pill, .pill-cta, .pill-ghost {
+    border-radius: 9999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-weight: 500;
+    transition: transform .12s ease, background .12s ease, color .12s ease,
+                border-color .12s ease, box-shadow .12s ease;
+  }
+  /* White Pill CTA — le seul remplissage plein du système */
+  .pill-cta { background: #FFFFFF; color: #0A0A0A; }
+  .pill-cta:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 2px 12px rgba(255,255,255,.12); }
+  .pill-cta:active:not(:disabled) { transform: translateY(0); }
+  /* ghost pill — le contrepoint */
+  .pill-ghost { background: transparent; color: var(--ink); border: 1px solid var(--line2); }
+  .pill-ghost:hover:not(:disabled) { border-color: rgba(107,98,242,0.55); }
 
   .btn-strike { transition: transform .12s ease, box-shadow .12s ease, background .12s ease, color .12s ease, border-color .12s ease; }
   .btn-strike:hover:not(:disabled) {
     transform: translateY(-1px);
-    box-shadow: 0 2px 10px rgba(139,92,246,.22);
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.10), 0 4px 14px rgba(0,0,0,.35);
   }
   .btn-strike:active:not(:disabled) { transform: translateY(0); }
 
   .stamp {
-    font-family: "Space Grotesk", sans-serif;
+    font-family: "Geist", sans-serif;
     text-transform: uppercase;
     letter-spacing: .16em;
     color: var(--danger);
@@ -110,7 +152,18 @@
 
   .glow-text { color: var(--volt); }
 
-  /* ═══ TERMINAL — dense black ═══ */
+  /* ── gradient moments — héros et taches de lumière, rien d'autre ── */
+  .wash-violet {
+    background: linear-gradient(90deg, transparent, rgba(107,98,242,0.565) 50%, transparent);
+  }
+  .horizon {
+    background: linear-gradient(90deg, #EDB36B, #4C5BD4);
+  }
+  .spotlight {
+    background: radial-gradient(circle at 50% 50%, rgba(107,98,242,0.565), rgba(255,255,255,0) 70%);
+  }
+
+  /* ═══ TERMINAL — dense black, le mono reste au операционный ═══ */
   .terminal-bg {
     background: #0B0B0E;
     color: var(--ink);
@@ -156,4 +209,3 @@
   }
   @keyframes blink { 50% { opacity: 0; } }
 }
-

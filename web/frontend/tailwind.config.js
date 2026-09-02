@@ -1,8 +1,8 @@
 /** @type {import('tailwindcss').Config} */
-// VOIDFORGE design tokens — "OBSIDIAN" (2026).
-// The premium neutral: graphite canvas (zinc family, zero blue tint),
-// smoked surfaces, hairline borders, ONE electric violet accent.
-// The Linear/Vercel/Raycast school — dense, quiet, expensive-looking.
+// VOIDFORGE design tokens — "DIMENSION" (the dusk-lit revolution).
+// Matte void canvas, frosted graphite surfaces, hairline borders, pill controls,
+// ONE chromatic accent: dusk violet #6B62F2 — gradient washes only, never fills.
+// The Linear/Vercel/Raycast/Dimension school — quiet, editorial, weight-500.
 export default {
   content: [
     "./index.html",
@@ -11,38 +11,41 @@ export default {
   theme: {
     extend: {
       colors: {
-        mist:   '#09090B',   // canvas — neutral graphite, no tint
-        paper:  '#101013',   // card surface
-        wash:   '#141419',   // subtle inset surface
-        ink:    '#FAFAFA',   // primary text
-        slate:  '#B4B4BD',   // secondary text
-        mut:    '#8E8E99',   // muted text
-        faint:  '#5F5F6B',   // faintest text — dim mais lisible
-        line:   '#1E1E23',   // hairline
-        line2:  '#2A2A32',   // strong line
-        volt:   '#8B5CF6',   // electric violet — the single accent
-        voltlite: '#1A1230', // violet tint surface
+        mist:   '#0A0A0A',   // void canvas — the base dark plane
+        paper:  '#161616',   // graphite — elevated panels, nav, modals
+        wash:   '#1D1D1F',   // inset/hover surface, one step above graphite
+        ink:    '#EDEDED',   // bone — primary text on dark (glare-safe)
+        slate:  '#C2C2C2',   // ash — secondary text
+        mut:    '#8E8E99',   // muted labels, tertiary metadata
+        faint:  '#5C5C66',   // faintest text — dim mais lisible
+        snow:   '#FFFFFF',   // snow white — the ONLY filled CTA
+        line:   'rgba(255,255,255,0.09)',   // hairline on dark
+        line2:  'rgba(255,255,255,0.16)',   // strong hairline
+        volt:   '#6B62F2',   // dusk violet — washes & pulses only, never fills
+        voltlite: 'rgba(107,98,242,0.12)',
         cyan:   '#A78BFA',   // gradient partner — light violet
-        cyantint: '#171226',
-        danger: '#F87171',   // soft signal red
-        dangertint: '#271417',
+        cyantint: 'rgba(167,139,250,0.10)',
+        danger: '#F87171',   // soft signal red (operational)
+        dangertint: 'rgba(248,113,113,0.10)',
         warn:   '#FBBF24',   // high / careful
-        warntint: '#241B06',
+        warntint: 'rgba(251,191,36,0.10)',
         ok:     '#3DD68C',   // success
-        oktint: '#0C231A',
+        oktint: 'rgba(61,214,140,0.10)',
         info:   '#818CF8',   // info · indigo
-        infotint: '#131528',
-        gold:   '#C084FC',   // victory — bright violet, not gold
+        infotint: 'rgba(129,140,248,0.10)',
+        gold:   '#EDB36B',   // dusk amber — victory / complete (horizon warm end)
+        goldtint: 'rgba(237,179,107,0.10)',
       },
       fontFamily: {
-        disp: ['"Space Grotesk"', 'system-ui', 'sans-serif'],
-        mono: ['"IBM Plex Mono"', 'ui-monospace', 'monospace'],
+        sans: ['"DM Sans"', 'ui-sans-serif', 'system-ui', '-apple-system', 'Segoe UI', 'sans-serif'],
+        disp: ['"Geist"', '"DM Sans"', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        mono: ['"IBM Plex Mono"', 'ui-monospace', 'Consolas', 'monospace'],
       },
       boxShadow: {
         card:   '0 1px 2px rgba(0,0,0,.4)',
         raised: '0 1px 2px rgba(0,0,0,.45), 0 8px 24px rgba(0,0,0,.35)',
-        pop:    '0 0 0 1px rgba(139,92,246,.35), 0 4px 16px rgba(0,0,0,.4)',
-        glow:   '0 0 0 1px rgba(139,92,246,.35)',
+        pop:    '0 0 0 1px rgba(255,255,255,0.10), 0 4px 16px rgba(0,0,0,.4)',
+        glow:   '0 0 0 1px rgba(107,98,242,0.35)',
       },
     },
   },

@@ -28,8 +28,8 @@ const Ic = {
 function Stat({ value, label, tone = 'ink' }) {
   return (
     <div className="text-center py-2.5 px-0.5">
-      <div className={`font-disp font-bold text-[18px] leading-none tabular-nums ${tone === 'volt' ? 'text-volt' : tone === 'danger' ? 'text-danger' : tone === 'gold' ? 'text-gold' : 'text-ink'}`}>{value}</div>
-      <div className="mt-1 font-mono text-[10px] uppercase tracking-[0.14em] text-mut">{label}</div>
+      <div className={`font-disp font-medium text-[18px] leading-none tabular-nums ${tone === 'volt' ? 'text-cyan' : tone === 'danger' ? 'text-danger' : tone === 'gold' ? 'text-gold' : 'text-ink'}`}>{value}</div>
+      <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-mut">{label}</div>
     </div>
   );
 }
@@ -39,10 +39,10 @@ function Section({ no, title, children, defaultOpen = false }) {
     <details className="panel group overflow-hidden" open={defaultOpen}>
       <summary className="px-3 py-2 flex items-center justify-between cursor-pointer select-none list-none hover:bg-wash transition-colors">
         <span className="flex items-center gap-2 min-w-0">
-          <span className="font-disp text-[10px] font-bold text-faint group-open:text-volt transition-colors">{no}</span>
+          <span className="font-disp text-[10px] font-medium text-faint group-open:text-cyan transition-colors">{no}</span>
           <span className="eyebrow truncate">{title}</span>
         </span>
-        <span className="font-mono text-[10px] text-faint group-open:text-volt group-open:rotate-45 transition-all duration-200 shrink-0">+</span>
+        <span className="text-[10px] text-faint group-open:text-cyan group-open:rotate-45 transition-all duration-200 shrink-0">+</span>
       </summary>
       <div className="px-3 pb-3 pt-2 border-t border-line">{children}</div>
     </details>
@@ -157,7 +157,7 @@ function App() {
   const ss = String(elapsed % 60).padStart(2, '0');
   const hbClass = wsStatus === 'running' ? 'running' : wsStatus === 'complete' ? 'complete' : wsStatus === 'error' ? 'error' : '';
 
-  const inputCls = "w-full rounded-md border border-line bg-mist px-2 py-1.5 text-[12px] text-ink focus:outline-none focus:border-volt transition-colors placeholder:text-faint";
+  const inputCls = "w-full rounded-[10px] border border-line bg-white/[0.04] px-2.5 py-1.5 text-[12.5px] text-ink focus:outline-none focus:border-volt/60 transition-colors placeholder:text-faint";
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">
@@ -166,17 +166,18 @@ function App() {
       {/* ── barre de commandement — 44px ── */}
       <header className="shrink-0 border-b border-line bg-paper">
         <div className="h-[44px] px-3.5 flex items-center gap-3">
-          <h1 className="font-disp font-bold text-[14px] tracking-tight shrink-0">
-            <span className="text-ink">VOID</span><span className="text-volt">FORGE</span>
+          <h1 className="font-disp font-medium text-[15px] tracking-tight shrink-0 relative">
+            <span className="text-ink">VOID</span><span className="text-ink">FORGE</span>
+            <span aria-hidden className="wash-violet absolute left-0 -bottom-[3px] h-[2px] w-full" />
           </h1>
           <span className="hidden md:inline font-mono text-[8.5px] uppercase tracking-[.2em] text-faint shrink-0">{DOC_NO}</span>
           <div className="min-w-0 flex-1">
             {missionText
-              ? <p className="font-mono text-[10.5px] text-slate truncate" title={missionText}>{missionText}</p>
-              : <p className="font-mono text-[10.5px] text-faint truncate">le cœur veille — un ordre l'éveillera</p>}
+              ? <p className="text-[11px] text-slate truncate" title={missionText}>{missionText}</p>
+              : <p className="text-[11px] text-faint truncate">le cœur veille — un ordre l'éveillera</p>}
           </div>
           <span className={`rounded-full border px-2.5 py-0.5 font-mono text-[9px] uppercase tracking-widest inline-flex items-center gap-1.5
-            ${wsStatus === 'running' ? 'border-volt/40 bg-voltlite text-volt' : wsStatus === 'complete' ? 'border-gold/40 bg-voltlite text-gold' : wsStatus === 'error' ? 'border-danger/40 bg-dangertint text-danger' : 'border-line text-mut'}`}>
+            ${wsStatus === 'running' ? 'border-volt/40 bg-voltlite text-cyan' : wsStatus === 'complete' ? 'border-gold/40 bg-goldtint text-gold' : wsStatus === 'error' ? 'border-danger/40 bg-dangertint text-danger' : 'border-line text-mut'}`}>
             <span className={`inline-block w-1 h-1 rounded-full ${wsStatus === 'running' ? 'bg-volt animate-pulse' : wsStatus === 'complete' ? 'bg-gold' : wsStatus === 'error' ? 'bg-danger' : 'bg-mut'}`} />
             {wsStatus === 'running' ? 'campagne' : wsStatus === 'complete' ? 'terminée' : wsStatus === 'error' ? 'rompue' : 'veille'}
           </span>
@@ -185,13 +186,13 @@ function App() {
           )}
           {wsStatus === 'running' && (
             <button type="button" onClick={rompre} title="rompre la campagne"
-              className="btn-strike rounded-md border border-danger/50 text-danger px-2 py-0.5 flex items-center gap-1 hover:bg-dangertint">
+              className="btn-strike rounded-full border border-danger/50 text-danger px-2.5 py-1 flex items-center gap-1 hover:bg-dangertint">
               <Ic.stop />
             </button>
           )}
           {(wsStatus === 'complete' || wsStatus === 'error') && (
             <button type="button" onClick={nouvelleSession} title="nouvelle session"
-              className="btn-strike rounded-md border border-line text-slate px-2 py-0.5 hover:border-volt hover:text-volt font-mono text-[9.5px] uppercase">
+              className="btn-strike rounded-full border border-line text-slate px-3 py-1 hover:border-volt/60 hover:text-ink text-[9.5px] uppercase tracking-[.1em]">
               reset
             </button>
           )}
@@ -200,7 +201,7 @@ function App() {
             else { setShowLeft(true); setLeftTab('chat'); }
           }}
             title={showLeft && leftTab === 'chat' ? 'fermer la barre latérale' : 'ouvrir le chat'}
-            className={`rounded-md px-2 py-1 font-mono text-[10px] transition-colors ${showLeft && leftTab === 'chat' ? 'bg-voltlite text-volt border border-volt/30' : 'bg-mist text-mut border border-line hover:text-volt'}`}>
+            className={`rounded-full px-2.5 py-1 text-[11px] transition-colors ${showLeft && leftTab === 'chat' ? 'bg-voltlite text-cyan border border-volt/30' : 'bg-white/[0.04] text-mut border border-line hover:text-ink'}`}>
             💬
           </button>
           <button onClick={() => {
@@ -208,7 +209,7 @@ function App() {
             else { setShowLeft(true); setLeftTab('registres'); }
           }}
             title={showLeft && leftTab === 'registres' ? 'fermer la barre latérale' : 'ouvrir les registres'}
-            className={`rounded-md px-2 py-1 font-mono text-[10px] transition-colors ${showLeft && leftTab === 'registres' ? 'bg-voltlite text-volt border border-volt/30' : 'bg-mist text-mut border border-line hover:text-volt'}`}>
+            className={`rounded-full px-2.5 py-1 text-[11px] transition-colors ${showLeft && leftTab === 'registres' ? 'bg-voltlite text-cyan border border-volt/30' : 'bg-white/[0.04] text-mut border border-line hover:text-ink'}`}>
             ⚙
           </button>
           <span className={`w-1.5 h-1.5 rounded-full ${connected ? 'bg-ok' : 'bg-danger animate-pulse'}`} title={connected ? 'flux live' : 'flux coupé'} />
@@ -265,23 +266,23 @@ function App() {
                 <input value={provForm.model} onChange={(e) => setProvForm(f => ({ ...f, model: e.target.value }))}
                   placeholder="deepseek-chat" className={inputCls} />
                 <div className="flex items-center gap-2">
-                  <label className="font-mono text-[9px] uppercase tracking-widest text-mut shrink-0">
+                  <label className="text-[9.5px] uppercase tracking-[.14em] text-mut shrink-0">
                     plafond chat
                   </label>
                   <input type="number" min="256" step="100"
                     value={provForm.max_tokens}
                     onChange={(e) => setProvForm(f => ({ ...f, max_tokens: e.target.value }))}
                     className={`${inputCls} w-24 shrink-0`} />
-                  <span className="font-mono text-[9px] text-faint">tokens — missions non plafonnées</span>
+                  <span className="text-[10px] text-faint">tokens — missions non plafonnées</span>
                 </div>
                 <div className="flex items-center justify-between gap-2">
-                  <span className={`font-mono text-[9px] break-words flex-1 ${
+                  <span className={`text-[10.5px] break-words flex-1 ${
                     provMsg?.ok === true ? 'text-ok' : provMsg?.ok === false ? 'text-danger' :
                     isTestingProv ? 'text-warn animate-pulse' : provider?.api_key_set ? 'text-mut' : 'text-danger'}`}>
                     {provMsg ? provMsg.text : provider?.api_key_set ? `clé ${provider.api_key_masked}` : 'aucune clé'}
                   </span>
                   <button type="submit" disabled={isTestingProv}
-                    className={`btn-strike rounded-md bg-ink text-mist font-disp font-semibold uppercase tracking-[.1em] text-[9.5px] px-3 py-1 ${isTestingProv ? 'opacity-50 cursor-wait' : ''}`}>
+                    className={`btn-strike rounded-full bg-snow text-[#0A0A0A] font-disp font-medium uppercase tracking-[.1em] text-[9.5px] px-4 py-1 ${isTestingProv ? 'opacity-50 cursor-wait' : ''}`}>
                     {isTestingProv ? '...' : 'armer'}
                   </button>
                 </div>
@@ -304,7 +305,7 @@ function App() {
                 onPurge={() => { reset(); setMission(''); setWorkspace(null); setReading(null); }} />
             </Section>
 
-            <p className="px-1 pt-1 pb-2 font-mono text-[8px] tracking-[.18em] text-faint uppercase">
+            <p className="px-1 pt-1 pb-2 text-[8.5px] tracking-[.18em] text-faint uppercase">
               forge opérative · forgé par VOIDFORGE ⚡
             </p>
           </div>
@@ -333,14 +334,14 @@ function App() {
               <div className="panel-raised overflow-hidden animate-fadeIn border-volt/40">
                 <div className="px-3 py-2 border-b border-line bg-voltlite flex items-center justify-between gap-3">
                   <span className="flex items-center gap-2">
-                    <span className="font-disp text-[12px] font-bold text-volt">🗺</span>
+                    <span className="font-disp text-[13px] text-gold">🗺</span>
                     <span className="eyebrow">plan d'attaque — approbation requise</span>
                   </span>
                   <div className="flex items-center gap-1.5">
                     {['IA', 'Swarm'].map(m => (
                       <button key={m} type="button" onClick={() => setStrikeMode(m)}
-                        className={`px-2.5 py-1 rounded font-mono text-[10px] uppercase tracking-widest transition-all
-                          ${strikeMode === m ? 'bg-volt text-white font-semibold' : 'border border-line text-mut hover:text-ink'}`}>
+                        className={`px-3 py-1 rounded-full text-[11px] uppercase tracking-widest transition-all
+                          ${strikeMode === m ? 'bg-snow text-[#0A0A0A] font-medium' : 'border border-line text-slate hover:text-ink'}`}>
                         {m.toLowerCase()}
                       </button>
                     ))}
@@ -351,18 +352,18 @@ function App() {
                   className="w-full terminal-bg text-[11.5px] leading-relaxed font-mono text-ink p-3 resize-y focus:outline-none border-0"
                   spellCheck="false" />
                 <div className="px-3 py-2 border-t border-line bg-wash flex items-center justify-between gap-3">
-                  <span className="font-mono text-[10px] text-mut">
+                  <span className="text-[10px] text-mut">
                     corrige librement — ta version part à la frappe · mode {strikeMode.toLowerCase()}
                     {strikeMode === 'Swarm' ? ' : subagents du plan' : ' : agent unique plan-guidé'}
                   </span>
                   <div className="flex items-center gap-2">
                     <button onClick={() => approvePlan(false, '', '')}
-                      className="btn-strike rounded-md border border-line text-mut font-disp font-semibold uppercase tracking-[.1em] text-[10.5px] px-3 py-1.5 hover:border-danger hover:text-danger">
+                      className="btn-strike rounded-full border border-line text-slate font-disp font-medium uppercase tracking-[.1em] text-[10.5px] px-4 py-1.5 hover:border-danger hover:text-danger">
                       rejeter
                     </button>
                     <button onClick={() => approvePlan(true, editedPlan, strikeMode)}
                       disabled={!editedPlan.trim()}
-                      className="btn-strike rounded-md bg-volt text-white font-disp font-semibold uppercase tracking-[.1em] text-[10.5px] px-4 py-1.5 disabled:opacity-40 flex items-center gap-1.5">
+                      className="btn-strike rounded-full bg-snow text-[#0A0A0A] font-disp font-medium uppercase tracking-[.1em] text-[10.5px] px-5 py-1.5 disabled:opacity-40 flex items-center gap-1.5">
                       ⚡ approuver — lancer la frappe
                     </button>
                   </div>
@@ -375,7 +376,7 @@ function App() {
               <div className="panel-raised overflow-hidden animate-fadeIn">
                 <div className="px-3 py-2 border-b border-line bg-wash flex items-center justify-between gap-3">
                   <span className="flex items-center gap-2">
-                    <span className="font-disp text-[12px] font-bold text-gold">💪</span>
+                    <span className="font-disp text-[13px] text-gold">💪</span>
                     <span className="eyebrow">rapport de puissance — missions/{workspace.target}/</span>
                   </span>
                   <span className="font-mono text-[10px] text-mut">
@@ -401,7 +402,7 @@ function App() {
                     </div>
                     {workspace.final_report && (
                       <button onClick={() => setReading({ name: 'rapport final', content: workspace.final_report })}
-                        className="btn-strike rounded-md bg-volt text-white font-disp font-semibold uppercase tracking-[.1em] text-[10.5px] px-3 py-1.5 flex items-center gap-1.5">
+                        className="btn-strike rounded-full bg-snow text-[#0A0A0A] font-disp font-medium uppercase tracking-[.1em] text-[10.5px] px-4 py-1.5 flex items-center gap-1.5">
                         <Ic.doc /> rapport final
                       </button>
                     )}
@@ -421,7 +422,7 @@ function App() {
           <div className="w-full max-w-3xl max-h-[85vh] panel-raised flex flex-col overflow-hidden animate-fadeIn" onClick={(e) => e.stopPropagation()}>
             <div className="px-3 py-2 border-b border-line flex items-center justify-between gap-3 bg-wash">
               <span className="font-mono text-[10.5px] uppercase tracking-widest text-slate truncate">{reading.name}</span>
-              <button onClick={() => setReading(null)} className="btn-strike rounded-md bg-ink text-mist font-disp font-semibold uppercase tracking-[.1em] text-[9.5px] px-3 py-1 shrink-0">fermer</button>
+              <button onClick={() => setReading(null)} className="btn-strike rounded-full bg-snow text-[#0A0A0A] font-disp font-medium uppercase tracking-[.1em] text-[9.5px] px-4 py-1 shrink-0">fermer</button>
             </div>
             <pre className="flex-1 overflow-y-auto terminal-bg p-3 m-0 whitespace-pre-wrap break-words">{reading.content ?? '⏳ chargement…'}</pre>
           </div>
