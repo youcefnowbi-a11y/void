@@ -151,6 +151,8 @@ def data_dump_paginated(url, headers=None, page_size=50, max_pages=10, page_styl
     page_size = max(1, min(int(page_size or 50), 500))
     all_records = []
     pages_fetched = 0
+    prev_page = None       # C-DX1: détection « aucun progrès » par CONTENU
+    records_capped = False
     method = "POST" if body else "GET"
 
     for page in range(max_pages):
@@ -177,20 +179,24 @@ def data_dump_paginated(url, headers=None, page_size=50, max_pages=10, page_styl
             break
 
         if isinstance(data, list):
-            if len(data) == 0:
-                break  # No more data
+            # C-DX1: stop = page VIDE ou aucun progrès (contenu identique au
+            # précédent — serveur qui ignore l'offset). L'ancien
+            # `len(data) < page_size` lisait « dernière page » sur tout
+            # serveur qui clampe la taille de page → dumps silencieusement
+            # incomplets. Deux pages PLEINES consécutives (longueurs égales)
+            # restent légitimes → jamais de stop sur la longueur seule.
+            if len(data) == 0 or data == prev_page:
+                break
             all_records.extend(data)
-            if len(data) < page_size:
-                break  # Last page (partial)
+            prev_page = data
         elif isinstance(data, dict):
             # Handle wrapped responses {data: [...], total: N}
             items = data.get("data") or data.get("results") or data.get("items") or data.get("records")
             if isinstance(items, list):
-                if len(items) == 0:
-                    break
+                if len(items) == 0 or items == prev_page:
+                    break  # vide = fin réelle ; identique = aucun progrès
                 all_records.extend(items)
-                if len(items) < page_size:
-                    break
+                prev_page = items
             else:
                 all_records.append(data)
                 break  # Single object, no pagination
@@ -198,12 +204,16 @@ def data_dump_paginated(url, headers=None, page_size=50, max_pages=10, page_styl
             all_records.append({"_page": page + 1, "_raw": str(data)[:2000]})
             break
 
+        if len(all_records) >= 500:  # cap existant des records rendus
+            records_capped = True
+            break
         time.sleep(0.3)
 
     out = {
         "url": url,
         "pages_fetched": pages_fetched,
         "total_records": len(all_records),
+        "records_capped": records_capped,
         "records": all_records[:500],  # Cap at 500 records
     }
     result = json.dumps(out, ensure_ascii=False, indent=1)
