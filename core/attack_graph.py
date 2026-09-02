@@ -212,7 +212,10 @@ ACTIONS = {
     },
     # ── EXPLOITATION (strike layer) ──
     "sqli_union_dump": {
-        "pre": lambda s: s.has("endpoint") or s.has("vuln"),
+        # E4 : gate = has("vuln") uniquement, miroir de sqli_blind_extract —
+        # un endpoint seul ne justifie pas un strike SQLi (probe→confirme→strike).
+        # L'ancien `or s.has("endpoint")` laissait le MCTS sauter direct au dump.
+        "pre": lambda s: s.has("vuln"),
         "targets": lambda s: s.kinds("endpoint"),
         "kinds": ("data", "table"), "yield": 4.5,
         "args": lambda t: {"url_template": (t if "{" in t else t + "?id={INJ}")},
@@ -413,7 +416,10 @@ ACTIONS = {
         "pre": lambda s: s.has("supabase_ref") and s.has("table"),
         "targets": lambda s: s.kinds("table"),
         "kinds": ("data",), "yield": 2.0,
-        "args": lambda t: {"table": t},
+        # E3 : un composite "ref|key" peut fuiter dans un fact table/data via
+        # successor() — on strip la partie ref au lieu de compter sur le
+        # re-split accidentel de l'outil.
+        "args": lambda t: {"table": (t.split("|", 1)[0] if "|" in t else t)},
     },
     "data_extract": {
         "pre": lambda s: s.has("endpoint") and (s.has("token") or s.has("secret")),
@@ -425,7 +431,8 @@ ACTIONS = {
         "pre": lambda s: s.has("table") or s.has("data"),
         "targets": lambda s: s.kinds("table") or s.kinds("data"),
         "kinds": ("data",), "yield": 3.0,
-        "args": lambda t: {"table": t},
+        # E3 : idem realtime_tap — strip le composite "ref|key" avant l'arg réel.
+        "args": lambda t: {"table": (t.split("|", 1)[0] if "|" in t else t)},
     },
     "api_sweep": {
         "pre": lambda s: len(s.kinds("endpoint")) >= 2 and (s.has("token") or s.has("secret")),
