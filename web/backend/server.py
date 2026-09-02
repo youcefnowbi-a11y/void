@@ -1375,6 +1375,13 @@ async def _run_mission_streaming(mission: str, mode: str, ws: WebSocket,
                                        "central. Lis-le, corrige-le, puis dis-moi "
                                        "« execute » quand tu veux la frappe.",
                                "plan_preview": plan_text[:900]})
+                    # B-S3 : ce return saute le board.save() final — les
+                    # dernières observations (<2s avant extraction du plan,
+                    # tout état dirty du coalescer R2-6) doivent rejoindre
+                    # data/intel/ AVANT la suspension, sinon la frappe
+                    # approuvée recharge une intel sans la cartographie
+                    # la plus fraîche.
+                    board.save()
                     return transcript, ""
                 sync_emit({"type": "system",
                            "text": "⚠ aucun plan structuré extrait — relance le mode Plan"})
