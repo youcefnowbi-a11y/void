@@ -186,6 +186,26 @@ with the missing link named.
 - **`arsenal_selftest({"mode":"catalog"})`** — boot protocol, catalogs every
   schema into the transcript.
 
+## 6bis. Operator identity shield (opsec)
+
+Two mechanisms keep the operator invisible — in traffic AND in paper:
+
+- **Sticky egress** (`tools/_transport.py`) — the proxy pool from
+  `config/transport.yaml` is used proxy-first when configured, and the exit
+  is **sticky per target host**: authenticated sessions (cf_clearance,
+  __session) are IP-bound, so an exit never changes mid-campaign; rotation
+  happens ONLY on block (3 fails → 2 min cooldown → next exit re-pinned).
+  Without config: direct mode, honestly stamped in the ROE header.
+- **Identity scrubber** (`core/scrub.py`) — every client-bound deliverable
+  (engagement report, findings dossier, app-state, power report) passes one
+  idempotent scrub pass before write: Windows hostname/FQDN → `[OPERATOR]`,
+  local username → `[OPERATOR]`, user home paths → `[OPERATOR-HOME]\`,
+  LAN/private IPs → `[OPERATOR-IP-n]`, egress relay URLs (with credentials!)
+  → `[EGRESS-n·host]` / generic `user:pass@` → `[REDACTED]@`.
+  Target-side evidence (domains, target IPs, captured tokens) is NEVER
+  touched. Workspace `extractions/` + ledger stay RAW — the operator keeps
+  the full data locally; only the paper that travels is clean.
+
 ## 7. GUI / PWA
 
 Hand-rolled PWA (no vite-plugin-pwa): `manifest.webmanifest` + `sw.js`

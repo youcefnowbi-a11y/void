@@ -26,6 +26,17 @@ def _load_engagement():
     except Exception:
         return {}
 
+
+def _egress_line():
+    """Egress posture dans l'en-tête ROE — relayed (exit compté, jamais nommé)
+    ou direct. Le scrub passe APRÈS : une URL de relay résiduelle est masquée."""
+    try:
+        from core.scrub import egress_summary
+        e = egress_summary()
+        return [f"| Egress | {e['mode']} ({e['exits']} exit(s), sticky per target) |"]
+    except Exception:
+        return []
+
 def _extract_findings(transcript):
     """Scan transcript text, dedupe matches, rank by severity."""
     seen, findings = set(), []
@@ -107,6 +118,7 @@ def write_report(mission, transcript, folder, board=None):
         f"| Timing window | {_or(roe.get('timing_window'))} |",
         f"| Do-not-exploit mode | {_or(str(roe.get('do_not_exploit', 'NOT RECORDED')))} |",
         f"| Max request rate | {_or(str(roe.get('max_request_rate', 'NOT RECORDED')))} /min |",
+        *(_egress_line()),
         f"| Operator / Agent | LO / VOIDFORGE |",
         f"| Generated | {ts} |",
         "",
@@ -160,6 +172,13 @@ def write_report(mission, transcript, folder, board=None):
         icon = "🧠" if kind == "agent" else "⚙"
         lines.append(f"\n### {icon} {kind.upper()}\n```\n{(text or '')[:8000]}\n```")
 
+    # scrub opérateur : hostname/username/IPs locales/URLs d'egress ne
+    # partent JAMAIS dans le livrable client (une passe, idempotent)
+    try:
+        from core.scrub import scrub as _scrub
+        full = _scrub("\n".join(lines))
+    except Exception:
+        full = "\n".join(lines)
     with open(path, "w", encoding="utf-8") as f:
-        f.write("\n".join(lines))
+        f.write(full)
     return path

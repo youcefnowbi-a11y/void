@@ -164,6 +164,7 @@ def _roe_gate():
 # governor stays ABOVE the pool — a proxy never changes the allowed cadence.
 _POOL = []
 _POOL_LOADED = [False]
+_STICKY = {}  # host -> proxy_url : un exit par cible, session-consistent
 _WAF_SIGS = ("waf", "cloudflare", "sucuri", "captcha", "just a moment",
              "cf-mitigated", "attention required")
 
@@ -187,16 +188,28 @@ def _load_pool():
         _POOL_LOADED[0] = True
     return _POOL
 
-def _pool_next(exclude=None):
-    """Least-failing healthy exit, excluding tried ones. None si pool vide."""
+def _pool_next(exclude=None, host=None):
+    """Least-failing healthy exit, excluding tried ones. None si pool vide.
+    STICKY par cible : le même host réutilise le même exit tant qu'il est
+    sain — les sessions authentifiées (cf_clearance, __session) sont liées
+    à l'IP de sortie ; un exit qui change au milieu d'une campagne = détection
+    instantanée. La rotation ne survit QUE sur blocage (mark False → exclus)."""
     pool = _load_pool()
     now = time.time()
     with _lock:
         cand = [e for e in pool
                 if e["cooldown_until"] < now and e["url"] not in (exclude or set())]
         if not cand:
+            if host:
+                _STICKY.pop(host, None)
             return None
-        return min(cand, key=lambda x: x["fail_count"])["url"]
+        sticky = _STICKY.get(host or "")
+        if sticky and sticky in {c["url"] for c in cand}:
+            return sticky
+        pick = min(cand, key=lambda x: x["fail_count"])["url"]
+        if host:
+            _STICKY[host] = pick
+        return pick
 
 def _pool_mark(url, ok):
     with _lock:
@@ -452,8 +465,9 @@ def fetch(url, method="GET", headers=None, body=None, timeout=25,
         h.setdefault("Content-Type", "application/json")
 
     # ── proxy selection (P1): direct first, pool on block-retry (P2) ──
+    # sticky-per-host : sessions liées à l'IP de sortie, jamais de churn.
     _proxy_tried = set(_proxy_tried or ())
-    proxy_url = _pool_next(exclude=_proxy_tried)
+    proxy_url = _pool_next(exclude=_proxy_tried, host=host)
     if proxy_url:
         _proxy_tried.add(proxy_url)
         handler = urllib.request.ProxyHandler({"http": proxy_url, "https": proxy_url})
@@ -623,9 +637,9 @@ def fetch(url, method="GET", headers=None, body=None, timeout=25,
                 out["captcha_wall"] = {"type": ch[0], "sitekey": ch[1], "solved": False,
                                        "hint": "configure captcha.provider+api_key dans config/transport.yaml"}
             return out
-        # pas de challenge → rotation proxy (P2)
+        # pas de challenge → rotation proxy (P2) — exit suivant, sticky re-épinglé
         if _POOL and not proxy_url:
-            alt = _pool_next(exclude=_proxy_tried)
+            alt = _pool_next(exclude=_proxy_tried, host=host)
             if alt:
                 res = fetch(url, method=method, headers=headers, body=body,
                             timeout=timeout, use_cache=False, retries=retries,
@@ -636,7 +650,7 @@ def fetch(url, method="GET", headers=None, body=None, timeout=25,
                 _pool_mark(alt, res["status"] in (200, 301, 302))
                 return res
         if _POOL and proxy_url:
-            alt = _pool_next(exclude=_proxy_tried)
+            alt = _pool_next(exclude=_proxy_tried, host=host)
             if alt:
                 res = fetch(url, method=method, headers=headers, body=body,
                             timeout=timeout, use_cache=False, retries=retries,

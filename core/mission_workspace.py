@@ -255,8 +255,13 @@ class Workspace:
             md += ["## Effort", f"- rounds de raisonnement: {rounds}", f"- appels d'outils: {tool_calls}", ""]
         path = os.path.join(self.reports, "power_report.md")
         try:
+            from core.scrub import scrub as _scrub
+            body = _scrub("\n".join(md))
+        except Exception:
+            body = "\n".join(md)
+        try:
             with open(path, "w", encoding="utf-8") as f:
-                f.write("\n".join(md))
+                f.write(body)
             self._write_findings_index()
             return path
         except Exception:
@@ -443,7 +448,12 @@ class Workspace:
                 if last:
                     L += ["", "## 6. Le compte rendu de l'agent", "", last[:12000]]
 
-            out = "\n".join(L)[:cap_total]
+            # scrub opérateur : les livrables ne témoignent JAMAIS de la maison
+            try:
+                from core.scrub import scrub as _scrub
+                out = _scrub("\n".join(L)[:cap_total])
+            except Exception:
+                out = "\n".join(L)[:cap_total]
             path = os.path.join(self.reports,
                                 f"findings_dossier_{time.strftime('%Y%m%d_%H%M%S')}.md")
             with open(path, "w", encoding="utf-8") as f:
@@ -534,7 +544,11 @@ class Workspace:
                                  "d'environnement (ou n'a pas suivi le protocole "
                                  "— règle 7 du system prompt).*"))
 
-            out = "\n".join(L)[:cap_total]
+            try:
+                from core.scrub import scrub as _scrub
+                out = _scrub("\n".join(L)[:cap_total])
+            except Exception:
+                out = "\n".join(L)[:cap_total]
             path = os.path.join(self.reports,
                                 f"app_state_{time.strftime('%Y%m%d_%H%M%S')}.md")
             with open(path, "w", encoding="utf-8") as f:
