@@ -61,6 +61,10 @@ def supabase_full_assault(rest_base, anon_key, tables_probe=None, token=None):
     for t in tables:
         st, b = call("GET", f"/rest/v1/{t}?select=*&limit=1", tok=token)
         verdict = {200: "OPEN/empty-or-data", 401: "EXISTS-LOCKED"}.get(st, "missing")
+        if st >= 500:
+            # C-C3: une table qui erroring ≠ une table absente — sinon les
+            # tables 500 étaient skippées comme « missing » par l'oracle
+            verdict = f"error({st})"
         has_data = st == 200 and len(b) > 10
         oracle.append({"table": t, "status": st, "verdict": verdict,
                        "data": b[:120] if has_data else ""})
