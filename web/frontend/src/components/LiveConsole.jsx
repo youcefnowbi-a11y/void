@@ -5,17 +5,17 @@ import React, { useRef, useEffect, useState, useCallback } from 'react'
    Terminal noir, badges mono, pills — le mono ne parle qu'opératif. */
 
 const LINE_CONFIG = {
-  separator: { color: 'log-system',  tag: '····', badge: 'bg-white/[0.05] text-faint border-line' },
+  separator: { color: 'log-system',  tag: '····', badge: 'term-badge' },
   system:    { color: 'log-system',  tag: 'SYS',   badge: 'bg-infotint text-info border-info/25' },
   plan:      { color: 'log-plan',    tag: 'PLAN',  badge: 'bg-warntint text-warn border-warn/25' },
-  tool:      { color: 'log-tool',    tag: 'TOOL',  badge: 'bg-voltlite text-[#C4B5FD] border-volt/25' },
+  tool:      { color: 'log-tool',    tag: 'TOOL',  badge: 'bg-voltlite text-cyan border-volt/25' },
   ok:        { color: 'log-ok',      tag: 'OK',    badge: 'bg-oktint text-ok border-ok/25' },
   error:     { color: 'log-error',   tag: 'ERR',   badge: 'bg-dangertint text-danger border-danger/25' },
   heal:      { color: 'log-heal',    tag: 'HEAL',  badge: 'bg-warntint text-warn border-warn/25' },
-  think:     { color: 'log-think',   tag: 'BRAIN', badge: 'bg-white/[0.05] text-[#A5B4FC] border-line' },
-  round:     { color: 'log-tool',    tag: 'ROUND', badge: 'bg-voltlite text-[#C4B5FD] border-volt/25' },
+  think:     { color: 'log-think',   tag: 'BRAIN', badge: 'term-badge' },
+  round:     { color: 'log-tool',    tag: 'ROUND', badge: 'bg-voltlite text-cyan border-volt/25' },
   ops:       { color: 'log-plan',    tag: 'OPS',   badge: 'bg-cyantint text-cyan border-cyan/25' },
-  chat:      { color: 'log-think',   tag: 'CHAT',  badge: 'bg-white/[0.05] text-[#A5B4FC] border-line' },
+  chat:      { color: 'log-think',   tag: 'CHAT',  badge: 'term-badge' },
   finding:   { color: 'log-finding', tag: 'ALERT', badge: 'bg-dangertint text-danger border-danger/35' },
 }
 
@@ -193,8 +193,8 @@ export default function LiveConsole({ logs, status, onClear, onClose }) {
       <div ref={containerRef} onScroll={handleScroll}
         className="terminal-bg px-4 py-3 overflow-y-auto select-text flex-1 min-h-0">
         {filtered.length === 0 && (
-          <div className="text-center py-14 text-xs flex flex-col items-center gap-2 text-faint">
-            <span className="font-disp text-2xl text-faint">◇</span>
+          <div className="text-center py-14 text-xs flex flex-col items-center gap-2 term-mut">
+            <span className="font-disp text-2xl term-mut">◇</span>
             <span>{status === 'idle' ? "» le journal est ouvert — un ordre de frappe l’animera." : 'aucune entrée pour ce filtre.'}</span>
           </div>
         )}
@@ -205,7 +205,7 @@ export default function LiveConsole({ logs, status, onClear, onClose }) {
               return (
                 <div key={i} className="flex items-center gap-3 py-2">
                   <div className="flex-1 h-px bg-line2" />
-                  <span className="font-mono text-[9px] uppercase tracking-[.3em] text-faint">{line.text}</span>
+                  <span className="font-mono text-[9px] uppercase tracking-[.3em] term-mut">{line.text}</span>
                   <div className="flex-1 h-px bg-line2" />
                 </div>
               )
@@ -213,7 +213,7 @@ export default function LiveConsole({ logs, status, onClear, onClose }) {
             const cfg = LINE_CONFIG[line.type] || LINE_CONFIG.system
             return (
               <div key={i} className="flex items-start gap-2 rounded px-1 py-0.5 transition-colors group hover:bg-hover">
-                <span className="text-[11px] select-none font-mono shrink-0 pt-0.5 text-faint">
+                <span className="text-[11px] select-none font-mono shrink-0 pt-0.5 term-mut">
                   [{fmtTime(line.ts)}]
                 </span>
                 <span className={`text-[9px] uppercase font-medium tracking-[.14em] px-1.5 py-0.5 rounded-full border shrink-0 select-none ${cfg.badge}`}>
