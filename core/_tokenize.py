@@ -32,7 +32,12 @@ _CRED_FIELD_RX = re.compile(
     r"(?i)((?:password|passwd|pwd|secret|token|api[_\-]?key|apikey|authorization|"
     r"cookie|session[_\-]?id|bearer)\s*[\"']?\s*[:=]\s*[\"']?)"
     r"([^\"',}&\n]{6,})")
-_URL_CRED_RX = re.compile(r"(?i)(?<=://)([^\s/:@]+):([^\s/@]+)(?=@)")
+_URL_CRED_RX = re.compile(
+    r"(?i)(?<=://)([^\s/:@]{3,}):([^\s/@]{3,})(?=@)")
+# D-T3: longueur min 3+3 sur user/secret — tue le bruit 1-2 chars (et le
+# masquage partiel trompeur `p` dans user:p@ss@host). Limitation documentée:
+# un secret multi-@ n'est pas parsé (le match s'arrête au premier @ avant un
+# suffixe trop court → ligne laissée en clair plutôt que masquée à moitié).
 
 
 def _classify(value):
