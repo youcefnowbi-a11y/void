@@ -1,5 +1,5 @@
 """VOIDFORGE :: mathcore verification battery — run: python tests/test_mathcore.py"""
-import os, sys, time
+import os, sys, tempfile, time
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -28,20 +28,29 @@ top = mc.zipf_top(["a", "b", "c", "d", "e", "f", "g", "h"], 3)
 ok("zipf budget respects size", len(top) == 3 and set(top) <= {"a","b","c","d","e","f","g","h"}, str(top))
 
 # ── §2 Bandit ────────────────────────────────────────────────────────
-mc.bandit_reset(seed=False)
-for _ in range(100): mc.bandit_record("good_tool", True, 1.0)
-for _ in range(100): mc.bandit_record("bad_tool", False, 1.0)
-mc.bandit_record("ok_tool", True, 1.0)
-s = mc.bandit_rank(["good_tool", "bad_tool", "ok_tool"])
-ok("bandit exploits winner", s[0] > s[1], f"good={s[0]:.3f} bad={s[1]:.3f}")
-ok("UCB optimism rewards thin evidence",
-   mc._ucb1_tuned(1.0, 1, 0.0, 202) > mc._ucb1_tuned(1.0, 100, 0.0, 202),
-   f"n=1:{mc._ucb1_tuned(1.0,1,0,202):.3f} > n=100:{mc._ucb1_tuned(1.0,100,0,202):.3f}")
-ok("novel tool outranks proven loser", s[2] > s[1], f"ok={s[2]:.3f} bad={s[1]:.3f}")
-ts = mc.bandit_thompson_sample(["good_tool", "bad_tool"])
-ok("thompson prefers winner", ts[0][1] == "good_tool", str(ts[0]))
-b = mc.Bloom(expected=1000)
-b.add("x"); ok("bloom membership", "x" in b and "y" not in b)
+# D-M2 : fixtures isolées — BANDIT_PATH redirigé vers un fichier temporaire
+# pour toute la section (restauré en finally, état mémoire purgé) ; le store
+# de PRODUCTION core/bandit.json n'est plus jamais écrit par les tests.
+_orig_bandit_path = mc.BANDIT_PATH
+mc.BANDIT_PATH = os.path.join(tempfile.mkdtemp(prefix="vf_mathcore_test_"), "bandit.json")
+try:
+    mc.bandit_reset(seed=False)
+    for _ in range(100): mc.bandit_record("good_tool", True, 1.0)
+    for _ in range(100): mc.bandit_record("bad_tool", False, 1.0)
+    mc.bandit_record("ok_tool", True, 1.0)
+    s = mc.bandit_rank(["good_tool", "bad_tool", "ok_tool"])
+    ok("bandit exploits winner", s[0] > s[1], f"good={s[0]:.3f} bad={s[1]:.3f}")
+    ok("UCB optimism rewards thin evidence",
+       mc._ucb1_tuned(1.0, 1, 0.0, 202) > mc._ucb1_tuned(1.0, 100, 0.0, 202),
+       f"n=1:{mc._ucb1_tuned(1.0,1,0,202):.3f} > n=100:{mc._ucb1_tuned(1.0,100,0,202):.3f}")
+    ok("novel tool outranks proven loser", s[2] > s[1], f"ok={s[2]:.3f} bad={s[1]:.3f}")
+    ts = mc.bandit_thompson_sample(["good_tool", "bad_tool"])
+    ok("thompson prefers winner", ts[0][1] == "good_tool", str(ts[0]))
+    b = mc.Bloom(expected=1000)
+    b.add("x"); ok("bloom membership", "x" in b and "y" not in b)
+finally:
+    mc._bandit = None  # purge l'état fixtures en mémoire — le prochain
+    mc.BANDIT_PATH = _orig_bandit_path  # _bandit_load relit le vrai store
 
 # ── §3 Pacer ─────────────────────────────────────────────────────────
 mc.pacer_drop("t-fast")
