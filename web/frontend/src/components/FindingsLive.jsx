@@ -18,10 +18,10 @@ export default function FindingsLive({ findings }) {
     <div className="panel overflow-hidden">
       <div className="px-4 py-2.5 border-b border-line flex items-center justify-between bg-wash">
         <div className="flex items-center gap-2">
-          <span className="font-disp text-[14px] font-bold text-danger">⚠</span>
+          <span className="font-disp text-[14px] font-medium text-danger">⚠</span>
           <span className="eyebrow">renseignement extrait</span>
         </div>
-        <span className="font-mono text-[11px] tracking-widest uppercase font-bold text-volt">
+        <span className="text-[11px] tracking-widest uppercase font-bold text-volt">
           {findings.length} verdict{findings.length > 1 ? 's' : ''}
         </span>
       </div>
@@ -41,7 +41,7 @@ export default function FindingsLive({ findings }) {
                   </span>
                 )}
               </div>
-              <p className="text-[12.5px] leading-relaxed text-slate font-mono">
+              <p className="text-[12.5px] leading-relaxed text-slate">
                 {(f.detail || f.summary || '')?.substring(0, 200) || '—'}
               </p>
             </div>
