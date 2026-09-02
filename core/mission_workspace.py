@@ -90,6 +90,20 @@ class Workspace:
         self.stats["ok" if status == "ok" else "failed"] += 1
 
     # ── extractions: the data she pulled out of the target ───────────
+    # signaux de preuve : détectés MÉCANIQUEMENT à l'arrivée de chaque
+    # réponse — c'est l'index que l'opérateur citait à la main avant.
+    _PROOF_MARKERS = [
+        ("client_secret", re.compile(r"clientSecret|cs_(?:live|test)_")),
+        ("amount", re.compile(r"[\"']?(?:amount|unitAmount|amount_total)[\"']?\s*[:=]")),
+        ("success_true", re.compile(r"[\"']success[\"']\s*:\s*true")),
+        ("token_or_cookie", re.compile(
+            r"(?:__session|__client|set-cookie|access_token)[\"']?\s*[:=]", re.I)),
+        ("http_2xx", re.compile(r"[\"']?status[\"']?\s*:\s*2\d\d")),
+        ("http_4xx", re.compile(r"[\"']?status[\"']?\s*:\s*4\d\d")),
+        ("http_5xx", re.compile(r"[\"']?status[\"']?\s*:\s*5\d\d")),
+        ("write_verb", re.compile(r"[\"']?(?:method|verb)[\"']?\s*:\s*[\"'](?:POST|PATCH|PUT|DELETE)", re.I)),
+    ]
+
     def save_extraction(self, tool, out):
         if tool not in DATA_TOOLS or not out:
             return None
@@ -99,9 +113,31 @@ class Workspace:
             with open(path, "w", encoding="utf-8") as f:
                 f.write(out if isinstance(out, str) else json.dumps(out, ensure_ascii=False))
             self.stats["extractions"] += 1
-            return path
         except Exception:
             return None
+        # index de preuves : une ligne par extraction, signaux détectés
+        # au moment de la frappe (pas d'archéologie après-coup).
+        try:
+            body = out if isinstance(out, str) else json.dumps(out, ensure_ascii=False)
+            url = status = None
+            try:
+                head = json.loads(body[:20000]) if body.lstrip().startswith("{") else None
+                if isinstance(head, dict):
+                    url = head.get("url")
+                    status = head.get("status")
+            except Exception:
+                pass
+            markers = [name for name, pat in self._PROOF_MARKERS if pat.search(body[:40000])]
+            entry = {"ts": time.strftime("%Y-%m-%d %H:%M:%S"), "tool": tool,
+                     "file": fname, "bytes": len(body),
+                     "url": (url or "")[:200] or None,
+                     "status": status, "markers": markers}
+            with open(os.path.join(self.extractions, "index.jsonl"), "a",
+                      encoding="utf-8") as f:
+                f.write(json.dumps(entry, ensure_ascii=False) + "\n")
+        except Exception:
+            pass
+        return path
 
     # ── findings: every verdict that says exploitable ────────────────
     def save_finding(self, tool, out):
@@ -371,12 +407,31 @@ class Workspace:
                     L.append(f"| {t} | {n} | {last} |")
                 L.append("")
 
-            # ── 5. inventaire des preuves (réutilise proof_section) ──
+            # ── 5. inventaire des preuves : l'index mécanique d'abord
+            #    (étiqueté à la frappe), proof_section en repli ──
             L.append("## 5. Inventaire des preuves")
+            idx_rows = []
             try:
-                L.append(self.proof_section(cap=4500))
+                with open(os.path.join(self.extractions, "index.jsonl"),
+                          encoding="utf-8") as f:
+                    idx_rows = [json.loads(ln) for ln in f if ln.strip()]
             except Exception:
                 pass
+            if idx_rows:
+                n_mk = sum(1 for e in idx_rows if e.get("markers"))
+                L += [f"*{len(idx_rows)} extraction(s) indexée(s) — {n_mk} porteuse(s) "
+                      f"de signal de preuve (détection mécanique à la frappe)*", "",
+                      "| Heure | Outil | Statut | Signaux | Fichier |", "|---|---|---|---|---|"]
+                for e in idx_rows[-60:]:
+                    mk = ", ".join(e.get("markers") or []) or "—"
+                    st = e.get("status") if e.get("status") is not None else "—"
+                    L.append(f"| {e.get('ts', '—')[11:19]} | {e['tool']} | {st} "
+                             f"| {mk} | `extractions/{e['file']}` |")
+            else:
+                try:
+                    L.append(self.proof_section(cap=4500))
+                except Exception:
+                    pass
 
             # ── 6. le récit de l'agent (couche humaine) ──
             if final_text:
@@ -397,6 +452,88 @@ class Workspace:
         except Exception as ex:
             # jamais silencieux : un dossier raté doit dire pourquoi (console backend)
             print(f"[dossier] WARN génération impossible : {type(ex).__name__}: {ex}")
+            return None
+
+    # ── the third deliverable: app-state report (incidents) ───────────
+    @staticmethod
+    def _extract_section(text, keyword, cap=6000):
+        """Extrait verbatim la section markdown qui contient `keyword`."""
+        if not text:
+            return None
+        idx = text.upper().find(keyword.upper())
+        if idx < 0:
+            return None
+        rest = text[idx:]
+        nxt = re.search(r"\n## ", rest[1:])
+        return rest[:1 + nxt.start()].strip()[:cap] if nxt else rest.strip()[:cap]
+
+    def write_app_state_report(self, transcript=None, final_text=None,
+                               cap_total=40000):
+        """Livrable n°3 — l'état de l'APPLICATION vue par la mission : outils
+        qui ont échoué, capacités bloquées, environnements manquants. La boucle
+        de correction du harnais : chaque mission documente ce qui a grippé
+        pour que l'opérateur corrige VOIDFORGE jusqu'à la perfection.
+        Couche mécanique (ledger) + la section de l'agent si elle l'a écrite."""
+        try:
+            rows = []
+            try:
+                with open(self.ledger_path, encoding="utf-8") as f:
+                    rows = [json.loads(ln) for ln in f if ln.strip()]
+            except Exception:
+                pass
+            fails = [r for r in rows if r.get("status") not in ("ok", None, "")]
+            L = [f"# ÉTAT DE L'APPLICATION — {self.target or 'untitled'}",
+                 f"*Rapport d'incidents de la mission — {time.strftime('%Y-%m-%d %H:%M:%S')} · "
+                 f"{len(rows)} exécutions · {len(fails)} échec(s) "
+                 f"({(1 - len(fails) / max(1, len(rows))):.0%} ok)*",
+                 "",
+                 "> Ce rapport nourrit la boucle de correction du harnais :",
+                 "> chaque outil qui grippe ici est un correctif à faire côté VOIDFORGE.",
+                 ""]
+            if fails:
+                per = {}
+                for r in fails:
+                    t = per.setdefault(r["tool"], {"n": 0, "rounds": [], "last": r})
+                    t["n"] += 1
+                    t["rounds"].append(r.get("round"))
+                L += ["## Outils en échec", "",
+                      "| Outil | Échecs | Rounds | Dernier incident |", "|---|---|---|---|"]
+                for t, d in sorted(per.items(), key=lambda kv: -kv[1]["n"]):
+                    L.append(f"| {t} | {d['n']} | {', '.join(str(x) for x in d['rounds'][-4:])} "
+                             f"| {d['last'].get('ts', '—')} |")
+                L += ["", "## Détail des échecs", "",
+                      "| Heure | Round | Outil | Arguments (compacts) |",
+                      "|---|---|---|---|"]
+                for r in fails[-30:]:
+                    L.append(f"| {r.get('ts', '—')[11:19]} | r{r.get('round')} | {r['tool']} "
+                             f"| {self._mask_val(str(r.get('args', ''))[:110])} |")
+                L += ["", "*Les réponses d'erreur complètes vivent dans `core/missions.db` "
+                      f"(table `tool_runs`, dernière mission) et dans le ledger.*"]
+            else:
+                L.append("**Aucun échec d'outil cette mission** — harnais propre.")
+            L.append("")
+
+            # couche agent : sa section ÉTAT DE L'APPLICATION, verbatim
+            section = self._extract_section(final_text, "ÉTAT DE L'APPLICATION")
+            if not section and transcript:
+                for k, t in reversed(transcript):
+                    if k == "agent" and t:
+                        section = self._extract_section(t, "ÉTAT DE L'APPLICATION")
+                        if section:
+                            break
+            L += ["## Compte rendu d'environnement de l'agent", ""]
+            L.append(section or ("*L'agent n'a pas signalé d'incident "
+                                 "d'environnement (ou n'a pas suivi le protocole "
+                                 "— règle 7 du system prompt).*"))
+
+            out = "\n".join(L)[:cap_total]
+            path = os.path.join(self.reports,
+                                f"app_state_{time.strftime('%Y%m%d_%H%M%S')}.md")
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(out)
+            return path
+        except Exception as ex:
+            print(f"[app_state] WARN génération impossible : {type(ex).__name__}: {ex}")
             return None
 
     # ── final report saved into the workspace too ────────────────────
