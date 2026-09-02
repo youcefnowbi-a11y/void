@@ -241,6 +241,164 @@ class Workspace:
         except Exception:
             pass
 
+    # ── the second deliverable: findings dossier, natural language ────
+    @staticmethod
+    def _mask_val(v):
+        """Les secrets ne sortent JAMAIS entiers dans le dossier client —
+        tronqués avec pointeur vers le fichier d'extraction qui les tient."""
+        v = str(v or "")
+        if re.match(r"^(eyJ|sk_|pk_|rk_|whsec_|ghp_|AKIA|AIza)", v):
+            return v[:22] + "…(voir extractions/)"
+        return v[:80] + ("…" if len(v) > 80 else "")
+
+    def write_findings_dossier(self, transcript=None, board=None, final_text=None,
+                               cap_total=60000):
+        """Livrable n°2 — le DOSSIER DE FINDINGS en langage naturel : découvertes
+        organisées en tableaux (sévérité, preuve citée), défenses confirmées,
+        arsenal, surfaces — SANS le bruit brut du transcript. Le rapport
+        d'engagement reste le dossier technique complet ; celui-ci est la
+        lecture humaine, preuve par preuve."""
+        try:
+            rows = []
+            try:
+                with open(self.ledger_path, encoding="utf-8") as f:
+                    rows = [json.loads(ln) for ln in f if ln.strip()]
+            except Exception:
+                pass
+
+            confirmed, partial, negatives = [], [], []
+            for fn in sorted(x for x in os.listdir(self.findings)
+                             if x.endswith(".md") and x != "INDEX.md") \
+                    if os.path.isdir(self.findings) else []:
+                try:
+                    with open(os.path.join(self.findings, fn), encoding="utf-8") as f:
+                        card = f.read(14000)
+                except Exception:
+                    continue
+                verdict = None
+                m = re.search(r"```json\n(\{.*?\})", card, re.S)
+                if m:
+                    try:
+                        verdict = json.loads(m.group(1))
+                    except Exception:
+                        verdict = None
+                tag = "CONFIRMED" if "_confirmed" in fn else (
+                    "PARTIAL" if "_partial" in fn else "VERDICT")
+                sev = (verdict or {}).get("severity") or ("HIGH" if tag == "CONFIRMED" else "MEDIUM")
+                tool = fn.split("_", 2)[-1].rsplit("_", 1)[0] if "_" in fn else fn
+                summ = (verdict or {}).get("summary") or (card.splitlines()[0] if card else fn)
+                row = {"file": fn, "sev": sev, "tool": tool, "tag": tag,
+                       "summary": str(summ)[:220], "card": card[:1600]}
+                (confirmed if tag == "CONFIRMED" else partial).append(row)
+
+            n_err = sum(1 for r in rows if r.get("status") == "error")
+            L = [f"# DOSSIER DE FINDINGS — {self.target or 'untitled'}",
+                 f"*Miroir structuré généré du workspace — {time.strftime('%Y-%m-%d %H:%M:%S')} · "
+                 f"{len(rows)} exécutions d'outils ({n_err} échec(s)) · "
+                 f"{len(confirmed)} confirmé(s) · {len(partial)} partiel(s)*",
+                 "",
+                 "> Lecture humaine de la campagne : chaque découverte porte sa preuve citée.",
+                 "> Le dossier technique complet (transcript + preuves brutes) vit dans",
+                 "> `reports/` de ce même dossier de mission."]
+            L.append("")
+
+            # ── 1. défenses confirmées (les négatifs propres, d'abord —
+            #    c'est la partie que les rapports d'attaque oublient) ──
+            for r in rows:
+                v = (r.get("verdict") or {})
+                if v.get("exploitable") is False:
+                    negatives.append(r)
+            L.append("## 1. Défenses vérifiées (testées et tenues)")
+            if negatives:
+                L += ["| Vecteur testé | Outil | Verdict |", "|---|---|---|"]
+                for r in negatives[:25]:
+                    s = (r.get("verdict") or {}).get("summary") or "tenu"
+                    L.append(f"| {self._mask_val(str(r.get('args',''))[:90])} | {r['tool']} "
+                             f"r{r.get('round')} | {str(s)[:90]} |")
+            else:
+                L.append("*aucun contrôle négatif journalisé avec un contrat de verdict*")
+            L.append("")
+
+            # ── 2. findings avec preuve citée ──
+            L.append("## 2. Découvertes")
+            if confirmed or partial:
+                L += ["| # | Sévérité | Statut | Découverte | Preuve |",
+                      "|---|---|---|---|---|"]
+                for i, c in enumerate(confirmed + partial, 1):
+                    proof = f"`missions/{self.target}/findings/{c['file']}`"
+                    L.append(f"| {i} | {c['sev']} | {c['tag']} "
+                             f"| {self._mask_val(c['summary'])} | {proof} |")
+                for c in confirmed + partial[:6]:
+                    L += ["", f"### [{c['tag']}] {c['tool']}",
+                          "", "```json", c["card"].split("## verdict JSON")[-1]
+                          .strip("`\n ")[:1200], "```"]
+            else:
+                L.append("*aucun verdict exploitable journalisé — les découvertes "
+                         "de cette campagne vivent dans le rapport final de l'agent "
+                         "(section FINDINGS) et dans les extractions ci-dessous*")
+            L.append("")
+
+            # ── 3. surfaces cartographiées (Living Graph) ──
+            if board is not None:
+                try:
+                    st = board.stats()
+                    L.append(f"## 3. Surfaces cartographiées ({st['assets']} assets / "
+                             f"{st['edges']} liens)")
+                    by_kind = {}
+                    for a in board.assets.values():
+                        by_kind.setdefault(a["kind"], []).append(a)
+                    for kind in sorted(by_kind):
+                        items = sorted(by_kind[kind], key=lambda a: -a["confidence"])[:10]
+                        L += ["", f"### {kind} ({len(by_kind[kind])})",
+                              "| Valeur | Confiance | Sources |", "|---|---|---|"]
+                        for a in items:
+                            L.append(f"| {self._mask_val(a['value'])} "
+                                     f"| {a['confidence']} | {len(a.get('sources', []))} |")
+                    L.append("")
+                except Exception:
+                    pass
+
+            # ── 4. arsenal ──
+            if rows:
+                L.append("## 4. Arsenal déployé")
+                L += ["| Outil | Runs | Dernier round |", "|---|---|---|"]
+                per = {}
+                for r in rows:
+                    t = per.setdefault(r["tool"], [0, 0])
+                    t[0] += 1
+                    t[1] = max(t[1], r.get("round") or 0)
+                for t, (n, last) in sorted(per.items(), key=lambda kv: -kv[1][0])[:20]:
+                    L.append(f"| {t} | {n} | {last} |")
+                L.append("")
+
+            # ── 5. inventaire des preuves (réutilise proof_section) ──
+            L.append("## 5. Inventaire des preuves")
+            try:
+                L.append(self.proof_section(cap=4500))
+            except Exception:
+                pass
+
+            # ── 6. le récit de l'agent (couche humaine) ──
+            if final_text:
+                L += ["", "## 6. Le compte rendu de l'agent",
+                      "", final_text[:12000]]
+            elif transcript:
+                last = next((t for k, t in reversed(transcript)
+                             if k == "agent" and t), "")
+                if last:
+                    L += ["", "## 6. Le compte rendu de l'agent", "", last[:12000]]
+
+            out = "\n".join(L)[:cap_total]
+            path = os.path.join(self.reports,
+                                f"findings_dossier_{time.strftime('%Y%m%d_%H%M%S')}.md")
+            with open(path, "w", encoding="utf-8") as f:
+                f.write(out)
+            return path
+        except Exception as ex:
+            # jamais silencieux : un dossier raté doit dire pourquoi (console backend)
+            print(f"[dossier] WARN génération impossible : {type(ex).__name__}: {ex}")
+            return None
+
     # ── final report saved into the workspace too ────────────────────
     def save_final_report(self, content):
         fname = f"rapport_final_{time.strftime('%Y%m%d_%H%M%S')}.md"

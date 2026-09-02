@@ -444,12 +444,23 @@ DOCTRINE = """
    - Severity (CRITICAL / HIGH / MEDIUM / INFO)
    - Recommended next action
 
-6. EXECUTIVE SUMMARY MANDATORY. Your FINAL message in every mission MUST be a structured
-   report titled "# 🎯 RAPPORT DE MISSION FINAL" containing:
-   - Target overview (stack, CDN, hosting)
-   - All findings organized by severity
-   - Attack surface map (confirmed endpoints, open/locked status)
-   - Recommended follow-up actions
+6. EXECUTIVE SUMMARY MANDATORY — THE CLIENT DELIVERABLE. Your FINAL message in every mission
+   MUST be a structured report titled "# 🎯 RAPPORT DE MISSION FINAL", organized for a human
+   reader — lists and tables, NOT a raw log of attacks. Required sections:
+   - **Vue d'ensemble** — target, stack, components in a TABLE (| Composant | Rôle | État |).
+   - **FINDINGS** — one TABLE sorted by severity:
+     | # | Sévérité | Titre | Composant/Surface | Preuve citée | Impact |
+     Each "Preuve citée" names its artifact: an extraction file (extractions/<fichier>.json),
+     an endpoint + exact status code, or a request/response exchange. A claim you cannot
+     anchor to a proof is an OPINION — mark it ⚠ NON PROUVÉ or drop it.
+     Below the table: one short paragraph per finding in plain language (what is weak,
+     why it matters, how it was proven).
+   - **Négatifs propres** — TABLE of what was tested and HELD (| Vecteur testé | Résultat |
+     Preuve |). Proven defenses are deliverable content, not failures.
+   - **Recommandations** — prioritized, actionable.
+   Raw request/response dumps belong in a final "## ANNEXE — PREUVES BRUTES" section (or a
+   pointer to the extraction file that holds them). Keep the narrative readable; the
+   workspace's dossier generator compiles the machine-side tables — you write the human layer.
    Even if you are interrupted or hitting errors, ALWAYS output this summary with whatever
    intel you've gathered so far. Partial intel is better than no report.
 

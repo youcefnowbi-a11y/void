@@ -38,7 +38,8 @@ async def auth_middleware(request: Request, call_next):
     # (sans preflight CORS) depuis un onglet hostile est sinon aveugle.
     if request.method in ("POST", "PUT", "DELETE", "PATCH"):
         origin = (request.headers.get("origin") or "").rstrip("/")
-        if origin and origin not in ("http://localhost:5173", "http://127.0.0.1:5173"):
+        if origin and origin not in ("http://localhost:5173", "http://127.0.0.1:5173",
+                                     "http://localhost:8000", "http://127.0.0.1:8000"):
             return JSONResponse(status_code=403, content={"detail": "origin non autorisé"})
     return await call_next(request)
 
@@ -66,7 +67,8 @@ async def rate_limit_middleware(request: Request, call_next):
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173",
+                   "http://localhost:8000", "http://127.0.0.1:8000"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -1488,17 +1490,40 @@ async def _run_mission_streaming(mission: str, mode: str, ws: WebSocket,
                     RUNNING_INBOXES.pop(mid, None)
         board.save()
 
-        # ─── SAVE REPORT ───
+        # ─── SAVE REPORT — converge vers missions/<cible>/reports/ ───
+        # Le livrable technique vit dans le workspace de la cible (une
+        # mission = un dossier), avec copie miroir dans reports/ pour le
+        # registre global de la GUI. Dossier findings en langage naturelle
+        # généré à côté (preuves citées, tableaux, défenses vérifiées).
         report_path = ""
         if transcript:
             try:
-                report_path = write_report(mission, transcript, REPORTS_DIR, board=board)
-                # the delivered report ALWAYS carries the data — auto-proof append
-                if _ws is not None and report_path and os.path.exists(report_path):
+                if _ws is not None:
+                    report_path = write_report(mission, transcript, _ws.reports,
+                                               board=board)
                     proof = _ws.proof_section()
-                    if proof:
+                    if report_path and proof:
                         with open(report_path, "a", encoding="utf-8") as f:
                             f.write(proof)
+                    # copie miroir pour le registre /reports de la GUI
+                    try:
+                        import shutil
+                        shutil.copyfile(report_path, os.path.join(REPORTS_DIR,
+                                                                  os.path.basename(report_path)))
+                    except Exception:
+                        pass
+                    # livrable n°2 : le dossier de findings lisible
+                    try:
+                        final_text = next((t for k, t in reversed(transcript)
+                                           if k == "agent" and t), "")
+                        _ws.write_findings_dossier(transcript=transcript, board=board,
+                                                   final_text=final_text)
+                    except Exception:
+                        pass
+                else:
+                    report_path = write_report(mission, transcript, REPORTS_DIR, board=board)
+                    if _ws is None and report_path and os.path.exists(report_path):
+                        pass  # pas de workspace -> pas de proof section disponible
                 print(f"  📄 Report saved: {report_path}")
             except Exception as ex:
                 print(f"  ⚠ Report save failed: {ex}")
