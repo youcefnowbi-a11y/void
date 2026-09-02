@@ -31,7 +31,7 @@ _DOMAIN_RX = re.compile(
 _CRED_FIELD_RX = re.compile(
     r"(?i)((?:password|passwd|pwd|secret|token|api[_\-]?key|apikey|authorization|"
     r"cookie|session[_\-]?id|bearer)\s*[\"']?\s*[:=]\s*[\"']?)"
-    r"([^\s\"',}&]{6,})")
+    r"([^\"',}&\n]{6,})")
 _URL_CRED_RX = re.compile(r"(?i)(?<=://)([^\s/:@]+):([^\s/@]+)(?=@)")
 
 
@@ -63,7 +63,15 @@ def mask(text):
     def _cred_field_sub(m):
         # R1-2: le séparateur matché (guillemets, : ou =) est réémis tel quel —
         # on ne remplace QUE la valeur, le JSON/YAML reste bien formé.
-        return f"{m.group(1)}{_issue_token(m.group(2), 'CRED')}"
+        # D-T1: la valeur va jusqu'au quote/fin-de-ligne (le JWT après
+        # « Bearer » part dans le coffre, pas vers le provider) — la valeur
+        # vaultée est rstrippée, l'espace final est réémis tel quel pour un
+        # roundtrip byte-exact ; rien à masquer → match réémis intact.
+        val = m.group(2).rstrip()
+        trail = m.group(2)[len(val):]
+        if not val:
+            return m.group(0)
+        return f"{m.group(1)}{_issue_token(val, 'CRED')}{trail}"
 
     def _ip_sub(m):
         return _issue_token(m.group(0), "HOST")
