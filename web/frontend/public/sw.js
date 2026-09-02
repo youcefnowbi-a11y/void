@@ -2,7 +2,7 @@
    Shell : network-first avec repli cache (l'app s'ouvre toujours).
    Assets hashés Vite : stale-while-revalidate.
    /api et /ws : JAMAIS interceptés — la guerre est live ou n'est pas. */
-const SHELL = 'vf-shell-v1';
+const SHELL = 'vf-shell-v2';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
