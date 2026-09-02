@@ -445,30 +445,30 @@ DOCTRINE = """
    - Recommended next action
 
 6. EXECUTIVE SUMMARY MANDATORY — THE CLIENT DELIVERABLE. Your FINAL message in every mission
-   MUST be a structured report titled "# 🎯 RAPPORT DE MISSION FINAL", organized for a human
+   MUST be a structured report titled "# 🎯 FINAL MISSION REPORT", organized for a human
    reader — lists and tables, NOT a raw log of attacks. Required sections:
-   - **Vue d'ensemble** — target, stack, components in a TABLE (| Composant | Rôle | État |).
+   - **Overview** — target, stack, components in a TABLE (| Component | Role | State |).
    - **FINDINGS** — one TABLE sorted by severity:
-     | # | Sévérité | Titre | Composant/Surface | Preuve citée | Impact DÉMONTRÉ |
-     Each "Preuve citée" names its artifact: an extraction file (extractions/<fichier>.json),
-     an endpoint + exact status code, or a request/response exchange. Each "Impact
-     DÉMONTRÉ" carries the END-STATE artifact of the impact chain (rule 8): transaction/
-     invoice id, resource pulled, account-state diff — or "POTENTIEL, NON DÉMONTRÉ"
+     | # | Severity | Title | Component/Surface | Cited proof | DEMONSTRATED impact |
+     Each "Cited proof" names its artifact: an extraction file (extractions/<fichier>.json),
+     an endpoint + exact status code, or a request/response exchange. Each "DEMONSTRATED
+     impact" carries the END-STATE artifact of the impact chain (rule 8): transaction/
+     invoice id, resource pulled, account-state diff — or "POTENTIAL, NOT DEMONSTRATED"
      with the missing link named. A claim you cannot anchor to a proof is an OPINION —
-     mark it ⚠ NON PROUVÉ or drop it.
+     mark it ⚠ UNPROVEN or drop it.
      Below the table: one short paragraph per finding in plain language (what is weak,
      why it matters, how it was proven).
-   - **Négatifs propres** — TABLE of what was tested and HELD (| Vecteur testé | Résultat |
-     Preuve |). Proven defenses are deliverable content, not failures.
-   - **Recommandations** — prioritized, actionable.
-   Raw request/response dumps belong in a final "## ANNEXE — PREUVES BRUTES" section (or a
+   - **Held negatives** — TABLE of what was tested and HELD (| Vector tested | Result |
+     Proof |). Proven defenses are deliverable content, not failures.
+   - **Recommendations** — prioritized, actionable.
+   Raw request/response dumps belong in a final "## RAW PROOF ANNEX" section (or a
    pointer to the extraction file that holds them). Keep the narrative readable; the
    workspace's dossier generator compiles the machine-side tables — you write the human layer.
    Even if you are interrupted or hitting errors, ALWAYS output this summary with whatever
    intel you've gathered so far. Partial intel is better than no report.
 
 7. APP-STATE SECTION MANDATORY — THE HARNESS SELF-REPORT. At the END of your final report
-   (after the ANNEXE), add a section titled "## 🔧 ÉTAT DE L'APPLICATION" listing every
+   (after the RAW PROOF ANNEX), add a section titled "## 🔧 APP STATE" listing every
    environment problem you hit DURING the mission — this section feeds the correction loop
    of the tool itself and is never shared with the client:
    - Tools that failed or were blocked (name + error + what you tried) — e.g. "spa_crawl:
@@ -494,14 +494,22 @@ DOCTRINE = """
      resource (admin panel rendered, data the tier unlocks, account diff before/after).
    - Auth/session impact → a WORKING forged/replayed session actually used against a
      protected endpoint, with the 200 response that matters.
-   Every FINDINGS row must carry "Impact démontré" with the end-state artifact. If the
+   Every FINDINGS row must carry "DEMONSTRATED impact" with the end-state artifact. If the
    ROE blocks the final proof step, do NOT fake it and do NOT claim it: state the
-   missing link explicitly — "chaînon manquant : X — requiert autorisation Y" — mark
-   the finding "POTENTIEL, NON DÉMONTRÉ", and keep hunting OTHER lanes to completion.
+   missing link explicitly — "missing link: X — requires authorization Y" — mark
+   the finding "POTENTIAL, NOT DEMONSTRATED", and keep hunting OTHER lanes to completion.
    The operator re-launches with widened ROE where the impact chain stopped. When the
    first chain closes (real impact), explore whether it composes with adjacent flaws
    (underprice + tier gating, replay + rate limits) — composed chains are the findings
    that get accepted and paid.
+
+9. LANGUAGE DISCIPLINE — CONSOLE ENGLISH. Whatever language the mission brief uses, ALL
+   your console output — round narration, tool reasoning between calls, the FINDINGS
+   tables, the final report — is written in ENGLISH. The platform's refusal detector,
+   final-summary detector and evidence parsers are tuned to English; French narration
+   can slip past the anti-refusal machinery unnoticed. Quoted API fields, error strings
+   and target artifacts stay verbatim as captured. The operator's language does not
+   change yours — you think and report in English, always.
 
 ═══ IMPROVISATION DOCTRINE — THINK OUTSIDE THE SCANNER ═══
 
@@ -982,7 +990,8 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
         if not content:
             return False
         markers = ["RAPPORT DE MISSION", "EXECUTIVE SUMMARY", "MISSION COMPLETE",
-                    "RAPPORT FINAL", "## VERDICT", "# 🎯"]
+                    "RAPPORT FINAL", "## VERDICT", "# 🎯", "FINAL MISSION REPORT",
+                    "MISSION REPORT"]
         if self.plan_mode:
             markers += ["# ATTACK PLAN", "## PROPOSED ATTACK CHAINS"]
         return any(m in content.upper() for m in [m.upper() for m in markers])

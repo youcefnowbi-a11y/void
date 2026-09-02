@@ -513,12 +513,20 @@ class Workspace:
                 L.append("**Aucun échec d'outil cette mission** — harnais propre.")
             L.append("")
 
-            # couche agent : sa section ÉTAT DE L'APPLICATION, verbatim
-            section = self._extract_section(final_text, "ÉTAT DE L'APPLICATION")
+            # couche agent : sa section APP STATE (EN, doctrine console-EN) /
+            # ÉTAT DE L'APPLICATION (FR, rapports legacy), verbatim
+            section = None
+            for kw in ("APP STATE", "ÉTAT DE L'APPLICATION"):
+                section = self._extract_section(final_text, kw)
+                if section:
+                    break
             if not section and transcript:
                 for k, t in reversed(transcript):
                     if k == "agent" and t:
-                        section = self._extract_section(t, "ÉTAT DE L'APPLICATION")
+                        for kw in ("APP STATE", "ÉTAT DE L'APPLICATION"):
+                            section = self._extract_section(t, kw)
+                            if section:
+                                break
                         if section:
                             break
             L += ["## Compte rendu d'environnement de l'agent", ""]
