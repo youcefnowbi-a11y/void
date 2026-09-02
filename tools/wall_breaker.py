@@ -176,10 +176,11 @@ def breaker_cache(query=None):
               "tech": {"type": "string", "description": "the tech/wall: 'cloudflare WAF', 'Apache 2.4.49', 'jwt none alg', 'api rate limit'"},
               "context": {"type": "string", "description": "one line of what you were trying when blocked"},
               "deep": {"type": "boolean", "description": "read top pages for CVE-shaped lines (slower, richer)"},
+              "refresh": {"type": "boolean", "description": "re-hunt fresh intel: skip the 7-day cache read and OVERWRITE the cached entry with new findings (default false)"},
               "query": {"type": "string", "description": "cache lookup key (op=cache only)"}},
               "required": []},
           danger="safe")
-def wall_breaker(op="break", tech=None, context=None, deep=False, query=None):
+def wall_breaker(op="break", tech=None, context=None, deep=False, query=None, refresh=False):
     if (op or "break") == "cache":
         return breaker_cache(query)
 
@@ -188,8 +189,10 @@ def wall_breaker(op="break", tech=None, context=None, deep=False, query=None):
     tech = str(tech)[:80]
 
     # cache hit = instant ammunition from a previous mission
+    # (C-WB1 : refresh=True saute la lecture — « relance op=break » était un
+    # no-op puisque op=break EST le chemin caché ; le store final écrase.)
     key = tech.lower()
-    cached = _cache_load().get(key)
+    cached = None if refresh else _cache_load().get(key)
     if cached and (time.time() - cached.get("ts", 0)) < 7 * 86400:
         fnd = cached.get("findings", [])
         lines = [f"BREAKER CACHE HIT — '{tech}' ({len(fnd)} findings, mission précédente):"]
@@ -197,7 +200,7 @@ def wall_breaker(op="break", tech=None, context=None, deep=False, query=None):
             lines.append(f"- {f.get('title', '')[:120]}")
             if f.get("url"):
                 lines.append(f"  {f['url']}")
-        lines.append("\n(Cache ≤7j — si la surface a changé, relance op=break.)")
+        lines.append("\n(Cache ≤7j — si la surface a changé, relance op=break avec refresh=true.)")
         return "\n".join(lines)
 
     ctx = f" — contexte: {context}" if context else ""
