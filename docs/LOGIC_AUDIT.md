@@ -7,6 +7,30 @@
 
 ---
 
+# ✅ VAGUE DE FIXES — EXÉCUTÉE (session suivante)
+
+**Verdict batterie** : 122/122 avant la vague (baseline), batterie finale post-vague : voir dernière ligne du rapport de vague. Arbre git propre, ~33 commits de fix tracés.
+
+## Fixes appliqués (par lane d'origine)
+- **ENI directs** : B-S1 (81dd740) · D-M1 (81dd740, refactor `_record` — 67 outils seedés, zéro deadlock) · A1+A2+A3 (e5d25f9, A2 prouvé comportementalement : direct + batch inner BLOQUÉS hors périmètre) · D-B2 (62c4777, replay raw — écho plafonné 0.841 vs runaway 0.995, corroboration re-gagnante) · D-T2 (e7e270f, reset vault par-campagne + opt-out swarm) · C-FZ3b (e7e270f, desc + tolérance .txt)
+- **Cluster 1** : B-S2 (1322a63) · B-S3 (339c802) · B-C1 (3c331b1) · D-B1 (63ca27a, flush() + teardown) · D-M2 (1e8795c, tests sandboxés) · C-WB1 (6bf7471, refresh=true)
+- **Cluster 2** : D-T1 (071890c, Bearer/JWT voûtés) · D-T3 (9e12019) · D-T4 (6307140) · D-T5 (68f6b2d) · D-S1 (in abffebd, CJK substring — sonde MATCH) · D-S2 (3239103)
+- **Cluster 3** : C-T1 (2a8f5d0, curl 3xx mirror — plus de double requête) · C-T3 (cache key headers digest) · C-T5 (« blocked » retiré) · C-FZ1 (9b135af, ban WAF visible 0.45 + abort externe) · C-FZ2 (placeholder substitué) · C-N1 (gate réelle) · C-N3 (tri-state partial) · C-N2 (quote_plus) · C-H2 (7911541, horizon now+10y — sonde 2030/2500) · C-H1 (Set-Cookie array) · C-DX1 (7395b29, no-progress stop) · C-D2 (abffebd, unlink dump) · C-D1 (truncated_eval flag) · C-C3 (368b8ff, error(st))
+- **Cluster 4** : B-R2 (37d3f2d, hash full-match — sonde 2 JWTs) · B-R4 (37c52cc, +N suppressed) · E1+E2 (c653310, TLDs fr|dev|… — sonde 12 TLDs) · E3+E4 (fa7c714, gate vuln + strip composite — sondes) · B-S8+B-S13 (b6bf9ea, lock non-bloquant + suffixes exacts) · B-S4+B-S5b+B-S6 (179d29a, plomberie d'abort honnête complète — sonde finish aborted)
+
+## Différés (arbitrage opérateur, par défaut non actionnés)
+- **D-F1** (framing user-role evidence normalisée) — au bord de la couche d'acceptation exclue par ordre permanent.
+- **C-T4** (URLs calculées par les outils, moitié outil du R3-16).
+- D-B2 note : le fix livré (replay raw) diverge du chiffre du brief (0.84, pas 0.64-0.70) — le brief contredisait sa propre mécanique ; le mécanisme « prior une fois » est honoré.
+- Résiduel B-S13 : les logs d'events ROTÉS (*.events.jsonl.<stamp>) survivent à la purge ciblée (no-op pour boards normaux).
+- test_skills_routing.py docstring drift (même classe que D-S2, cosmétique).
+
+## Incidents de vague (tous résolus sans perte)
+- Index race : le D-S1 du cluster 2 a été avalé par le commit abffebd du cluster 3 — contenu vérifié byte-identique, histoire laissée intacte (pas de rewrite avec agents live).
+- Auto-corrections ENI : D-M1 (deadlock lock non-réentrant détecté avant commit), A3/A2 (init _wall_pending dans la boucle + kwarg garbage — corrigés avant commit), _DEFAULT lock wrapper D-B1 (refusé proprement, le cluster 1 l'avait déjà livré).
+
+---
+
 ## LANE ENI — cerveau (MCTS / bandit / planner) — 9 findings
 
 ### E1 [LOGIC-HIGH] planner.py — branche JWT: `has_specific=True` sans rien ajouter → plan vide
