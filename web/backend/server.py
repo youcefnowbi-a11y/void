@@ -1157,8 +1157,17 @@ async def _run_mission_streaming(mission: str, mode: str, ws: WebSocket,
         if _RUN_STATE["running"]:
             raise RuntimeError("campagne déjà en cours — une seule à la fois")
         _RUN_STATE["running"] = True
-    mid = mission_state.start_mission(mission, mode)
-    _start = _t.time()
+    try:
+        mid = mission_state.start_mission(mission, mode)
+        _start = _t.time()
+    except BaseException:
+        # B-S1 : une exception dans la fenêtre de claim (sqlite OperationalError
+        # en écriture concurrente…) doit relâcher la gate — sinon
+        # _RUN_STATE["running"] reste True pour toujours (409 à vie, aucun row
+        # DB pour le boot sweep, seul un restart débloque).
+        with _RUN_LOCK:
+            _RUN_STATE["running"] = False
+        raise
     _graph_board = None  # set once the Living Graph exists — snapshots attach to events
 
     def _graph_snapshot(board):

@@ -127,6 +127,24 @@ def _bandit_save():
         pass
 
 
+def _record(tool, success, duration, save=True):
+    """Mutation du posterior — PRÉREQUIS : _bandit_lock déjà tenu par l'appelant
+    (_bandit_load ne lock pas lui-même, donc aucune ré-acquisition, zéro
+    deadlock). bandit_record et _seed_from_db passent tous deux par ici (D-M1 :
+    le seeding DB n'est plus une NameError, le bandit apprend enfin l'historique)."""
+    s = _bandit_load().setdefault(tool, {"n": 0, "wins": 0, "d1": 0.0, "d2": 0.0})
+    if s["n"] > 0:
+        for k in ("n", "wins", "d1", "d2"):
+            s[k] *= _DECAY
+    s["n"] += 1
+    s["wins"] += 1 if success else 0
+    d = max(float(duration or 0.0), 0.0)
+    s["d1"] += d
+    s["d2"] += d * d
+    if save:
+        _bandit_save()
+
+
 def _seed_from_db():
     """Bootstrap bandit priors from historical tool_runs in missions.db."""
     try:
@@ -138,6 +156,10 @@ def _seed_from_db():
     except Exception:
         return
     for name, status, dur in rows:
+        # D-M1 : _record existait désormais — avant, ce call était une
+        # NameError garantie avalée par les try/except des callers (le bandit
+        # n'apprenait RIEN de missions.db). _record tourne sous _bandit_lock
+        # (déjà tenu par _bandit_load → pas de ré-acquisition → pas de deadlock).
         _record(name, status == "ok", float(dur or 0.0), save=False)
 
 
@@ -152,17 +174,7 @@ def bandit_record(tool, success, duration, save=True):
     exploration bonus grows again when it goes stale, so it gets retried."""
     global _bandit
     with _bandit_lock:
-        s = _bandit_load().setdefault(tool, {"n": 0, "wins": 0, "d1": 0.0, "d2": 0.0})
-        if s["n"] > 0:
-            for k in ("n", "wins", "d1", "d2"):
-                s[k] *= _DECAY
-        s["n"] += 1
-        s["wins"] += 1 if success else 0
-        d = max(float(duration or 0.0), 0.0)
-        s["d1"] += d
-        s["d2"] += d * d
-        if save:
-            _bandit_save()
+        _record(tool, success, duration, save=save)
 
 
 def _stats(tool, danger="safe"):
