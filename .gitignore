@@ -19,6 +19,7 @@ uploads/
 *.db-shm
 *.log
 core/bandit.json
+core/learned_fixes.json
 data/intel/
 reports/
 
