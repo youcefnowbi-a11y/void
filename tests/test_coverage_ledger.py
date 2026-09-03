@@ -19,7 +19,7 @@ SELFTEST = {
 SMOKED = {
     "crypto_hash", "payload_library", "skill_list", "workspace_status",
     "secret_scan", "binary_fuzz_run", "deobfuscate_js", "vm_string_dump",
-    "web_search", "web_read", "forged_diag_minimal",
+    "web_search", "web_read",
 }
 # end-to-end chain proven (the zero-day road)
 CHAIN = {"binary_fuzz_run", "crash_triage_rank", "crash_triage_next"}
@@ -71,9 +71,26 @@ def test_targeted_road_documented():
 
 
 def test_forge_two_forms_registered():
+    # V15: no forged file ships in the base registry (gitignored runtime
+    # artifacts) — the FORGE ITSELF is the tested capability: body-form
+    # and module-form both compile, register hot, and run.
+    from tools.forge import forge_tool
+    import json, os
+    # body form
+    r1 = json.loads(forge_tool(name="vf_body_form", desc="body form",
+                               code="return 1+1"))
+    assert r1.get("ok") is True
+    # module form (full def run(**kwargs) wrapper)
+    r2 = json.loads(forge_tool(name="vf_module_form", desc="module form",
+                               code="def run(**kw):\n    return 'module-ok'",
+                               overwrite=True))
+    assert r2.get("ok") is True
     from tools import all_tools
     names = {t["name"] for t in all_tools()}
-    for n in ("forged_admin_token_brute_v4", "forged_http_request",
-              "forged_invoice_dumper", "forged_siwx_signer",
-              "forged_web3key_signer", "forged_ecdsa_impersonation_test"):
-        assert n in names, n
+    assert "forged_vf_body_form" in names
+    assert "forged_vf_module_form" in names
+    # cleanup the test-forged files (registry keeps them until restart —
+    # the battery runs in one process, harmless)
+    for f in ("tools/forged_vf_body_form.py", "tools/forged_vf_module_form.py"):
+        if os.path.exists(f):
+            os.remove(f)

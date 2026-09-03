@@ -34,8 +34,16 @@ def param_brute(url, method="GET", extra_params=None, delay_ms=250):
         body = r.get("body") or ""
         return r.get("status", -1), len(body), hashlib.md5(body.encode()).hexdigest()[:10], body[:200]
 
-    # baseline: reflect nothing
-    bs, blen, bhash, bprev = send({"__vf_probe__": str(time.time())})
+    # V6 (audit 2.2): the baseline carried a time.time() value, so any page
+    # with a regenerated CSRF token / server clock flipped its MD5 on every
+    # request → EVERY candidate param passed body-diff (100% noise).
+    # Fixed baseline: same payload every time, STABILITY-CHECKED twice.
+    # If the two baselines differ, the page is inherently unstable — fall
+    # back to reflected-only signals (deterministic, immune to noise).
+    b1 = send({"__vf_probe__": "vf"})
+    b2 = send({"__vf_probe__": "vf"})
+    bs, blen, bhash, bprev = b1
+    page_stable = (b1[2] == b2[2]) and (b1[1] == b2[1]) and (b1[0] == b2[0])
 
     discovered = []
     tested = 0
@@ -43,18 +51,24 @@ def param_brute(url, method="GET", extra_params=None, delay_ms=250):
         st, ln, hsh, prev = send({p: "__vf_value__"})
         tested += 1
         sig = []
-        if hsh != bhash and st == bs:
-            sig.append("body-diff")
-        if st != bs and st != -1:
-            sig.append(f"status-diff({st} vs {bs})")
-        if ln != blen and abs(ln - blen) > 20:
-            sig.append(f"len-diff({ln} vs {blen})")
+        # V6: body/len diffs only meaningful on a STABLE page — otherwise
+        # they're server noise. REFLECTED stays always-on (deterministic).
+        if page_stable:
+            if hsh != bhash and st == bs:
+                sig.append("body-diff")
+            if st != bs and st != -1:
+                sig.append(f"status-diff({st} vs {bs})")
+            if ln != blen and abs(ln - blen) > 20:
+                sig.append(f"len-diff({ln} vs {blen})")
         if "__vf_value__" in prev:
             sig.append("REFLECTED!")
         if sig:
             discovered.append({"param": p, "signals": sig, "preview": prev[:150]})
         time.sleep(delay_ms / 1000.0)
-    return json.dumps({"baseline": {"status": bs, "len": blen},
+    return json.dumps({"baseline": {"status": bs, "len": blen,
+                                    "page_stable": page_stable},
                        "tested": tested, "discovered": discovered or "none",
-                       "note": "REFLECTED params are XSS-candidates; status-diffs may be auth gates"},
+                       "note": "REFLECTED params are XSS-candidates; status-diffs may be auth gates"
+                               + ("" if page_stable else
+                                  " — PAGE UNSTABLE: only REFLECTED signals trusted")},
                       ensure_ascii=False, indent=1)

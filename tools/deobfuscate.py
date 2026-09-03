@@ -58,8 +58,10 @@ def deobfuscate_js(js_path, out_dir=None):
             "quick_mine": {k: v[:15] for k, v in m.items() if v},
         }, ensure_ascii=False, indent=1)
 
-    code, tail = run([_npx_cmd(), "--yes", "webcrack", js_path, "-o", out_dir],
-                     cwd=out_dir, timeout_minutes=15)
+    # V1: 3-field contract. V5: npx --yes webcrack hangs MINUTES on first
+    # run (package download) with zero feedback — cap 8 min, not 15.
+    code, tail, _err = run([_npx_cmd(), "--yes", "webcrack", js_path, "-o", out_dir],
+                      cwd=out_dir, timeout_minutes=8)
     produced = []
     for root, _, files in os.walk(out_dir):
         for f in files:
@@ -139,7 +141,7 @@ console.log('dumped', Object.keys(dumped).length);
     try:
         # try/finally: le harness ne doit jamais fuiter sur erreur (R5-6)
         open(tmp, "w", encoding="utf-8").write(node_script)
-        code, tail = run(["node", tmp], timeout_minutes=5)
+        code, tail, _err = run(["node", tmp], timeout_minutes=5)
         data = json.load(open(dump_file)) if os.path.exists(dump_file) else {}
     finally:
         if os.path.exists(tmp):

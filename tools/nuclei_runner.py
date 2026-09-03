@@ -37,7 +37,9 @@ def nuclei_scan(target, severity=None, tags=None, templates=False, timeout_min=1
     if severity: cmd += ["-severity", severity]
     if tags: cmd += ["-tags", tags]
     if templates: cmd += ["-update-templates"]
-    code, tail = run(cmd, timeout_minutes=int(timeout_min))
+    # V1: 3-field contract — stdout head+tail kept (first findings no
+    # longer amputated), stderr separate (never corrupts the JSONL).
+    code, tail, _stderr = run(cmd, timeout_minutes=int(timeout_min))
     findings = []
     for line in tail.split("\n"):
         line = line.strip()

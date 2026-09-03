@@ -54,9 +54,22 @@ def test_inventory_shape_and_forged_presence():
         assert r["kind"] in V.KINDS
         assert isinstance(r["score"], int)
         assert "payload" in r
-    # the live arsenal ships known forged tools — they must be visible
-    ids = {r["id"] for r in inv if r["kind"] == "forged"}
-    assert any(i.startswith("forged_") for i in ids)
+    # V15: forged tools are runtime artifacts — none ship in the base
+    # install. The VAULT LANE is proven by forging one live: it must
+    # appear in recall with the counted score.
+    from tools.forge import forge_tool
+    import json as _json
+    r = _json.loads(forge_tool(name="vf_vault_probe", desc="vault lane probe",
+                               code="return 'x'"))
+    assert r.get("ok") is True
+    V.touch("forged", "forged_vf_vault_probe")
+    V.touch("forged", "forged_vf_vault_probe")
+    ids = {x["id"]: x["score"] for x in V.recall() if x["kind"] == "forged"}
+    assert "forged_vf_vault_probe" in ids
+    assert ids["forged_vf_vault_probe"] >= 2
+    import os as _os
+    if _os.path.exists("tools/forged_vf_vault_probe.py"):
+        _os.remove("tools/forged_vf_vault_probe.py")
 
 
 def test_play_inventory_carries_native_uses():
@@ -104,20 +117,14 @@ def test_corrupt_meta_degrades_to_honest_empty():
 
 
 def test_capability_block_ranks_and_mentions_kinds():
-    # REAL forged tool name from the live registry — the E2 audit caught a
-    # test forging a ghost identity ("forged_hot_tool") that touch() counted
-    # while recall() rightly never listed it.
-    # AUDIT Tier F: this test used to assert the freshly-touched forged tool
-    # RANKS FIRST — true at E2 commit time (plays had 2 uses in the then-live
-    # meta) but broken since run #76 pushed data_extract to 18 uses. The
-    # state-robust invariants are: (1) the touched tool appears with its
-    # kind label, (2) the block IS ranked (first line's score >= any other),
-    # (3) ranking is deterministic across calls.
-    from tools import _REGISTRY, _DISCOVERED
-    if not _DISCOVERED:
-        from tools import discover
-        discover()
-    real = next(n for n in _REGISTRY if n.startswith("forged_"))
+    # V15: no forged file ships in the base install — the test forges a
+    # REAL one live so the block-ranking invariants hold against a live
+    # registry entry, not a ghost identity.
+    from tools.forge import forge_tool
+    import json as _json, os as _os
+    _json.loads(forge_tool(name="vf_rank_probe", desc="rank probe",
+                           code="return 'x'"))
+    real = "forged_vf_rank_probe"
     V.touch("forged", real)
     V.touch("forged", real)
     V.touch("forged", real)
@@ -133,14 +140,23 @@ def test_capability_block_ranks_and_mentions_kinds():
         f"block not ranked: {scores}"
     # deterministic across calls (prompt-cache + doctrine stability)
     assert V.top(12) == V.top(12)
+    if _os.path.exists("tools/forged_vf_rank_probe.py"):
+        _os.remove("tools/forged_vf_rank_probe.py")
 
 
 def test_untried_kinds_still_visible():
     """AUDIT E2-V2: a forged tool never used must still be announced —
-    untried is not nonexistent."""
+    untried is not nonexistent. V15: forge one live (base install ships
+    none) and check the vault announces it even at reuse=0."""
+    from tools.forge import forge_tool
+    import json as _json, os as _os
+    _json.loads(forge_tool(name="vf_untried_probe", desc="untried probe",
+                           code="return 'x'"))
     blk = V.capability_block()
     assert blk and "[forged]" in blk, \
-        "fresh install: forged arsenal must be visible as available"
+        "freshly forged arsenal must be visible as available"
+    if _os.path.exists("tools/forged_vf_untried_probe.py"):
+        _os.remove("tools/forged_vf_untried_probe.py")
 
 
 def test_capability_block_caps_length():

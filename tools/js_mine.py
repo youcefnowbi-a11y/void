@@ -22,7 +22,9 @@ PAT = {
     "jwt_tokens": re.compile(r'eyJhbGci[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*'),
 }
 
-_CHUNK_RE = re.compile(r'["\'](?:\./)?((?:[\w\-]+/)*[\w\-]+-[A-Za-z0-9_\-]{8}\.js)["\']')
+# V9: chunk hashes — webpack (name-8h.js) AND Vite (name.b7a3ef12.js, dot
+# separator, 8 hex) AND 16-char hashes (long-hash webpack builds).
+_CHUNK_RE = re.compile(r'["\'](?:\./)?((?:[\w\-]+/)*[\w\-]+[.\-][A-Za-z0-9_\-]{8,16}\.js)["\']')
 
 # JWTs/anon keys run 200-400 chars — a flat 120-char cap amputated them mid-claim.
 _CAP = {"secrets": 600, "jwt_tokens": 600, "api_urls": 200}
@@ -83,7 +85,31 @@ def js_mine_url(url):
     mined, chunks = _mine_url(url)
     out = {"url": url, **mined, "chunks_discovered": chunks[:12]}
     observe("js_mine_url", json.dumps(out)[:40000])
-    return json.dumps(out, ensure_ascii=False, indent=1)[:20000]
+    return _safe_json(out)
+
+
+def _safe_json(obj, cap=20000):
+    """V3 (audit 1.3): slicing a serialized JSON string mid-key produces
+    INVALID JSON the model can't parse. Elide whole list ENTRIES instead:
+    keep the head of every list, drop the middle, mark the truncation."""
+    import json as _j
+    def _elide(o):
+        if isinstance(o, dict):
+            return {k: _elide(v) for k, v in o.items()}
+        if isinstance(o, list):
+            if len(o) > 12:
+                return _elide(o[:10]) + [f"…+{len(o) - 10} more elided"]
+            return [_elide(v) for v in o]
+        if isinstance(o, str) and len(o) > 600:
+            return o[:600] + "…"
+        return o
+    s = _j.dumps(_elide(obj), ensure_ascii=False, indent=1)
+    while len(s) > cap:                       # last resort: entry-level shrink
+        s = _j.dumps(_elide(obj, ), ensure_ascii=False, indent=1)[:cap]
+        s = s[:s.rfind("\n")] if "\n" in s else s[:cap]
+        s += f"\n…[elided at {len(s)}c — full data in extractions]"
+        break
+    return s
 
 
 @register(name="js_mine_site",
@@ -98,7 +124,11 @@ def js_mine_site(site, keyword_filter=None):
     if r["status"] != 200:
         return json.dumps({"err": f"HTTP {r['status']} on {site}"})
     html = r["body"]
-    scripts = sorted(set(re.findall(r'(?:src|href)="(/[^"]+\.js[^"]*)"', html)))
+    # V9 (audit 2.5): double-quotes + root-anchored only — single quotes,
+    # relative (assets/app.js) and CDN-absolute srcs were all invisible.
+    scripts = sorted(set(
+        re.findall(r"""(?:src|href)=["']([^"']+\.js[^"']*)["']""", html)
+        + re.findall(r"""(?:src|href)=["']([^"']+\.mjs[^"']*)["']""", html)))
     kw = [k.lower() for k in (keyword_filter or ["admin", "vip", "pro", "premium", "secret", "pay", "auth", "api"])]
     mined, queue, seen = {}, list(scripts)[:10], set()
     depth_rounds = 0
@@ -131,4 +161,4 @@ def js_mine_site(site, keyword_filter=None):
         depth_rounds += 1
     out = {"site": site, "bundles_mined": len(mined), "mined": mined}
     observe("js_mine_site", json.dumps(out)[:60000])
-    return json.dumps(out, ensure_ascii=False, indent=1)[:22000]
+    return _safe_json(out, cap=22000)

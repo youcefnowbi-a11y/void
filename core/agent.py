@@ -1515,17 +1515,31 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                 if _total_tok > _budget:
                     _tool_idx = [i for i, m in enumerate(msgs) if m.get("role") == "tool"]
                     for _i in _tool_idx[:-8]:
-                        _c = msgs[_i].get("content") or ""
+                        _c = (msgs[_i].get("content") or "") if isinstance(msgs[_i], dict) else str(getattr(msgs[_i], "content", "") or "")
                         if len(_c) > 600:
-                            msgs[_i]["content"] = _c[:600] + \
-                                "\n…[compacté — budget contexte; preuve complète dans missions/<cible>/extractions/]"
+                            # V-comp (audit 1.4): a raw slice chops JWTs and
+                            # keys mid-token — the strike later re-reads a
+                            # broken credential. Preserve CREDENTIAL lines
+                            # whole inside the compacted window.
+                            _keep = re.findall(
+                                r"(?:eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*"
+                                r"|sk-[A-Za-z0-9]{20,}|hk_[A-Za-z0-9]{20,}"
+                                r"|Bearer\s+[A-Za-z0-9_.\-]{20,})", _c)
+                            _head = _c[:600]
+                            _creds = " ".join(dict.fromkeys(k for k in _keep if k not in _head))[:600]
+                            _tail = "\n…[compacté — budget contexte; preuve complète dans missions/<cible>/extractions/]"
+                            if _creds:
+                                _tail += f"\n[credentials préservées] {_creds}"
+                            if isinstance(msgs[_i], dict):
+                                msgs[_i]["content"] = _head + _tail
                     _total_tok = sum(len(m.get("content") or "") for m in msgs) // 4
                     if _total_tok > _budget:
                         for _i in _tool_idx[-8:]:
-                            _c = msgs[_i].get("content") or ""
+                            _c = (msgs[_i].get("content") or "") if isinstance(msgs[_i], dict) else ""
                             if len(_c) > 4000:
-                                msgs[_i]["content"] = _c[:4000] + \
-                                    "\n…[compacté — budget contexte]"
+                                if isinstance(msgs[_i], dict):
+                                    msgs[_i]["content"] = _c[:4000] + \
+                                        "\n…[compacté — budget contexte]"
             except Exception:
                 pass
 

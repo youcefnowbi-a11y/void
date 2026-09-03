@@ -128,7 +128,11 @@ def _nvd_leg(tech):
         raw = _t.execute("nvd_search", {"keyword": tech})
         data = json.loads(raw) if isinstance(raw, str) else raw
         out = []
-        items = data.get("vulns") or data.get("results") or []
+        # V8 (audit 2.4): cve_intel returns {"cves": rows} — the old
+        # "vulns"/"results" keys matched NOTHING: the NVD leg was dead
+        # since day one. Accept all three, "cves" first.
+        items = (data.get("cves") or data.get("vulns")
+                 or data.get("results") or [])
         for v in items[:8]:
             out.append({"title": f"[NVD] {v.get('id', '?')} — {(v.get('summary') or v.get('description') or '')[:110]}",
                         "url": v.get("url") or f"https://nvd.nist.gov/vuln/detail/{v.get('id', '')}",

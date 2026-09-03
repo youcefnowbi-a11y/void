@@ -49,7 +49,7 @@ def _send_req(url, timeout=10):
         "properties": {
             "url_template": {
                 "type": "string",
-                "description": "Target URL with {PAYLOAD} placeholder (e.g. https://target.com/proxy?url={PAYLOAD})"
+                "description": "Target URL with {INJ} placeholder (e.g. https://target.com/proxy?url={INJ}) — {PAYLOAD} also accepted"
             },
             "timeout": {
                 "type": "integer",
@@ -61,9 +61,14 @@ def _send_req(url, timeout=10):
     }
 )
 def ssrf_probe(url_template, timeout=10):
+    # V10 (audit 3.2): the tool demanded {PAYLOAD} while the doctrine,
+    # MCTS and every other tool speak {INJ} — the agent following doctrine
+    # was refused, burned 3 heals, abandoned. Both spellings accepted.
+    if "{INJ}" in url_template:
+        url_template = url_template.replace("{INJ}", "{PAYLOAD}")
     if "{PAYLOAD}" not in url_template:
         return json.dumps({
-            "error": "url_template must contain the {PAYLOAD} placeholder",
+            "error": "url_template must contain the {INJ} (or {PAYLOAD}) placeholder",
             "url_template": url_template
         })
 

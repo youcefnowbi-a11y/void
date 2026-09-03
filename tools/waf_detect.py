@@ -148,7 +148,11 @@ def waf_detect(url):
 
     # Phase 2: Probe with suspicious payload
     sep = "&" if "?" in target_url else "?"
-    probe_url = f"{target_url}{sep}test=<script>alert(1)</script>"
+    # V13 (audit 3.4): raw <> in the URI — either an invalid request or
+    # non-representative server behavior. The WAF probe must be a legal
+    # request carrying an obviously-malicious encoded payload.
+    _probe = urllib.parse.quote("<script>alert(1)</script>", safe="")
+    probe_url = f"{target_url}{sep}test={_probe}"
     probe_status, probe_headers, probe_cookies, probe_body = _fetch(probe_url)
 
     block_behavior = {

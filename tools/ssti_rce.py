@@ -67,9 +67,16 @@ def ssti_detect_rce(url_template, cmd="id", skip_rce=False):
         return verdict("ssti_detect_rce", False, "url_template lacks {INJ} placeholder")
 
     engines = []
+    # V4 (audit 2.1): "49" alone matches line-height:49px, prices 49.99,
+    # any hash — the site was "confirmed SSTI" on pure page furniture.
+    # A real hit needs the rendered value ABSENT from the probeless
+    # baseline of the same URL.
+    _st0, base_body, _dt0 = paced_send(apply_template(url_template, "vfprobe"))
+    base_body = base_body or ""
     for probe, expect, hints in FINGERPRINTS:
         st, body, _dt = paced_send(apply_template(url_template, probe))
-        if expect in (body or "") and probe not in (body or ""):
+        body = body or ""
+        if expect in body and probe not in body and expect not in base_body:
             engines.append({"engine": hints, "probe": probe, "rendered": expect})
 
     if not engines:

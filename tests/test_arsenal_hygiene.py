@@ -31,10 +31,19 @@ def test_purged_forged_gone():
 
 
 def test_kept_forged_alive():
+    # V15: forged tools are RUNTIME artifacts (mission-scoped, gitignored)
+    # — none ship in the base registry. The forge LANE is what must live:
+    # forge a tool now and watch it register hot.
+    from tools.forge import forge_tool
+    out = forge_tool(name="vf_hygiene_probe", desc="hygiene lane probe",
+                     code="return 'lane-alive'")
+    import json, os
+    d = json.loads(out)
+    assert d.get("ok") is True or "already exists" in str(d)
     names = _registry_names()
-    for n in ("forged_admin_token_brute_v4", "forged_http_request",
-              "forged_invoice_dumper", "forged_siwx_signer"):
-        assert n in names, n
+    assert "forged_vf_hygiene_probe" in names or "already exists" in str(d)
+    if os.path.exists("tools/forged_vf_hygiene_probe.py"):
+        os.remove("tools/forged_vf_hygiene_probe.py")
 
 
 def test_phase_guide_present():

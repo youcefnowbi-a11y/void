@@ -48,15 +48,15 @@ def _get_raw(url, headers=None, timeout=20, token=None):
         opener = get_opener()
         if opener:
             r = opener.open(rq, timeout=timeout)
-            return r.status, r.read().decode(errors="replace")[:3000]
+            return r.status, r.read().decode(errors="replace")[:120000]
     except (ImportError, Exception):
         pass
 
     try:
         r = urllib.request.urlopen(rq, timeout=timeout)
-        return r.status, r.read().decode(errors="replace")[:3000]
+        return r.status, r.read().decode(errors="replace")[:120000]
     except urllib.error.HTTPError as ex:
-        return ex.code, ex.read().decode(errors="replace")[:600]
+        return ex.code, ex.read().decode(errors="replace")[:8000]
     except Exception as ex:
         return -1, f"{type(ex).__name__}: {str(ex)[:80]}"
 
@@ -87,8 +87,10 @@ def _req_raw(base, method, path, token=None, body=None, timeout=25):
     data = json.dumps(body).encode() if body is not None else None
     try:
         r = urllib.request.urlopen(rq, data=data, timeout=timeout)
-        return r.status, r.read().decode(errors="replace")[:800]
+        # V2 (audit 1.2): 800 chars amputated every API response at the
+        # first page — JSON decode crashed mid-string. 120k now.
+        return r.status, r.read().decode(errors="replace")[:120000]
     except urllib.error.HTTPError as ex:
-        return ex.code, ex.read().decode(errors="replace")[:500]
+        return ex.code, ex.read().decode(errors="replace")[:8000]
     except Exception as ex:
         return -1, f"{type(ex).__name__}: {str(ex)[:80]}"

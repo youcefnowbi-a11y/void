@@ -41,6 +41,9 @@ def _parse_ports_arg(ports_str):
     return res or None
 
 def _parse_nmap_xml(xml_text):
+    # V1: the runner's head+tail window inserts a marker line when the
+    # stream is elided — strip it so ET.fromstring never sees it.
+    xml_text = (xml_text or "").replace("…[output truncated — middle elided]", "")
     idx = xml_text.find("<nmaprun")
     if idx == -1:
         return []
@@ -174,7 +177,7 @@ def nmap_scan(target, scan_type="quick", ports=None, timeout_min=10):
         return "TOOL ERROR [ARGS]: cible invalide"
     cmd.append(target)
 
-    code, output = run(cmd, timeout_minutes=int(timeout_min))
+    code, output, stderr_tail = run(cmd, timeout_minutes=int(timeout_min))
     hosts = _parse_nmap_xml(output)
 
     # Flatten open ports across all detected hosts

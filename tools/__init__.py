@@ -112,7 +112,7 @@ def discover():
     _DISCOVERED = True
     global _LOAD_FAILURES
     for m in pkgutil.iter_modules(__path__):
-        if m.name.startswith("_") or m.name == "__init__":
+        if m.name.startswith("_") or m.name == "__init__" or m.name.startswith("forged_"):
             continue
         try:
             importlib.import_module(f"tools.{m.name}")
@@ -441,7 +441,16 @@ def execute(name, args, on_event=None):
                 err = traceback.format_exc()
             # SELF-HEALING LAYER
             category, details = healer.classify(err)
+            # V16 (audit 6.x): a heal that returns THE SAME args re-runs
+            # the identical call and hits the identical crash — 3 attempts
+            # burned on one deterministic wound (the mission-79
+            # crash-loop). Same-args retry is only legitimate for
+            # TRANSIENT categories (network blip, saturation timeout).
+            _transient = category in ("NETWORK", "TIMEOUT")
             healed_args, note = healer.heal_attempt(name, category, details, args)
+            if healed_args == args and not _transient:
+                healed_args = None
+                note = "sterile heal rejected (same args, deterministic error)"
             if healed_args is not None:
                 print(f"  [healer] {category} -> {note} (attempt {attempts})")
                 if emitter:

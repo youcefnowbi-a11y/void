@@ -42,7 +42,11 @@ def _raw_roundtrip(host, port, raw_bytes, timeout=8, use_ssl=False):
                 break
             chunks.append(b)
             total += len(b)
-            if b"\r\n\r\n" in b"".join(chunks) and total > 400:
+            # V14 (audit 5.1): the old break demanded `total > 400` AFTER
+            # headers — a short response never reached it and the loop sat
+            # on recv until the full 8s timeout per request. Headers
+            # complete = status line captured = we're done here.
+            if b"\r\n\r\n" in b"".join(chunks):
                 break
         s.close()
         data = b"".join(chunks).decode(errors="replace")

@@ -601,6 +601,12 @@ def fetch(url, method="GET", headers=None, body=None, timeout=25,
     if deadline is None:
         deadline = time.time() + _FETCH_BUDGET_S
     redirect_chain = list(redirect_chain or [])
+    # ── W15 (mission-79 autopsy): body + default-GET = GET-with-body,
+    # and the body never reaches the wire (FastAPI answers 422 "Field
+    # required" on a strike that was never truly sent). A body present
+    # with no explicit method IS a POST. ──
+    if body is not None and str(method).upper() == "GET":
+        method = "POST"
     method = method.upper()
     host = urllib.parse.urlsplit(url).netloc
     _scheme = urllib.parse.urlsplit(url).scheme or "https"

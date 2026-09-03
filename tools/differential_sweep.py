@@ -54,8 +54,13 @@ def _apply(base, kind, path, value):
 
 
 def _fire(req):
+    # W15: a body-bearing request without an explicit method is a POST
+    # (the old default-GET silently dropped the body → uniform 422s).
+    m = req.get("method")
+    if not m and req.get("body") is not None:
+        m = "POST"
     return fetch(str(req.get("url", "")),
-                 method=(req.get("method") or "GET").upper(),
+                 method=(m or "GET").upper(),
                  headers=req.get("headers"),
                  body=req.get("body"),
                  timeout=_TIMEOUT_S, use_cache=False)

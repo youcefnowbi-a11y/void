@@ -60,8 +60,11 @@ def _list_forged():
               "code": {"type": "string", "description": "FORM 1: run(**kwargs) body, 4-space indented, returns a string. FORM 2 (auto-detected): full module with leading imports + module-level def run(**kwargs) — imports are kept at column 0, no double-def, returns a string"},
               "params": {"type": "object", "description": "JSON schema: {\"type\":\"object\",\"properties\":{...},\"required\":[...]}"},
               "danger": {"type": "string", "description": "safe | active | loud | strike (default active)"},
-          }, "required": ["name"]})
-def forge_tool(name, desc="", code="", params=None, danger="active"):
+              "overwrite": {"type": "boolean", "description": "W17: replace an existing forged tool of the same name (fix + redeploy in one round)"},
+          },
+          "required": ["name"]})
+def forge_tool(name, desc="", code="", params=None, danger="active",
+               overwrite=False):
     name = (name or "").strip().lower()
     if name in ("list", "", "ls"):
         forged = _list_forged()
@@ -82,8 +85,13 @@ def forge_tool(name, desc="", code="", params=None, danger="active"):
     if not re.fullmatch(r"[a-z][a-z0-9_]{2,39}", name):
         return json.dumps({"error": "nom invalide — snake_case, 3-40 chars, commence par une lettre"})
     core = all_tools()
-    if f"forged_{name}" in {t["name"] for t in core}:
-        return json.dumps({"error": f"forged_{name} existe déjà — choisis un autre nom ou supprime le fichier"})
+    if f"forged_{name}" in {t["name"] for t in core} and not overwrite:
+        # W17 (mission-79 autopsy): the collision was a DEAD END — no
+        # overwrite, no delete path, so she burned a round inventing a
+        # new name for the same tool. overwrite=true replaces in place.
+        return json.dumps({
+            "error": f"forged_{name} existe déjà — choisis un autre nom "
+                     f"OU re-issue avec overwrite=true pour le remplacer"})
     if not code.strip():
         return json.dumps({"error": "code vide — le corps de run(**kwargs) est requis"})
 

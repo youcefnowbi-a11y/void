@@ -95,6 +95,40 @@ def _jar_state():
                 for h, jar in _JAR.items()}
 
 
+# ── W16: keyset-cursor walking (mission-79 autopsy) ─────────────────
+# duskyr's listing API paginates with `before_id` (keyset): the LAST
+# record's id IS the next page's cursor. The old tool only spoke
+# offset/page — she had to re-derive the walk by hand.
+_CURSOR_PARAMS = ("before_id", "before", "cursor", "next", "starting_after",
+                  "after_id", "last_id")
+_CURSOR_FIELDS = ("id", "_id", "cursor", "next_cursor", "timestamp")
+
+
+def _next_cursor(items, cursor_field=None, hint=None):
+    """The cursor for the NEXT page: the last record's cursor field, or a
+    top-level next-cursor in a wrapped response. None = page is the end."""
+    if cursor_field:
+        for rec in reversed(items):
+            if isinstance(rec, dict) and rec.get(cursor_field) is not None:
+                return rec[cursor_field]
+        return None
+    # wrapped responses often carry the cursor at top level
+    if isinstance(hint, dict):
+        for k in ("next_cursor", "next", "cursor", "next_before_id",
+                  "has_more"):
+            if k in ("has_more",):
+                continue
+            if hint.get(k) is not None:
+                return hint[k]
+    for rec in reversed(items):
+        if not isinstance(rec, dict):
+            continue
+        for f in _CURSOR_FIELDS:
+            if rec.get(f) is not None:
+                return rec[f]
+    return None
+
+
 def _http(url, method="GET", headers=None, body=None, timeout=25,
           content_type=None, _redirects=0, use_jar=False):
     """Raw HTTP with full response capture.  Follows 307/308, captures
@@ -109,6 +143,13 @@ def _http(url, method="GET", headers=None, body=None, timeout=25,
     request — session chains survive across calls. Set-Cookie capture
     happens on EVERY call regardless.
     """
+    # ── W15 (mission-79 autopsy): a body on a default-GET request never
+    # reaches the wire — urllib sends GET-with-body, servers ignore the
+    # body, FastAPI answers 422 "Field required" and the agent burns
+    # rounds diagnosing a strike that was never sent. A body present
+    # with no explicit method IS a POST; make it one. ──
+    if body is not None and (method or "GET").upper() == "GET":
+        method = "POST"
     h = {"User-Agent": UA}
     if headers:
         h.update(headers)
@@ -191,9 +232,9 @@ def _http(url, method="GET", headers=None, body=None, timeout=25,
                "call) — login chains stay ALIVE across calls; jar_clear=true wipes them.",
           params={"type": "object", "properties": {
               "url": {"type": "string", "description": "Full URL to fetch"},
-              "method": {"type": "string", "description": "GET or POST (default: GET)"},
+              "method": {"type": "string", "description": "HTTP method (default: auto — a body present makes it POST, else GET)"},
               "headers": {"type": "object", "description": "Custom headers dict, e.g. {\"Authorization\": \"Bearer xxx\", \"Cookie\": \"session=abc\"}"},
-              "body": {"description": "POST body — dict for JSON/form encoding, string for raw 'key=val&key2=val2'"},
+              "body": {"description": "Request body — dict for JSON/form encoding, string for raw 'key=val&key2=val2'. A body with no explicit method auto-POSTs (W15)"},
               "content_type": {"type": "string", "description": "Body encoding: 'json' (default), 'form' (url-encoded), 'raw' (as-is)"},
               "truncate_at": {"type": "integer", "description": "Response body capture cap in bytes (default 60000 — W10: 15KB truncated checkout HTML mid-RSC-payload)"},
               "use_jar": {"type": "boolean", "description": "W12: replay stored cookies for this host — session chains survive across calls"},
@@ -251,7 +292,8 @@ def data_extract(url, method="GET", headers=None, body=None, content_type=None,
 # 2. PAGINATED DUMP — auto-paginate through REST APIs
 # ─────────────────────────────────────────────────────────
 @register(name="data_dump_paginated",
-          desc="Paginated data extraction from REST APIs. Auto-iterates offset/limit or page params. "
+          desc="Paginated data extraction from REST APIs. Auto-iterates offset/limit, page, or CURSOR params "
+               "(keyset pagination: before_id/cursor/next — auto-detects the cursor field in the response). "
                "Use to dump entire database tables, product lists, user lists, etc. "
                "Stops when empty response or max_pages reached.",
           params={"type": "object", "properties": {
@@ -259,10 +301,13 @@ def data_extract(url, method="GET", headers=None, body=None, content_type=None,
               "headers": {"type": "object", "description": "Auth headers dict"},
               "page_size": {"type": "integer", "description": "Records per page (default: 50)"},
               "max_pages": {"type": "integer", "description": "Max pages to fetch (default: 10)"},
-              "page_style": {"type": "string", "description": "offset (default) | page | cursor"},
+              "page_style": {"type": "string", "description": "offset (default) | page | cursor (keyset: before_id/cursor/next auto-walked)"},
+              "cursor_param": {"type": "string", "description": "cursor style: the query param name (default: auto-detect: before_id, cursor, next, starting_after)"},
+              "cursor_field": {"type": "string", "description": "the LAST record's field carrying the cursor id (default: auto-detect: id, _id, cursor)"},
               "body": {"type": "object", "description": "POST body template (optional)"}},
               "required": ["url"]})
-def data_dump_paginated(url, headers=None, page_size=50, max_pages=10, page_style="offset", body=None):
+def data_dump_paginated(url, headers=None, page_size=50, max_pages=10, page_style="offset", body=None,
+                        cursor_param=None, cursor_field=None):
     # clamps ROE (R5-16): LA seule boucle non bornée de la flotte doit le rester
     max_pages = max(1, min(int(max_pages or 10), 200))
     page_size = max(1, min(int(page_size or 50), 500))
@@ -271,11 +316,26 @@ def data_dump_paginated(url, headers=None, page_size=50, max_pages=10, page_styl
     prev_page = None       # C-DX1: détection « aucun progrès » par CONTENU
     records_capped = False
     method = "POST" if body else "GET"
+    cursor = None          # W16: keyset cursor state (auto-walked)
+    if page_style == "cursor" and not cursor_param:
+        cursor_param = _CURSOR_PARAMS[0]   # before_id — the duskyr grammar
 
     for page in range(max_pages):
         # Build paginated URL
         sep = "&" if "?" in url else "?"
-        if page_style == "offset":
+        if page_style == "cursor":
+            # W16 (mission-79 autopsy): keyset pagination — the server
+            # returns records plus a cursor (before_id/cursor/next...);
+            # the NEXT page asks for records BEFORE that id. Auto-detected
+            # from the first response when cursor_param/cursor_field are
+            # not given.
+            if page == 0:
+                paged_url = f"{url}{sep}limit={page_size}"
+            elif cursor is not None:
+                paged_url = f"{url}{sep}limit={page_size}&{cursor_param}={cursor}"
+            else:
+                break  # no cursor discovered after page 1 — done
+        elif page_style == "offset":
             paged_url = f"{url}{sep}limit={page_size}&offset={page * page_size}"
         elif page_style == "page":
             paged_url = f"{url}{sep}limit={page_size}&page={page + 1}"
@@ -306,6 +366,8 @@ def data_dump_paginated(url, headers=None, page_size=50, max_pages=10, page_styl
                 break
             all_records.extend(data)
             prev_page = data
+            if page_style == "cursor" and data:
+                cursor = _next_cursor(data, cursor_field)
         elif isinstance(data, dict):
             # Handle wrapped responses {data: [...], total: N}
             items = data.get("data") or data.get("results") or data.get("items") or data.get("records")
@@ -314,6 +376,10 @@ def data_dump_paginated(url, headers=None, page_size=50, max_pages=10, page_styl
                     break  # vide = fin réelle ; identique = aucun progrès
                 all_records.extend(items)
                 prev_page = items
+                if page_style == "cursor" and items:
+                    cursor = _next_cursor(
+                        items, cursor_field,
+                        hint=data)   # wrapped: la réponse porte le curseur
             else:
                 all_records.append(data)
                 break  # Single object, no pagination
@@ -334,7 +400,13 @@ def data_dump_paginated(url, headers=None, page_size=50, max_pages=10, page_styl
         "records": all_records[:500],  # Cap at 500 records
     }
     result = json.dumps(out, ensure_ascii=False, indent=1)
-    return result[:20000]
+    if len(result) > 20000:
+        # V3 (audit 1.3): never slice mid-key — elide whole records.
+        out["records"] = out["records"][:30]
+        out["records_elided"] = max(0, len(all_records) - 30)
+        out["note"] = "elided for context budget — full dump in extractions/"
+        result = json.dumps(out, ensure_ascii=False, indent=1)
+    return result
 
 
 # ─────────────────────────────────────────────────────────
