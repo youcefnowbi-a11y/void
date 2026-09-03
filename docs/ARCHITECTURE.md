@@ -245,6 +245,20 @@ operator's name — IPs come from the egress pool, credentials from Dark-Moon.
 
 ## 7. GUI / PWA
 
+## 11. Roadmap (aspirations, pas de code — decided 2026-09-02)
+
+- **Tier D — daemon/queue** : HOLD, consciously rejected for the LOCAL
+  deployment. The queue+worker makes sense only on a HOSTED machine
+  (headless, always-on, far from the operator). On local, the operator IS
+  the always-on process — a night worker on the same box serves nothing.
+  When VOIDFORGE gets a hosted deployment, this tier is the blueprint:
+  persistent queue (data/queue/), worker loop through the single launch
+  gate (_launch_mission), concurrency=1, per-target cooldowns, max
+  attempts → held, night budget cap, pause/resume/clear endpoints.
+- **findings DB table** : populate from the verdict contract (empty today).
+- **Swarm deep lanes** : parallel specialists per attack chain (beyond the
+  current 4 roles).
+
 Hand-rolled PWA (no vite-plugin-pwa): `manifest.webmanifest` + `sw.js`
 (shell network-first w/ cache fallback, SWR assets, `/api` + `/ws` never
 intercepted), PROD-only registration. Prod API base: `src/api.js` → `''`
