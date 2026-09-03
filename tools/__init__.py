@@ -422,6 +422,15 @@ def execute(name, args, on_event=None):
                         out = out + _hint
                 except Exception:
                     pass
+                # E2 vault: count the use (skills count at load, plays at
+                # harvest; forged tools count HERE — best-effort, never
+                # lets a metric fail a strike)
+                if name.startswith("forged_"):
+                    try:
+                        from core.capability_vault import touch
+                        touch("forged", name)
+                    except Exception:
+                        pass
                 dur = round(_t.time() - _start, 2)
                 if emitter:
                     emitter({"type": "tool_result", "tool": name, "result": out[:2000],

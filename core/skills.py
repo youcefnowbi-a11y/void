@@ -81,6 +81,13 @@ def list_skills():
 def load_skill(skill_id):
     for s in list_skills():
         if s["id"] == skill_id:
+            # E2 vault: count the load (best-effort — a metric never
+            # blocks the expertise it measures)
+            try:
+                from core.capability_vault import touch
+                touch("skill", skill_id)
+            except Exception:
+                pass
             return s["text"][:SKILL_CAP]
     return None
 

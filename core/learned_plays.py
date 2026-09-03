@@ -92,6 +92,12 @@ def _iter_calls(args):
 
 
 def _play_from_call(tool, a, outcome, proof, ts, kind="grammar"):
+    # F1 discipline, réaffirmée: un tool vide = play INATTRIBUABLE = pas de
+    # play. (L'ancien `tool or "?"` a minté un play orphelin uses=11 dans le
+    # stockpile venice — trouvé par l'audit E2 de la vault.)
+    tool = (tool or "").strip()
+    if not tool:
+        return None
     url = a.get("url") or ""
     if not url or "://" not in url:
         return None
@@ -170,8 +176,15 @@ def _plays_from_rows(rows, ts_default=None):
                 item_res = (it.get("result") or "").replace('\\"', '"')
                 _call_play(tool, a, item_res, ts)
         elif len(calls) == 1:
-            # ligne mono-appel : le résultat EST cet appel (échappements normalisés)
+            # ligne mono-appel : le résultat EST cet appel (échappements
+            # normalisés). AUDIT E2-V3: _iter_calls ne connaît pas le nom
+            # de l'outil (il ne voit que args_json) → yield vide — le nom
+            # VÉRITÉ est celui de la ligne (tool_name). L'ancien fallback
+            # `tool or "?"` mintait tous les plays mono sous un tool
+            # fantôme "?" (le play Clerk uses=11 du stockpile était un
+            # play légitime mal nommé — l'audit vault l'a démasqué).
             tool, a = calls[0]
+            tool = tool or (r.get("tool_name") or "").strip()
             _call_play(tool, a, row_res.replace('\\"', '"'), ts)
         # sinon (batch non reconnu, N appels) → pas d'attribution : mieux
         # vaut un arsenal petit et VRAI qu'un arsenal riche et menteur.

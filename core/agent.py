@@ -520,7 +520,10 @@ DOCTRINE = """
    brief. When the FIELD MANUAL appears in your context: same-target plays are PROVEN
    call grammars on this very host — reuse them instead of re-deriving; adapted plays
    are grammar templates from other targets
-    — re-solve the host-specific parts.
+    — re-solve the host-specific parts. The CAPABILITY VAULT block in your
+    context ranks every capability (plays, skills, forged tools) by PROVEN
+    reuse across missions — the top of that ranking is where your next call
+    should come from, and repeated successes there compound the ranking.
 11. TRANSPORT SHAPE IS OPERATOR DATA. The wire fingerprint (traffic profile) is chosen
     by the OPERATOR in config/transport.yaml — one profile per campaign, never flipped
     mid-flight. Your job is the MISSION, not the disguise: NEVER forge User-Agent,
@@ -1161,6 +1164,20 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                 if on_event:
                     on_event({"type": "system",
                               "text": f"🎭 Transport posture chargée — {posture}"})
+        except Exception:
+            pass
+
+        # ── E2: CAPABILITY VAULT — one ranked view of play+skill+forged ──
+        try:
+            from core.capability_vault import capability_block
+            vb = capability_block()
+            if vb:
+                msgs.append({"role": "user", "content": vb})
+                if on_event:
+                    n_caps = vb.count("\n- [")
+                    on_event({"type": "system",
+                              "text": f"🗄 Capability Vault chargée — {n_caps} "
+                                      f"capacité(s) classée(s) par réutilisation prouvée"})
         except Exception:
             pass
 

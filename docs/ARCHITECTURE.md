@@ -307,6 +307,33 @@ TRANSPORT POSTURE prompt block (profile name + content hash + egress
 mode + identity state) and SYSTEM rule 11 ("transport shape is operator
 data — never forge identity/header posture in tool arguments").
 
+## 6quater-4. The unified capability vault (E2 — law 1: loader + vault)
+
+`core/capability_vault.py`: ONE facade over the three capability stores —
+plays (`learned_plays`, uses-native), skills (`skills/*.md`, counted at
+load), forged tools (registry, counted at execute). Thin adapters: stores
+never move; a gitignored metadata layer (`vault_meta.json`) carries usage
+counts + versioned deposits ({content-hash, provenance, ts}, capped 8 per
+capability, atomic writes, corrupt-file degradation to honest empty).
+
+`capability_block()`: the round-0 prompt block ranking every capability by
+PROVEN reuse — the operator-agent SEES the vault, top-reuse first, with
+untried-but-available kinds still announced (untried ≠ nonexistent). The
+SYSTEM doctrine tells the agent: the top of the ranking is where the next
+call should come from, and repeated successes compound the ranking.
+
+**Audit E2 (3 findings fixed)**: V1 — test forging a ghost identity
+(`forged_hot_tool` counted by touch, never listed by recall) revealed the
+touch/recall contract gap → tests now use REAL registry names, and
+untried kinds get availability lines; V2 — recall() filtered unattributable
+plays at the facade level too (defense in depth vs old stockpiles);
+V3 — THE BIG ONE: mono-call DB rows yielded tool="" from `_iter_calls`,
+and the old `tool or "?"` fallback minted EVERY mono play under a ghost
+tool — the venice Clerk play (uses=11) was legitimate but mis-named;
+root fix: mono rows inherit `tool_name` from the DB row, empty-tool plays
+are rejected outright (F1 discipline, restated), stockpile purged of the
+orphan. 176 tests green.
+
 ## 7. GUI / PWA
 
 ## 11. Roadmap (aspirations, pas de code — decided 2026-09-02)
