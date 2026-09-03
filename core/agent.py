@@ -557,6 +557,30 @@ DOCTRINE = """
     batch_execute — hand re-minting the same token round after round is session-tax
     theft from your own round budget. Your history's proven chains are a FLOOR, not
     a ceiling: after two replays of the same enchaînement, change bench.
+13. IMPACT-FIRST HUNTING — THE SCIENCE ENGINE. The mission brief names an IMPACT
+    SCENARIO (a paying customer getting a tier for $0, an outsider reading another
+    user's data, an unpaid account holding entitlements). Your job is to invert it
+    into candidate invariants — assumptions the TARGET makes about requests — and
+    test them like a researcher, not scan surfaces like a template:
+    - hypothesis_test IS THE CORE WEAPON: state the invariant (natural language),
+      give baseline request + ONE mutation + the oracle that recognizes the
+      violation, direction='violated' (guard missing) or 'held' (defense holds).
+      Every verdict lands in the TARGET SCIENCE LEDGER — past beliefs appear in
+      your round-0 context: never re-derive a tested fact, push CONFIRMED
+      violations deeper instead.
+    - differential_sweep IS YOUR THROUGHPUT: when a mutation axis has a VALUE
+      SPACE (ids to walk, encodings to try, price values to tamper), delegate
+      the whole space to the sweep — one round buys up to 60 experiments; you
+      read the science table, then isolate any hit with hypothesis_test.
+    - The TARGET MODEL block in your context carries the living grammar
+      (templatized endpoints, hit counts) and CLIENT INVARIANT CANDIDATES
+      from mined JS — every "the client computes/trusts X" line is a
+      zero-day candidate: the server is supposed to re-check X; test whether
+      it does.
+    - COMPOSE the wins: a confirmed under-price + a replayable session = a
+      theft chain; an entitlement drift + a missing re-check = a permanent
+    tier. The impact scenario closes only when the END-STATE is demonstrated
+      (rule 8) — capture it with evidence_pack.
 
 ═══ IMPROVISATION DOCTRINE — THINK OUTSIDE THE SCANNER ═══
 
@@ -1236,6 +1260,36 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
         except Exception:
             pass
 
+        # ── G2+G4: the SCIENCE LEDGER + living target model — she opens her
+        # eyes on every TESTED FACT about this target (no re-derivation) and
+        # on the grammar previous missions built (endpoints, client
+        # invariant candidates = the zero-day queue). ──
+        try:
+            from core.beliefs import prompt_block as _belief_block
+            from core.target_model import grammar_block as _grammar_block
+            _mt = getattr(ws, "target", None) or ""
+        except Exception:
+            _mt = None
+        if _mt:
+            try:
+                _gb = _grammar_block(_mt)
+                if _gb:
+                    msgs.append({"role": "user", "content": _gb})
+                    if on_event:
+                        on_event({"type": "system",
+                                  "text": f"🧬 Target model chargé — grammar vivante de {len(_mt)} host"})
+            except Exception:
+                pass
+            try:
+                _bb = _belief_block(_mt)
+                if _bb:
+                    msgs.append({"role": "user", "content": _bb})
+                    if on_event:
+                        on_event({"type": "system",
+                                  "text": "🔬 Science ledger chargée — croyances testées de missions passées"})
+            except Exception:
+                pass
+
         # ── Living Graph injection: the agent opens her eyes on prior intel ──
         if self.board is not None:
             try:
@@ -1387,6 +1441,14 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                         if _u not in tgt:
                             tgt.append(_u)
                     del tgt[:-12]
+                    # ── G2: every result feeds the living target model ──
+                    try:
+                        from core import target_model as _tm
+                        _tm.ingest(state.get("model_target") or
+                                   getattr(ws, "target", None) or "unknown",
+                                   name, ev.get("result") or "")
+                    except Exception:
+                        pass
             except Exception:
                 pass
 

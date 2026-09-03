@@ -39,6 +39,8 @@ PHASE_MAP = {
     # --- exploit -----------------------------------------------------------
     "sqli_union_dump": EXPLOIT, "sqli_blind_extract": EXPLOIT,
     "sqli_tamper_chain": EXPLOIT, "idor_enum": EXPLOIT, "otp_brute": EXPLOIT,
+    # ── Tier G science engine — hypothesis as first-class object ──
+    "hypothesis_test": EXPLOIT, "differential_sweep": EXPLOIT,
     "jwt_forge_replay": EXPLOIT, "race_smash": EXPLOIT, "h2_race_attack": EXPLOIT,
     "upload_webshell": EXPLOIT, "shell_exec": EXPLOIT, "shell_session": EXPLOIT,
     "cmd_exec_probe": SURFACE,  # detection tool (kept SURFACE above)

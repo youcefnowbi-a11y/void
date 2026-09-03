@@ -36,6 +36,8 @@ MCTS_WHITELIST = {"batch_execute", "replay_mutate", "shell_exec", "otp_brute",
                   "binary_fuzz_run",    # native C++ core — needs target binary + corpus
                   "h2_race_attack",     # native C++ h2 race — needs live HTTP/2 endpoint
                   "session_keep",       # Tier F2 — needs the operator's real mint flow
+                  "hypothesis_test",     # Tier G1 — LLM designs baseline/mutation/oracle
+                  "differential_sweep",  # Tier G3 — LLM designs the mutation space policy
                   "crash_triage_rank",  # native triage — needs a crash dir from a live run
                   "file_grep",          # forensics — needs local file paths from session
                   "crypto_hash",        # local hash/HMAC/b64 utility — brain calls it via strikes

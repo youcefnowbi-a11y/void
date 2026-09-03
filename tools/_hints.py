@@ -70,6 +70,11 @@ NEXT_HINTS = {
     "proto_pollute": [("evidence_pack", "seal the pollution proof")],
     "smuggle_probe": [("evidence_pack", "seal the desync proof")],
     "ssrf_probe": [("evidence_pack", "seal the internal access proof")],
+    # ── Tier G science chain ──
+    "hypothesis_test": [("evidence_pack", "seal the differential proof"),
+                        ("differential_sweep", "enumerate the mutation space")],
+    "differential_sweep": [("hypothesis_test", "isolate the ONE variable behind a hit"),
+                           ("evidence_pack", "seal the sweep table")],
 }
 
 # tools whose output IS already guidance / terminal / infrastructure — never hinted
