@@ -15,6 +15,24 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FINDINGS_PATH = os.path.join(ROOT, "reports", "fuzz_findings.json")
 
 
+def _mission_scoped_default():
+    """W8 (mission-77 autopsy): the OLD global default read whatever fuzz
+    findings a PAST mission left on disk — cross-mission contamination
+    dressed as fresh triage (duskyr.com findings surfaced inside a
+    venice.ai run and got sealed as a CONFIRMED finding). The default now
+    resolves INSIDE the active mission workspace first; the global file
+    stays the operator-mode fallback (no mission running)."""
+    try:
+        from core import mission_workspace as _mw
+        ws = _mw.get_active()
+        d = getattr(ws, "dir", None) if ws is not None else None
+        if d:
+            return os.path.join(str(d), "fuzz_findings.json")
+    except Exception:
+        pass
+    return FINDINGS_PATH
+
+
 def _wilson_lower(k, n, z=1.96):
     """Wilson score LOWER bound at confidence z (95% default). The right way
     to rank "hit rate": 3/3 looks great at n=3 but its lower bound is 0.44 —
@@ -69,7 +87,7 @@ def _family_of(payload):
               "required": []},
           danger="safe")
 def crash_triage_next(path=None, top=10):
-    p = path or FINDINGS_PATH
+    p = path or _mission_scoped_default()
     if not os.path.exists(p):
         return verdict("crash_triage_next", False,
                        "no findings file — run fuzz_attack_surface first")

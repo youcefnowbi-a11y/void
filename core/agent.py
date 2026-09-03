@@ -1739,6 +1739,26 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                     out = reg.execute(name, args, on_event=tap)
                 finally:
                     reg.allowed.names = _prev_allowed
+                # ── W7 (mission-77 autopsy): the arsenal is ALIVE — a
+                # successful forge_tool hot-registers new tools, but the
+                # LLM schema and the agent's own allowlist snapshot stay
+                # frozen at mission start, so fresh forges are UNCALLABLE:
+                # the model hallucinates the nearest known name (desync)
+                # and batch_execute rejects the real one ("hors arsenal").
+                # Fix: re-sync self.tools from the live registry after any
+                # forge — the next llm.chat() carries the extended schema
+                # and the next call clears the new name.
+                if name == "forge_tool" and '"ok": true' in str(out)[:200]:
+                    try:
+                        _live = reg.all_tools()
+                        if len(_live) > len(self.tools):
+                            self.tools = _cov.tag_descriptions(_live)
+                            if on_event:
+                                on_event({"type": "system", "text":
+                                          f"🔥 Arsenal étendu en vol — "
+                                          f"{len(self.tools)} tools dans le schema LLM"})
+                    except Exception:
+                        pass
                 dur = round(time.time() - t0, 2)
                 state["outer"] = None
 

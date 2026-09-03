@@ -80,7 +80,8 @@ def _http(url, method="GET", headers=None, body=None, timeout=25,
 # 1. GENERIC DATA EXTRACTION — hit any URL with any auth
 # ─────────────────────────────────────────────────────────
 @register(name="data_extract",
-          desc="Make an authenticated HTTP request and return FULL response body (up to 15KB) "
+          desc="Make an authenticated HTTP request and return FULL response body (up to 60KB, "
+               "raise truncate_at for larger captures) "
                "plus response headers and Set-Cookie. "
                "Supports GET/POST, custom headers, POST body as JSON or form-urlencoded. "
                "Set content_type='form' for form endpoints (FastAPI Form fields, login pages).",
@@ -89,9 +90,12 @@ def _http(url, method="GET", headers=None, body=None, timeout=25,
               "method": {"type": "string", "description": "GET or POST (default: GET)"},
               "headers": {"type": "object", "description": "Custom headers dict, e.g. {\"Authorization\": \"Bearer xxx\", \"Cookie\": \"session=abc\"}"},
               "body": {"description": "POST body — dict for JSON/form encoding, string for raw 'key=val&key2=val2'"},
-              "content_type": {"type": "string", "description": "Body encoding: 'json' (default), 'form' (url-encoded), 'raw' (as-is)"}},
+              "content_type": {"type": "string", "description": "Body encoding: 'json' (default), 'form' (url-encoded), 'raw' (as-is)"},
+              "truncate_at": {"type": "integer", "description": "Response body capture cap in bytes (default 60000 — W10: 15KB truncated checkout HTML mid-RSC-payload)"}},
               "required": ["url"]})
-def data_extract(url, method="GET", headers=None, body=None, content_type=None):
+def data_extract(url, method="GET", headers=None, body=None, content_type=None,
+                 truncate_at=60000):
+    truncate_at = max(2000, min(int(truncate_at or 60000), 200000))
     r = _http(url, method=method, headers=headers, body=body,
               content_type=content_type, timeout=30)
     # Try to parse as JSON for pretty output
@@ -123,10 +127,10 @@ def data_extract(url, method="GET", headers=None, body=None, content_type=None):
         out["redirected_to"] = r.get("final_url", "")
         out["redirect_status"] = r.get("redirect_status")
     if parsed is not None:
-        out["json"] = parsed if len(json.dumps(parsed)) < 15000 else str(parsed)[:15000]
+        out["json"] = parsed if len(json.dumps(parsed)) < truncate_at else str(parsed)[:truncate_at]
         out["record_count"] = len(parsed) if isinstance(parsed, list) else 1
     else:
-        out["text"] = r["body"][:15000]
+        out["text"] = r["body"][:truncate_at]
     return json.dumps(out, ensure_ascii=False, indent=1)
 
 

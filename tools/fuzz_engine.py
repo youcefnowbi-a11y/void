@@ -15,6 +15,31 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FINDINGS_PATH = os.path.join(ROOT, "reports", "fuzz_findings.json")
 SEEDS_PATH = os.path.join(ROOT, "reports", "fuzz_seeds.json")
 
+
+def _scope_path(base_path, fname):
+    """W8 (mission-77 autopsy): fuzz findings/seeds are MISSION state.
+    The old global reports/ file accumulated every past mission's
+    anomalies — cross-mission contamination on read AND write. Inside a
+    running mission the corpus lives in its workspace; the global file
+    remains the operator-mode fallback."""
+    try:
+        from core import mission_workspace as _mw
+        ws = _mw.get_active()
+        d = getattr(ws, "dir", None) if ws is not None else None
+        if d:
+            return os.path.join(str(d), fname)
+    except Exception:
+        pass
+    return base_path
+
+
+def _findings_path():
+    return _scope_path(FINDINGS_PATH, "fuzz_findings.json")
+
+
+def _seeds_path():
+    return _scope_path(SEEDS_PATH, "fuzz_seeds.json")
+
 MUTATIONS = [
     "'\",", "\"", "'", "`", "<script>alert(1)</script>", "{{7*7}}", "${7*7}",
     "<%= 7*7 %>", "../../etc/passwd", "....//....//etc/passwd", "%2e%2e%2f",
@@ -101,7 +126,7 @@ def fuzz_attack_surface(url, params=None, headers=None, max_requests=300,
     # corpus: values that survived previous runs — the fuzzer learns between runs
     corpus = {}
     try:
-        with open(SEEDS_PATH, encoding="utf-8") as f:
+        with open(_seeds_path(), encoding="utf-8") as f:
             corpus = json.load(f)
     except Exception:
         pass
@@ -122,14 +147,18 @@ def fuzz_attack_surface(url, params=None, headers=None, max_requests=300,
     if not params and split.query:
         params = {k: v for k, v in parse_qsl(split.query)}
     url = base
-    # C-FZ2: {FUZZ} dans l'URL + params → la branche de substitution path
-    # (pname=None) n'est jamais atteinte et le littéral partait brut dans
-    # la requête (404 garanti). Token baseline bénin AVANT toute
-    # construction de requête — baseline et mutations visent la même URL.
-    if params and "{FUZZ}" in url:
-        url = url.replace("{FUZZ}", "FUZZ")
+    # C-FZ2 + W9 (mission-77 autopsy): {FUZZ} in the URL means PATH fuzzing
+    # is requested — the placeholder branch (pname=None) MUST run even when
+    # params exist. The old pre-replace turned EVERY request into a literal
+    # /FUZZ segment (placeholder artifacts, guaranteed 404s — 80 wasted
+    # requests on venice). Param mutations keep a benign token in the path;
+    # the path branch mutates the placeholder itself.
+    has_fuzz = "{FUZZ}" in url
+    url_param_branch = url.replace("{FUZZ}", "FUZZ") if has_fuzz else url
+    if has_fuzz and not params and not target_param:
+        url_param_branch = url  # pure path fuzzing — no benign rewrite needed
     # baseline
-    st0, body0, dt0 = paced_send(url, headers=headers, timeout=20)
+    st0, body0, dt0 = paced_send(url_param_branch, headers=headers, timeout=20)
     fp0 = body_fingerprint(body0)
     base_len = len(body0 or "")
     findings, sent = [], 0
@@ -149,6 +178,10 @@ def fuzz_attack_surface(url, params=None, headers=None, max_requests=300,
         return False
 
     param_names = ([target_param] if target_param else list(params.keys())) or [None]
+    # W9: {FUZZ} in the URL = path fuzzing requested — the None branch
+    # (path mutation) runs in ADDITION to any params, never instead-of.
+    if has_fuzz and None not in param_names:
+        param_names = [None] + param_names
 
     for pname in param_names:
         waf_banned = False  # C-FZ1: abort per-param — plus de martèlement du banni
@@ -156,19 +189,19 @@ def fuzz_attack_surface(url, params=None, headers=None, max_requests=300,
             if sent >= max_requests:
                 break
             pay = _payload_str(mut)
-            req_url, req_headers, body = url, dict(headers), None
+            req_url, req_headers, body = url_param_branch, dict(headers), None
             if pname is None:
-                if "{FUZZ}" in req_url:
+                if "{FUZZ}" in url:
                     from urllib.parse import quote
-                    req_url = req_url.replace("{FUZZ}", quote(pay, safe=""))
+                    req_url = url.replace("{FUZZ}", quote(pay, safe=""))
                 else:
                     continue
             else:
-                if not body and req_url == base:
+                if req_url == url_param_branch and body is None:
                     # GET: rebuild query string with the mutation swapped in
                     data = dict(params)
                     data[pname] = mut
-                    req_url = base + ("?" + urlencode(data) if data else "")
+                    req_url = url_param_branch + ("?" + urlencode(data) if data else "")
                 else:
                     data = dict(params)
                     data[pname] = mut
@@ -236,10 +269,11 @@ def _save_seeds(found):
     """Persist the payload values that produced anomalies — the fuzzer's
     learned corpus for the next run (coverage-feedback, web edition)."""
     try:
-        os.makedirs(os.path.dirname(SEEDS_PATH), exist_ok=True)
+        sp = _seeds_path()
+        os.makedirs(os.path.dirname(sp), exist_ok=True)
         corpus = {}
-        if os.path.exists(SEEDS_PATH):
-            with open(SEEDS_PATH, encoding="utf-8") as f:
+        if os.path.exists(sp):
+            with open(sp, encoding="utf-8") as f:
                 corpus = json.load(f)
         for f in found:
             pk = f.get("param")
@@ -249,7 +283,7 @@ def _save_seeds(found):
                 if pv not in lst:
                     lst.append(pv)
                 corpus[pk] = lst[-40:]
-        with open(SEEDS_PATH, "w", encoding="utf-8") as f:
+        with open(sp, "w", encoding="utf-8") as f:
             json.dump(corpus, f)
     except Exception:
         pass
@@ -257,13 +291,14 @@ def _save_seeds(found):
 
 def _save_findings(new):
     try:
-        os.makedirs(os.path.dirname(FINDINGS_PATH), exist_ok=True)
+        fp = _findings_path()
+        os.makedirs(os.path.dirname(fp), exist_ok=True)
         existing = []
-        if os.path.exists(FINDINGS_PATH):
-            with open(FINDINGS_PATH, encoding="utf-8") as f:
+        if os.path.exists(fp):
+            with open(fp, encoding="utf-8") as f:
                 existing = json.load(f)
         existing.extend(new)
-        with open(FINDINGS_PATH, "w", encoding="utf-8") as f:
+        with open(fp, "w", encoding="utf-8") as f:
             json.dump(existing[-2000:], f)
     except Exception:
         pass
