@@ -3,14 +3,100 @@
 Fills the gap between 'I found an endpoint' and 'I dumped everything from it'.
 Supports custom auth headers, pagination, POST bodies, and full response capture.
 """
-import json, urllib.request, urllib.error, urllib.parse, time, re
+import json, urllib.request, urllib.error, urllib.parse, time, re, threading
 from tools import register
 
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/151.0.0.0 Safari/537.36"
 
 
+# ── W12 (mission-78 autopsy): the persistent COOKIE JAR ──────────────
+# The #78 root cause of the mid-mission "Signed out" 401s: data_extract
+# was STATELESS between calls — Clerk's __client/__session minted in one
+# call never reached the next, so she forged 6 cookiejar tools to keep a
+# login chain alive. The jar makes session-holding a PLATFORM property:
+#   use_jar=True  → cookies received on this host persist for the next
+#                   call (per-host, mission-lifetime, thread-safe)
+#   jar_clear    → explicit wipe (logout / fresh identity)
+# Automatic: Set-Cookie captured on EVERY response (jar or not) so the
+# replay decision is always hers.
+_JAR_LOCK = threading.Lock()
+_JAR = {}          # host -> {cookie_name: (value, expires_ts|None)}
+
+
+def _host_of(url):
+    try:
+        return urllib.parse.urlsplit(url).hostname or ""
+    except Exception:
+        return ""
+
+
+def _jar_merge(url, headers):
+    """Replay the host's stored cookies into the outgoing headers
+    (unless the call already carries its own Cookie line)."""
+    host = _host_of(url)
+    if not host:
+        return headers
+    with _JAR_LOCK:
+        jar = _JAR.get(host) or {}
+        now = time.time()
+        fresh = {k: v for k, (v, exp) in jar.items()
+                 if exp is None or exp > now}
+        if fresh:
+            h = dict(headers or {})
+            if not any(k.lower() == "cookie" for k in h):
+                h["Cookie"] = "; ".join(f"{k}={v}" for k, v in fresh.items())
+                return h
+    return headers
+
+
+def _jar_capture(url, cookies):
+    """Store every Set-Cookie from the response for the host."""
+    if not cookies:
+        return
+    host = _host_of(url)
+    if not host:
+        return
+    with _JAR_LOCK:
+        jar = _JAR.setdefault(host, {})
+        now = time.time()
+        for line in cookies:
+            parts = line.split(";", 1)
+            if "=" not in parts[0]:
+                continue
+            name, val = parts[0].split("=", 1)
+            name = name.strip()
+            exp = None
+            m = re.search(r"expires=([^;]+)", line, re.I)
+            if m:
+                try:
+                    import email.utils as _eu
+                    exp = _eu.parsedate_to_datetime(m.group(1)).timestamp()
+                except Exception:
+                    exp = None
+            jar[name] = (val.strip(), exp)
+        # purge expired
+        _JAR[host] = {k: v for k, v in jar.items()
+                      if v[1] is None or v[1] > now}
+
+
+def _jar_clear(host=None):
+    with _JAR_LOCK:
+        if host:
+            _JAR.pop(_host_of(host) or host, None)
+        else:
+            _JAR.clear()
+
+
+def _jar_state():
+    with _JAR_LOCK:
+        now = time.time()
+        return {h: sorted(k for k, (v, e) in jar.items()
+                          if e is None or e > now)
+                for h, jar in _JAR.items()}
+
+
 def _http(url, method="GET", headers=None, body=None, timeout=25,
-          content_type=None, _redirects=0):
+          content_type=None, _redirects=0, use_jar=False):
     """Raw HTTP with full response capture.  Follows 307/308, captures
     Set-Cookie, and supports json / form / raw body encoding.
 
@@ -18,17 +104,30 @@ def _http(url, method="GET", headers=None, body=None, timeout=25,
       json  → dict/list JSON-encoded, Content-Type: application/json
       form  → dict url-encoded, str sent raw; Content-Type: x-www-form-urlencoded
       raw   → body sent as-is, no Content-Type override
+
+    use_jar (W12): replay this host's stored cookies on the outgoing
+    request — session chains survive across calls. Set-Cookie capture
+    happens on EVERY call regardless.
     """
     h = {"User-Agent": UA}
     if headers:
         h.update(headers)
+    if use_jar:
+        h = _jar_merge(url, h)
     rq = urllib.request.Request(url, method=method, headers=h)
     data = None
     if body is not None:
         ct = (content_type or "json").lower()
         if ct == "form":
             if isinstance(body, dict):
-                data = urllib.parse.urlencode(body).encode()
+                # W14 (mission-78 autopsy): nested dict/list values in a
+                # form body must serialize as JSON INSIDE the field (web
+                # convention) — urlencode() alone str()-ifies Python
+                # dicts, and Clerk reads that as a literal "{'a': 1}"
+                # string → 422 form_param_unknown.
+                flat = {k: (json.dumps(v) if isinstance(v, (dict, list))
+                            else v) for k, v in body.items()}
+                data = urllib.parse.urlencode(flat).encode()
             elif isinstance(body, str):
                 data = body.encode()
             else:
@@ -45,6 +144,7 @@ def _http(url, method="GET", headers=None, body=None, timeout=25,
         r = urllib.request.urlopen(rq, data=data, timeout=timeout)
         resp_hdrs = dict(r.headers) if hasattr(r, "headers") else {}
         cookies = r.headers.get_all("Set-Cookie") if hasattr(r.headers, "get_all") else []
+        _jar_capture(url, cookies)
         raw = r.read().decode(errors="replace")
         return {"status": r.status, "body": raw, "headers": resp_hdrs,
                 "cookies": cookies or [],
@@ -56,12 +156,14 @@ def _http(url, method="GET", headers=None, body=None, timeout=25,
             m2 = "GET" if ex.code in (301, 302, 303) else method
             res = _http(nxt, method=m2, headers=headers, body=body,
                         content_type=content_type,
-                        timeout=timeout, _redirects=_redirects + 1)
+                        timeout=timeout, _redirects=_redirects + 1,
+                        use_jar=use_jar)
             res["redirected_from"] = url
             res["redirect_status"] = ex.code
             return res
         resp_hdrs = dict(ex.headers) if hasattr(ex, "headers") else {}
         cookies = ex.headers.get_all("Set-Cookie") if hasattr(ex.headers, "get_all") else []
+        _jar_capture(url, cookies)
         try:
             raw = ex.read().decode(errors="replace")
         except Exception:
@@ -84,20 +186,26 @@ def _http(url, method="GET", headers=None, body=None, timeout=25,
                "raise truncate_at for larger captures) "
                "plus response headers and Set-Cookie. "
                "Supports GET/POST, custom headers, POST body as JSON or form-urlencoded. "
-               "Set content_type='form' for form endpoints (FastAPI Form fields, login pages).",
+               "Set content_type='form' for form endpoints (FastAPI Form fields, login pages). "
+               "use_jar=true replays this host's stored cookies (Set-Cookie captured every "
+               "call) — login chains stay ALIVE across calls; jar_clear=true wipes them.",
           params={"type": "object", "properties": {
               "url": {"type": "string", "description": "Full URL to fetch"},
               "method": {"type": "string", "description": "GET or POST (default: GET)"},
               "headers": {"type": "object", "description": "Custom headers dict, e.g. {\"Authorization\": \"Bearer xxx\", \"Cookie\": \"session=abc\"}"},
               "body": {"description": "POST body — dict for JSON/form encoding, string for raw 'key=val&key2=val2'"},
               "content_type": {"type": "string", "description": "Body encoding: 'json' (default), 'form' (url-encoded), 'raw' (as-is)"},
-              "truncate_at": {"type": "integer", "description": "Response body capture cap in bytes (default 60000 — W10: 15KB truncated checkout HTML mid-RSC-payload)"}},
+              "truncate_at": {"type": "integer", "description": "Response body capture cap in bytes (default 60000 — W10: 15KB truncated checkout HTML mid-RSC-payload)"},
+              "use_jar": {"type": "boolean", "description": "W12: replay stored cookies for this host — session chains survive across calls"},
+              "jar_clear": {"type": "boolean", "description": "W12: wipe this host's cookie jar BEFORE the call (fresh identity/logout)"}},
               "required": ["url"]})
 def data_extract(url, method="GET", headers=None, body=None, content_type=None,
-                 truncate_at=60000):
+                 truncate_at=60000, use_jar=False, jar_clear=False):
     truncate_at = max(2000, min(int(truncate_at or 60000), 200000))
+    if jar_clear:
+        _jar_clear(url)
     r = _http(url, method=method, headers=headers, body=body,
-              content_type=content_type, timeout=30)
+              content_type=content_type, timeout=30, use_jar=bool(use_jar))
     # Try to parse as JSON for pretty output
     parsed = None
     try:
@@ -111,6 +219,11 @@ def data_extract(url, method="GET", headers=None, body=None, content_type=None,
         "size": r["size"],
         "content_type": r["headers"].get("Content-Type", r["headers"].get("content-type", "unknown")),
     }
+    if use_jar or jar_clear:
+        # the jar's live state rides the response — she sees what she holds
+        host_state = _jar_state().get(_host_of(url), [])
+        if host_state:
+            out["jar_cookies"] = host_state
     # Surface Set-Cookie headers — critical for session capture
     if r.get("cookies"):
         out["set_cookie"] = r["cookies"]

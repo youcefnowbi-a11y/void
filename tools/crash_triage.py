@@ -91,8 +91,29 @@ def crash_triage_next(path=None, top=10):
     if not os.path.exists(p):
         return verdict("crash_triage_next", False,
                        "no findings file — run fuzz_attack_surface first")
-    with open(p, encoding="utf-8") as f:
-        raw = json.load(f)
+    # W13 (mission-78 autopsy): a directory path raised a raw
+    # PermissionError mid-mission. Fail with a USEFUL message instead —
+    # the tool wants the findings FILE, not its folder.
+    if os.path.isdir(p):
+        cand = os.path.join(p, "fuzz_findings.json")
+        if os.path.exists(cand):
+            p = cand       # obvious intent — accept it gracefully
+        else:
+            return verdict("crash_triage_next", False,
+                           f"'{p}' is a DIRECTORY — pass the findings FILE "
+                           f"path (fuzz_findings.json inside it), or run "
+                           f"fuzz_attack_surface first")
+    try:
+        with open(p, encoding="utf-8") as f:
+            raw = json.load(f)
+    except PermissionError:
+        return verdict("crash_triage_next", False,
+                       f"permission denied on '{p}' — is another process "
+                       f"writing the fuzz findings? retry in a round")
+    except json.JSONDecodeError as e:
+        return verdict("crash_triage_next", False,
+                       f"findings file corrupted ({e}) — re-run "
+                       f"fuzz_attack_surface to rewrite it")
 
     # dedupe by signature
     sig_map = OrderedDict()
