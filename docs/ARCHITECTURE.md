@@ -225,6 +225,24 @@ Two mechanisms keep the operator invisible — in traffic AND in paper:
   "never re-test ground another lane covered"), so lanes pair strikes with
   each other's freshest assets instead of meeting only at synthesis.
 
+## 6quater. Burnable operational identity (tier C)
+
+`core/op_identity.py` — each target host carries ONE operational persona:
+a deterministic (host-hash-seeded) UA + Accept-Language pair, stable for the
+whole campaign (fingerprint consistency is survival) and **burned** on block
+signals. The transport consumes it: `_ua_for()` speaks the persona's accent,
+`Accept-Language` is injected (tool-provided headers still win), and two
+burn triggers fire in `fetch`:
+
+- captcha wall unresolved (solved=False) → immediate burn,
+- 4 consecutive non-2xx results on the same host (`_mark_host_result`) → burn.
+
+Post-burn, the next request automatically re-derives (generation + 1) —
+new accent, same discipline. Live/burned counts land in the engagement
+report's ROE header (`| Op identity | ... |`) and `op_identity.summary()`
+exposes the process posture. Identity is the machine's accent, not the
+operator's name — IPs come from the egress pool, credentials from Dark-Moon.
+
 ## 7. GUI / PWA
 
 Hand-rolled PWA (no vite-plugin-pwa): `manifest.webmanifest` + `sw.js`

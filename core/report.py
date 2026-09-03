@@ -37,6 +37,20 @@ def _egress_line():
     except Exception:
         return []
 
+
+def _identity_line():
+    """Tier C — posture d'identité opérationnelle : accents dérivés par cible,
+    brûlés sur bloc (captcha / 403-flood). Les hosts listés sont ceux de la
+    CIBLE — ils appartiennent au rapport."""
+    try:
+        from core.op_identity import summary as id_summary
+        s = id_summary()
+        n_live, n_dead = len(s["live"]), len(s["burned"])
+        return [f"| Op identity | per-target derived persona "
+                f"({n_live} live, {n_dead} burned during campaign) |"]
+    except Exception:
+        return []
+
 def _extract_findings(transcript):
     """Scan transcript text, dedupe matches, rank by severity."""
     seen, findings = set(), []
@@ -119,6 +133,7 @@ def write_report(mission, transcript, folder, board=None):
         f"| Do-not-exploit mode | {_or(str(roe.get('do_not_exploit', 'NOT RECORDED')))} |",
         f"| Max request rate | {_or(str(roe.get('max_request_rate', 'NOT RECORDED')))} /min |",
         *(_egress_line()),
+        *(_identity_line()),
         f"| Operator / Agent | LO / VOIDFORGE |",
         f"| Generated | {ts} |",
         "",

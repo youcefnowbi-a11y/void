@@ -38,7 +38,13 @@ _SESSION_UA = _UA_POOL[_rnd.randrange(len(_UA_POOL))]
 _UA_BY_HOST = {}
 
 def _ua_for(host):
-    """Stable UA per target host — never varies within a campaign."""
+    """Tier C — l'identité opérationnelle parle d'abord (stable par cible,
+    brûlée sur bloc). Fallback: le pool UA historique."""
+    try:
+        from core.op_identity import identity_for
+        return identity_for(host, renew=True)["ua"]
+    except Exception:
+        pass
     host = (host or "").lower()
     if host not in _UA_BY_HOST:
         idx = int(hashlib.sha1(host.encode()).hexdigest(), 16) % len(_UA_POOL)
@@ -221,6 +227,30 @@ def _pool_mark(url, ok):
                     e["fail_count"] += 1
                     if e["fail_count"] >= 3:
                         e["cooldown_until"] = time.time() + 120.0  # 2 min de repos
+
+
+_HOST_FAILS = {}   # host -> consecutive non-2xx count (identity-burn signal)
+_HOST_FAILS_LOCK = threading.Lock()
+
+
+def _mark_host_result(host, status):
+    """Tier C — 4 refus consécutifs sur une cible = l'identité parle mal.
+    Burn : la prochaine requête part avec un accent neuf."""
+    n = 0
+    try:
+        with _HOST_FAILS_LOCK:
+            if 200 <= (status or 0) < 300 or status in (301, 302, 303):
+                _HOST_FAILS[host] = 0
+                return
+            n = _HOST_FAILS.get(host, 0) + 1
+            _HOST_FAILS[host] = n
+            if n >= 4:
+                _HOST_FAILS[host] = 0
+        if n >= 4:
+            from core.op_identity import burn as _id_burn
+            _id_burn(host, f"{status} x{n} consecutive")
+    except Exception:
+        pass
 
 
 # ── wave2 P4: captcha hook — detection + solver auto-injection (OFF sans config)
@@ -441,6 +471,15 @@ def fetch(url, method="GET", headers=None, body=None, timeout=25,
     method = method.upper()
     host = urllib.parse.urlsplit(url).netloc
     h = {"User-Agent": _ua_for(host)}
+    # Tier C — l'accent linguistique de l'identité (cohérent tout le cycle
+    # de vie de la cible) ; un header fourni par l'outil reste prioritaire.
+    try:
+        from core.op_identity import identity_for
+        _il = identity_for(host, renew=True).get("lang")
+        if _il:
+            h["Accept-Language"] = _il
+    except Exception:
+        pass
     if headers:
         h.update({k: v for k, v in headers.items()})
 
@@ -633,9 +672,22 @@ def fetch(url, method="GET", headers=None, body=None, timeout=25,
                         res["captcha_type"] = ch[0]
                         return res
                     res["captcha_wall"] = {"type": ch[0], "sitekey": ch[1], "solved": False}
+                    # Tier C — mur de captcha non résolu : l'identité est
+                    # grillée sur cette cible, la prochaine requête parle
+                    # avec un accent neuf (UA + langue régénérés).
+                    try:
+                        from core.op_identity import burn as _id_burn
+                        _id_burn(host, f"captcha wall {ch[0]}")
+                    except Exception:
+                        pass
                     return res
                 out["captcha_wall"] = {"type": ch[0], "sitekey": ch[1], "solved": False,
                                        "hint": "configure captcha.provider+api_key dans config/transport.yaml"}
+                try:
+                    from core.op_identity import burn as _id_burn
+                    _id_burn(host, f"captcha wall {ch[0]} (unsolvable)")
+                except Exception:
+                    pass
             return out
         # pas de challenge → rotation proxy (P2) — exit suivant, sticky re-épinglé
         if _POOL and not proxy_url:
@@ -667,6 +719,7 @@ def fetch(url, method="GET", headers=None, body=None, timeout=25,
         with _lock:
             _RESP_CACHE[cache_key] = (out, time.time())
             _resp_cache_evict_locked()  # E-5: purge des expirées + cap 500
+    _mark_host_result(host, out["status"])
     if 0 < out["size"] < 200_000:
         try:
             from core.blackboard import observe
