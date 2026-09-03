@@ -102,20 +102,48 @@ def test_live_fuzz_finds_scripted_crash(tmp_path):
 
 
 def test_privesc_parsers_rank_real_signals():
-    win_text = ("SeImpersonatePrivilege        Enabled\n"
-                "AlwaysInstallElevated REG_DWORD 0x1\n"
-                "C:\\My App\\server.exe    Auto   LocalSystem\n")
-    f = _parse_battery_win(win_text)
-    joined = " ".join(x["check"] for x in f)
-    assert "potato" in " ".join(x["why"] for x in f).lower() or \
-        "SeImpersonate" in joined
+    """AUDIT B5: parsers now eat [{cmd, output}] — REAL newline text per
+    command, exactly the shape shell_session returns in results[]."""
+    from tools.binary_lane import _CMD_CHUNK, _WIN_BATTERY
+    win_results = [
+        {"cmd": "whoami /priv", "status": 200,
+         "output": "SeImpersonatePrivilege        Enabled\n"
+                   "SeAssignPrimaryTokenPrivilege Disabled\n"},
+        {"cmd": "reg query HKLM... /v AlwaysInstallElevated", "status": 200,
+         "output": "HKEY_LOCAL_MACHINE\\...\n    AlwaysInstallElevated"
+                   "    REG_DWORD    0x1\n"},
+        {"cmd": "wmic service get name,pathname", "status": 200,
+         "output": "cmdline\nMy App Server.exe  C:\\My App\\server.exe  Auto\n"},
+    ]
+    f = _parse_battery_win(win_results)
+    assert any("SeImpersonate" in x["check"] for x in f)
+    assert not any("SeAssignPrimaryToken" in x["check"] and "ENABLED" in x["check"]
+                   for x in f)  # Disabled → no finding (per-line now)
     assert any("AlwaysInstallElevated" in x["check"] for x in f)
     assert any("unquoted service path" in x["check"] for x in f)
-    lin_text = ("root ALL=(ALL) NOPASSWD: /usr/bin/find\n"
-                "-rw-rw-rw- 1 root root 2469 /etc/passwd\n")
-    fl = _parse_battery_lin(lin_text)
+    lin_results = [
+        {"cmd": "sudo -n -l", "status": 200,
+         "output": "root ALL=(ALL) NOPASSWD: /usr/bin/find\n"},
+        {"cmd": "ls -la /etc/passwd", "status": 200,
+         "output": "-rw-rw-rw- 1 root root 2469 /etc/passwd\n"},
+        {"cmd": "find / -perm -4000 -type f", "status": 200,
+         "output": "/usr/bin/passwd\n/bin/mount\n/usr/bin/sudo\n"
+                   "/usr/local/bin/broken_suid\n"},
+    ]
+    fl = _parse_battery_lin(lin_results)
     assert any("NOPASSWD" in x["check"] for x in fl)
     assert any("/etc/passwd world-writable" in x["check"] for x in fl)
+    assert any("broken_suid" in x["check"] for x in fl), \
+        "GTFOBins-noise SUIDs must be filtered, real ones kept"
+
+
+def test_privesc_battery_is_chunked_for_shell_cap():
+    """AUDIT B1: shell_session executes commands[:6] — the battery must be
+    chunked ≤6 or wmic/icacls silently never run."""
+    from tools.binary_lane import _WIN_BATTERY, _CMD_CHUNK
+    assert len(_WIN_BATTERY) > _CMD_CHUNK
+    assert len(_WIN_BATTERY) % _CMD_CHUNK == 0 or \
+        len(_WIN_BATTERY) % _CMD_CHUNK == 2  # 8 = 6+2, both chunks run
 
 
 def test_registry_and_phases_know_the_lane():

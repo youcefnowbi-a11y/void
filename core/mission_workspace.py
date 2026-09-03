@@ -30,6 +30,7 @@ DATA_TOOLS = {
     "nvd_search", "cisa_kev", "fuzz_attack_surface", "crash_triage_next",
     "web_fingerprint", "spa_crawl", "race_smash", "smuggle_probe",
     "proto_pollute", "xxe_probe", "redirect_cast",
+    "bin_triage", "bin_strings",  # AUDIT B3: static binary recon → evidence
 }
 
 
