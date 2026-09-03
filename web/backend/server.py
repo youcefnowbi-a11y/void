@@ -565,7 +565,12 @@ async def run_mission(req: MissionRequest):
             raise HTTPException(status_code=409, detail="campagne déjà en cours — une seule à la fois")
         _ACTIVE_MODE["mode"] = req.mode
         chat_context = ""
-        if req.mode == "Plan" and _CHAT.get("session") is not None:
+        # E3 fix: the operator's chat voice used to reach ONLY Plan-mode
+        # launches — an IA-mode launch from the UI DROPPED the entire
+        # war-room context (he talked to the strategist, launched from the
+        # UI, and the strike agent never heard a word of it). Both modes
+        # carry the commander's pre-mission voice now.
+        if req.mode in ("Plan", "IA") and _CHAT.get("session") is not None:
             chat_context = _CHAT["session"].get_context()
         loop = asyncio.get_running_loop()
         loop.create_task(_launch_mission(
@@ -890,7 +895,12 @@ def _chat_session():
             if loop is None:
                 return "ERROR: event loop indisponible — relance le backend."
             try:
-                fut = asyncio.run_coroutine_threadsafe(_approve_and_strike("", ""), loop)
+                # E3 fix: the strategist's final "note" (the operator's last
+                # emphasis, spoken right before "go") was silently DROPPED —
+                # _approve_and_strike got two hardcoded empty strings. The
+                # go-word's emphasis now rides into the strike.
+                fut = asyncio.run_coroutine_threadsafe(
+                    _approve_and_strike(note, ""), loop)
                 fut.result(timeout=30)
                 return ("STRIKE_LAUNCHED: la frappe est partie, plan-guidée. "
                         "La console vit tout en direct.")
@@ -957,9 +967,15 @@ async def _approve_and_strike(edited_plan: str = "", strike_mode: str = ""):
         mode = "Swarm" if (m and m.group(1).lower() == "swarm") else "IA"
     _ACTIVE_MODE["mode"] = mode
     loop = asyncio.get_running_loop()
+    # E3 fix: the chat's get_context (the operator's war-room voice) rides
+    # along on the STRIKE too — the whole conversation that led to "go"
+    # reaches the strike agent, not just the Plan phase.
+    chat_ctx = (_CHAT["session"].get_context()
+                if _CHAT.get("session") is not None else "")
     loop.create_task(_launch_mission(
         mission or plan_doc[:400], mode, None,
-        intel_mode="none", docs=None, autonomy=False, plan_doc=plan_doc))
+        intel_mode="none", docs=None, autonomy=False, plan_doc=plan_doc,
+        chat_context=chat_ctx))
     await manager.broadcast({"type": "system",
                              "text": f"🗺 Plan APPROUVÉ — phase de frappe lancée ({mode.lower()}, plan-guidée)",
                              "timestamp": datetime.now().isoformat()})
