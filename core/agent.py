@@ -519,7 +519,16 @@ DOCTRINE = """
    platform harvests this proposal automatically — a good proposal IS the next mission
    brief. When the FIELD MANUAL appears in your context: same-target plays are PROVEN
    call grammars on this very host — reuse them instead of re-deriving; adapted plays
-   are grammar templates from other targets — re-solve the host-specific parts.
+   are grammar templates from other targets
+    — re-solve the host-specific parts.
+11. TRANSPORT SHAPE IS OPERATOR DATA. The wire fingerprint (traffic profile) is chosen
+    by the OPERATOR in config/transport.yaml — one profile per campaign, never flipped
+    mid-flight. Your job is the MISSION, not the disguise: NEVER forge User-Agent,
+    Accept-Language, Referer, Origin, Sec-* or any identity/header posture in tool
+    arguments — the transport layer composes identity + profile + tool headers itself
+    (tool headers win only when a tool MEANINGFULLY needs one, e.g. a content-type for
+    a specific payload). The TRANSPORT POSTURE block in your context tells you the
+    active shape and egress: read it, respect it, never try to bypass it.
 
 ═══ IMPROVISATION DOCTRINE — THINK OUTSIDE THE SCANNER ═══
 
@@ -1138,6 +1147,20 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                     on_event({"type": "system",
                               "text": f"📚 Arsenal appris chargé — {n_plays} play(s) "
                                       f"prouvé(s) rappelé(s) au round 0"})
+        except Exception:
+            pass
+
+        # ── E1: TRANSPORT POSTURE — the LLM SEES the wire law it runs under ──
+        try:
+            from tools._transport import transport_posture
+            posture = transport_posture()
+            if posture:
+                msgs.append({"role": "user", "content":
+                    f"{posture}\n\nThis posture is DATA chosen by the operator "
+                    f"(see rule 11). You never override it in tool arguments."})
+                if on_event:
+                    on_event({"type": "system",
+                              "text": f"🎭 Transport posture chargée — {posture}"})
         except Exception:
             pass
 

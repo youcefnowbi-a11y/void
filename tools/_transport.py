@@ -232,11 +232,12 @@ def profile_hash():
     return f"{prof.get('__name', '?')}:{_h.sha1(shape.encode()).hexdigest()[:8]}"
 
 
-def _apply_profile(h: dict, host: str):
-    """Layer the active profile onto the built header dict, respecting
-    single-writer: identity already wrote UA/Accept-Language; the profile
-    adds/overwrites everything EXCEPT those, then tool headers (applied
-    later by the caller) win over both."""
+def _apply_profile(h: dict, host: str, scheme: str = "https"):
+    """Layer the active profile onto the built header dict. AUDIT E1-A2:
+    writes NOTHING but real headers — any dunder/meta key placed in h
+    would be sent on the wire verbatim by urllib.Request. Single-writer:
+    identity already wrote UA/Accept-Language; tool headers (applied by
+    the caller AFTER this) win over both."""
     prof = _profile()
     if not prof:
         return
@@ -245,18 +246,42 @@ def _apply_profile(h: dict, host: str):
         for k, v in hdrs.items():
             if k not in _IDENTITY_OWNED:
                 h[k] = v
-    # ordered extras beyond the dict (some shapes care about insertion order)
-    order = prof.get("header_order") or []
-    if isinstance(order, list) and order:
-        known = {k for k in list(h.keys())}
-        h["__header_order"] = [k for k in order if k in known]
     for gk in ("Referer", "Origin"):
         gv = prof.get(gk.lower())
         if gv and isinstance(gv, str):
-            # {TARGET} generalized to the current scheme+host
-            sp = urllib.parse.urlsplit
-            parts = sp("https://" + host) if "//" not in host else sp(host)
-            h.setdefault(gk, gv.replace("{TARGET}", f"{parts.scheme}://{host}"))
+            # {TARGET} generalized to the CURRENT scheme + host (not
+            # always https — AUDIT E1-A3)
+            h.setdefault(gk, gv.replace("{TARGET}", f"{scheme}://{host}"))
+
+
+def transport_posture() -> str:
+    """One-line live posture for the OPERATOR-AGENT prompt block (the LLM
+    must SEE the transport law it operates under: profile shape, egress,
+    identity). Failure degrades to empty string, never crashes run()."""
+    try:
+        prof = _profile()
+        name = prof.get("__name") if prof else None
+        ph = profile_hash()
+        from core.scrub import egress_summary
+        eg = egress_summary()
+        try:
+            from core.op_identity import summary as _is
+            ids = _is()
+            idn = f"{len(ids.get('live', []))} live / " \
+                  f"{len(ids.get('burned', []))} burned"
+        except Exception:
+            idn = "n/a"
+        mode = (eg or {}).get("mode", "direct")
+        exits = len((eg or {}).get("exits", []) or [])
+        shape = name if name else "default (no profile)"
+        return (f"TRANSPORT POSTURE: traffic profile {shape} [{ph}] — "
+                f"one profile per campaign, chosen OPERATOR-side, never "
+                f"flipped mid-flight; egress {mode}"
+                + (f" ({exits} exits, sticky per target)" if exits else "")
+                + f"; op identity {idn} — burn on block is automatic, "
+                f"never forge identity headers yourself.")
+    except Exception:
+        return ""
 
 
 # ── wave2 P1/P2: optional proxy pool — config/transport.yaml, OFF by default.
@@ -578,9 +603,10 @@ def fetch(url, method="GET", headers=None, body=None, timeout=25,
     redirect_chain = list(redirect_chain or [])
     method = method.upper()
     host = urllib.parse.urlsplit(url).netloc
+    _scheme = urllib.parse.urlsplit(url).scheme or "https"
     h = {"User-Agent": _ua_for(host)}
     # Tier C — l'accent linguistique de l'identité (cohérent tout le cycle
-    # de vie de la cible) ; un header fourni par l'outil reste prioritaire.
+    # de vie de la cible).
     try:
         from core.op_identity import identity_for
         _il = identity_for(host, renew=True).get("lang")
@@ -588,15 +614,17 @@ def fetch(url, method="GET", headers=None, body=None, timeout=25,
             h["Accept-Language"] = _il
     except Exception:
         pass
-    if headers:
-        h.update({k: v for k, v in headers.items()})
-    # E1 — la forme du trafic (profil malleable) se couche entre l'identité
-    # et les headers de l'outil : le profil ne touche JAMAIS UA/Accept-Language
-    # (single-writer: identité), les headers d'outil restent prioritaires.
+    # E1 — la forme du trafic (profil malleable) se couche AVANT les
+    # headers de l'outil: priorité finale = tool > profil > identité
+    # (single-writer: le profil ne touche JAMAIS UA/Accept-Language).
+    # AUDIT E1-A2: aucun pointeur méta ne transite par h (tout h part
+    # sur le fil tel quel via urllib.Request).
     try:
-        _apply_profile(h, host)
+        _apply_profile(h, host, scheme=_scheme)
     except Exception:
         pass
+    if headers:
+        h.update({k: v for k, v in headers.items()})
 
     # E-3: cache-hit checké AVANT _roe_gate — un GET déjà caché ne doit ni
     # bloquer ni consommer un slot du rate global.

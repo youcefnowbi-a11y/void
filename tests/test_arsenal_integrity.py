@@ -87,6 +87,8 @@ def test_doctrine_names_exactly_the_registry():
         "project_instructions", "cyber_warning", "ethic_reminders",
         "behavior_instructions", "system_warning", "user_style",
         "claude_behavior", "user_id",
+        # rule 11 / E1 transport vocabulary — layer + posture names, not tools
+        "traffic_profile", "transport_posture",
     }
     ghosts = {w for w in mentioned if "_" in w and w not in REGISTRY
               and w not in allowed and not w.startswith(("url_", "api_", "auth_"))}

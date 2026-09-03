@@ -57,12 +57,14 @@ def test_referer_origin_target_substitution():
     assert h["Origin"] == "https://target.example"
 
 
-def test_header_order_captures_active_keys():
+def test_header_order_is_declaration_only():
+    """AUDIT E1-A1 companion: header_order is declared shape documentation —
+    it must never materialize as a wire header."""
     _set_profile({"headers": {"Accept": "text/html"},
                   "header_order": ["User-Agent", "Accept", "Referer"]})
     h = {"User-Agent": "UA"}
     T._apply_profile(h, "target.example")
-    assert h["__header_order"] == ["User-Agent", "Accept"]
+    assert "__header_order" not in h
 
 
 def test_profiles_produce_disjoint_header_sets():
@@ -99,6 +101,44 @@ def test_tool_headers_win_over_profile():
     T._apply_profile(h, "t.example")   # profile applied
     h.update({"Accept": "from-tool"})  # caller applies tool headers after
     assert h["Accept"] == "from-tool"
+
+
+# ── AUDIT E1-A1..A4: the wire never lies ─────────────────────────────
+
+
+def test_no_meta_keys_reach_the_wire():
+    """AUDIT E1-A1 (critical): h goes verbatim into urllib.Request — any
+    dunder/meta key in it would be SENT to the target as a header."""
+    _set_profile({"headers": {"Accept": "text/html"},
+                  "header_order": ["Accept", "X-Should-Not-Appear"],
+                  "referer": "{TARGET}/", "jitter": [1.0, 1.5]})
+    h = {"User-Agent": "UA"}
+    T._apply_profile(h, "t.example")
+    assert not any(k.startswith("__") for k in h), \
+        f"meta keys would leak on the wire: {[k for k in h if k.startswith('__')]}"
+    assert "X-Should-Not-Appear" not in h  # header_order never materializes
+
+
+def test_scheme_follows_the_real_url():
+    """AUDIT E1-A3: {TARGET} substitutes the REAL scheme, not assumed https."""
+    T._PROFILE[0] = {"__name": "t", "referer": "{TARGET}/x"}
+    T._PROFILE_LOADED[0] = True
+    for url, want in (("http://t.example/a", "http://t.example/x"),
+                      ("https://t.example/a", "https://t.example/x")):
+        h = {}
+        T._apply_profile(h, "t.example",
+                         scheme=url.split(":")[0])
+        assert h["Referer"] == want
+
+
+def test_transport_posture_speaks():
+    """The LLM must SEE the wire law: posture names the active profile."""
+    _set_profile({"__name": "browser_strict", "headers": {"Accept": "x"}})
+    p = T.transport_posture()
+    assert "browser_strict" in p and "TRANSPORT POSTURE" in p
+    T._PROFILE[0] = None
+    p2 = T.transport_posture()
+    assert "default" in p2  # degraded shape still named, never empty crash
 
 
 def test_jitter_never_loosens_roe():

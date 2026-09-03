@@ -296,6 +296,17 @@ to the default behavior, never crash. Two different profiles on the
 same target share zero (key, value) pairs on the wire — the Cobalt
 Strike malleable-profile law, local edition.
 
+**Audit E1 (post-ship, 4 findings fixed)**: A1 — `__header_order` meta
+pointer was written into the wire header dict (urllib sends h verbatim)
+→ order is declaration-only, nothing but real headers ever enters h;
+A2 — layering order inverted (profile overwrote tool headers) → final
+precedence is tool > profile > identity; A3 — `{TARGET}` substitution
+assumed https → real scheme of the request; A4 — the shape was invisible
+to the operator-agent → `transport_posture()` one-liner injected as the
+TRANSPORT POSTURE prompt block (profile name + content hash + egress
+mode + identity state) and SYSTEM rule 11 ("transport shape is operator
+data — never forge identity/header posture in tool arguments").
+
 ## 7. GUI / PWA
 
 ## 11. Roadmap (aspirations, pas de code — decided 2026-09-02)
