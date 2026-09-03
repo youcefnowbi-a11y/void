@@ -1521,6 +1521,13 @@ async def _run_mission_streaming(mission: str, mode: str, ws: WebSocket,
                                                    final_text=final_text)
                         _ws.write_app_state_report(transcript=transcript,
                                                    final_text=final_text)
+                        # l'arsenal compose : la mission devient des plays +
+                        # sa NEXT MISSION PROPOSAL est archivée pour l'opérateur
+                        from core.learned_plays import harvest as _lp_harvest
+                        _n = _lp_harvest(mission_id=mid, ws=_ws,
+                                         final_text=final_text)
+                        if _n:
+                            print(f"  📚 Arsenal: +{_n} play(s) appris")
                     except Exception:
                         pass
                 else:

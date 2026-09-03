@@ -21,6 +21,7 @@ uploads/
 core/bandit.json
 core/learned_fixes.json
 data/intel/
+data/learned/
 reports/
 
 # ── transitoires ──

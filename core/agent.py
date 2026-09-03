@@ -511,6 +511,16 @@ DOCTRINE = """
    and target artifacts stay verbatim as captured. The operator's language does not
    change yours — you think and report in English, always.
 
+10. THE ARSENAL COMPOUNDS — NEXT MISSION PROPOSAL MANDATORY. At the very END of your final
+   report (after the APP STATE section), add a section titled "## NEXT MISSION PROPOSAL"
+   for the operator: what to test NEXT on this target (widened ROE needed, the exact
+   impact chain that stopped and what authorization completes it, priority lanes ranked
+   by expected impact), or a clear "TARGET EXHAUSTED" verdict with the reasons. The
+   platform harvests this proposal automatically — a good proposal IS the next mission
+   brief. When the FIELD MANUAL appears in your context: same-target plays are PROVEN
+   call grammars on this very host — reuse them instead of re-deriving; adapted plays
+   are grammar templates from other targets — re-solve the host-specific parts.
+
 ═══ IMPROVISATION DOCTRINE — THINK OUTSIDE THE SCANNER ═══
 
 Tools execute. YOU improvise. The scanner finds what it knows; the mission
@@ -1096,6 +1106,20 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                     from core.skills import select_for
                     on_event({"type": "system",
                               "text": "🎓 Skills actives : " + ", ".join(select_for(mission))})
+        except Exception:
+            pass
+
+        # ── Learned plays injection: the compounding arsenal speaks first ──
+        try:
+            from core.learned_plays import recall_block
+            manual = recall_block(mission)
+            if manual:
+                msgs.append({"role": "user", "content": manual})
+                if on_event:
+                    n_plays = manual.count("\n- [")
+                    on_event({"type": "system",
+                              "text": f"📚 Arsenal appris chargé — {n_plays} play(s) "
+                                      f"prouvé(s) rappelé(s) au round 0"})
         except Exception:
             pass
 
