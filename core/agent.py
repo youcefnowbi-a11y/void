@@ -873,6 +873,17 @@ LLM_RETRY_DELAYS = [3, 6]            # this layer only catches UNREACHABLE/MALFO
                                      # (25s) = up to 70s of dead air per round —
                                      # that was the "console is slow" feeling.
 
+# ─── Refusal-wipe config (run #74 lesson, 2026-09-03) ───
+# mission 74 died at round 18 on the THIRD refusal because the old cap was 2:
+# refusals 1 and 2 got clean-slate restarts, refusal 3 fell through to the
+# "LLM dead" branch → run aborted → power report written with the mission
+# unfinished. The provider CAN clear after a wipe (that's the whole chat
+# recipe) — so the wipe budget is now deep enough to outlast a streak.
+REFUSAL_WIPE_MAX = 5
+REFUSAL_WIPE_BASE_DELAY = 20.0       # seconds before the retry round — a
+                                     # refusal streak usually clears with a
+                                     # pause + fresh context, not instantly
+
 
 class Agent:
     # ── Plan mode: recon-only arsenal (no strike, no fuzz, no shell) ──
@@ -1395,19 +1406,24 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
 
             # ─── LLM still dead after retries (or refused and survived reframe) ───
             from core.framing import is_refusal as _is_ref
-            if _is_ref(content) and fresh_restarts < 2:
+            if _is_ref(content) and fresh_restarts < REFUSAL_WIPE_MAX:
                 # THE CHAT RECIPE, IN THE CONSOLE: the chat works because a
                 # refusal never enters her memory. Same here — wipe the console
                 # LLM's memory (the accumulated turns she reacted to) and redo
                 # the round on a clean slate. The workspace/extractions/Living
                 # Graph persist on disk, so intel is not lost — only the poison.
+                # RUN #74 LESSON: cap was 2 — refusal #3 cascaded the run to
+                # death at round 18 with the mission unfinished. Budget is now
+                # deep enough to outlast a provider's spicy streak.
                 fresh_restarts += 1
+                time.sleep(REFUSAL_WIPE_BASE_DELAY)  # streaks clear with a pause
                 print(f"\n[VOIDFORGE r{rnd+1}] provider refusal — console memory "
-                      f"cleared, clean restart {fresh_restarts}/2")
+                      f"cleared, clean restart {fresh_restarts}/{REFUSAL_WIPE_MAX}")
                 transcript.append(("system", "refus provider — mémoire du console vidée, relance propre"))
                 if on_event:
                     on_event({"type": "system",
-                              "text": f"🧹 refus détecté — mémoire vidée, relance propre ({fresh_restarts}/2)"})
+                              "text": f"🧹 refus détecté — mémoire vidée, relance propre "
+                                      f"({fresh_restarts}/{REFUSAL_WIPE_MAX})"})
                 msgs = list(base_msgs)
                 # fix#4: les ordres opérateur mid-mission survivent au wipe —
                 # ils sont réinjectés (ils ne sont PAS du poison, ils sont
@@ -1416,6 +1432,13 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                 continue
 
             if self._is_llm_error(content) or _is_ref(content):
+                if _is_ref(content):
+                    # WIPES EXHAUSTED AND STILL A REFUSAL — wipe ANYWAY: the
+                    # poison must never ride along into the abort decision or
+                    # the next round. Run #74 died precisely because the old
+                    # fall-through kept the poisoned context and cascaded.
+                    msgs = list(base_msgs)
+                    msgs.extend(_op_orders)
                 consecutive_llm_fails += 1
                 print(f"\n[VOIDFORGE r{rnd+1}] LLM dead after {LLM_RETRY_MAX} retries: {content[:150]}")
                 transcript.append(("error", content))
@@ -1501,6 +1524,12 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
 
             # ─── Got a valid LLM response ───
             consecutive_llm_fails = 0  # reset counter
+            # RUN #74 LESSON: the wipe budget must RECOVER on clean rounds —
+            # otherwise any long mission exhausts it long before the end and
+            # dies to a late refusal storm. A clean response is proof the
+            # fresh slate worked → refund one wipe slot.
+            if fresh_restarts > 0:
+                fresh_restarts -= 1
 
             if content:
                 transcript.append(("agent", content))
