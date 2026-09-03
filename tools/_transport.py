@@ -90,8 +90,16 @@ def _smart_getaddrinfo(host, port, *a, **kw):
     now = time.time()
     with _lock:
         cached = _DNS_CACHE.get(host)
-    if cached and now - cached[1] < _DNS_TTL:
-        return [(socket.AF_INET, socket.SOCK_STREAM, 6, "", (cached[0], port))]
+        # X1.2 (audit-3): expired entries were never removed — a long-lived
+        # FastAPI session accumulated thousands of dead host->IP mappings.
+        # Purge stale entries opportunistically at write time (cheap: only
+        # when the dict grows past a threshold).
+        if cached and now - cached[1] < _DNS_TTL:
+            return [(socket.AF_INET, socket.SOCK_STREAM, 6, "", (cached[0], port))]
+        if len(_DNS_CACHE) > 512:
+            for _h in [h for h, (_, ts) in _DNS_CACHE.items()
+                       if now - ts >= _DNS_TTL]:
+                _DNS_CACHE.pop(_h, None)
     try:
         res = socket._orig_getaddrinfo(host, port, *a, **kw)
         # E-1: ne cacher QUE de l'AF_INET — stocker une IP v6 (résultat
@@ -129,7 +137,10 @@ def install_resolver():
 # ── the fetch core ───────────────────────────────────────────────
 # ── ROE global governor (engagement.yaml max_request_rate) ──
 _ROE_LOCK = threading.Lock()
-_ROE_WINDOW = []  # timestamps of recent outbound calls (all tools, all threads)
+# X3.3 (audit-3): list.pop(0) is O(n) — every request shifted the whole
+# window. deque.popleft is O(1).
+from collections import deque as _deque
+_ROE_WINDOW = _deque()  # timestamps of recent outbound calls (all tools, all threads)
 _ROE_LIMIT = 120  # default; reloaded from engagement.yaml
 _ROE_LOADED = [False]
 
@@ -167,7 +178,7 @@ def _roe_gate():
         with _ROE_LOCK:
             now = time.time()
             while _ROE_WINDOW and now - _ROE_WINDOW[0] >= 60.0:
-                _ROE_WINDOW.pop(0)
+                _ROE_WINDOW.popleft()   # X3.3: O(1) au lieu de O(n)
             if len(_ROE_WINDOW) < lim:
                 _ROE_WINDOW.append(now)
                 return
@@ -392,7 +403,11 @@ def _mark_host_result(host, status, sub=False):
 _CAPTCHA_CFG = [None]   # dict {provider, api_key, poll_timeout} | {"provider": "none"}
 _CAPTCHA_CFG_LOADED = [False]
 _CAPTCHA_DONE = set()   # (host, sitekey) déjà tentés
-_CAPTCHA_BUDGET = [3]
+# X3.2 (audit-3): the budget was process-global [3] — the first mission
+# that burned 3 solves left EVERY later target captcha-blind in a long-
+# lived FastAPI session. Now: 3 per HOST, refilled when a new mission
+# starts (mission boundary = fresh operational budget).
+_CAPTCHA_BUDGET = {}   # host -> remaining solves
 
 _CAPTCHA_COOKIE = {"turnstile": "cf-turnstile-response",
                    "hcaptcha": "h-captcha-response",
@@ -434,13 +449,17 @@ def _captcha_challenge(body):
     return None
 
 
-def _captcha_solve(ctype, sitekey, pageurl):
-    """Token via le provider configuré — None si non configuré/échec."""
+def _captcha_solve(ctype, sitekey, pageurl, host=None):
+    """Token via le provider configuré — None si non configuré/échec.
+    X3.2: budget PER HOST (3 each), not process-global."""
     cfg = _captcha_cfg()
     provider, key = (cfg.get("provider") or "none"), (cfg.get("api_key") or "")
-    if provider == "none" or not key or _CAPTCHA_BUDGET[0] <= 0:
+    _h = host or urllib.parse.urlsplit(pageurl or "").netloc or "unknown"
+    if _CAPTCHA_BUDGET.get(_h, 3) <= 0:
         return None
-    _CAPTCHA_BUDGET[0] -= 1
+    if provider == "none" or not key:
+        return None
+    _CAPTCHA_BUDGET[_h] = _CAPTCHA_BUDGET.get(_h, 3) - 1
     timeout = int(cfg.get("poll_timeout") or 120)
     try:
         if provider == "capsolver":
@@ -578,15 +597,17 @@ _CRED_HDRS = ("authorization", "proxy-authorization", "cookie", "apikey",
 
 def _resp_cache_evict_locked():
     """E-5: eviction simple (à appeler sous _lock) — sans purge les entrées
-    expirées restaient dans le dict pour toujours (croissance illimitée)."""
-    if len(_RESP_CACHE) <= 500:
+    expirées restaient dans le dict pour toujours (croissance illimitée).
+    X1.3: cap 500 -> 300 (entries now hold compact bodies, but volume
+    still bounds memory)."""
+    if len(_RESP_CACHE) <= 300:
         return
     now = time.time()
     for k in [k for k, (_, ts) in _RESP_CACHE.items() if now - ts >= _RESP_TTL]:
         _RESP_CACHE.pop(k, None)
-    if len(_RESP_CACHE) > 500:  # encore trop → on jette les plus vieilles
+    if len(_RESP_CACHE) > 300:  # encore trop → on jette les plus vieilles
         for k, _ in sorted(_RESP_CACHE.items(),
-                           key=lambda kv: kv[1][1])[:len(_RESP_CACHE) - 500]:
+                           key=lambda kv: kv[1][1])[:len(_RESP_CACHE) - 300]:
             _RESP_CACHE.pop(k, None)
 
 
@@ -681,7 +702,11 @@ def fetch(url, method="GET", headers=None, body=None, timeout=25,
                                          if proxy_url else None),
                                 allow_redirects=False)
                 if r.status_code not in (301, 302, 303, 307, 308):
-                    raw = r.text
+                    # X1.1 (audit-3): unbounded read — a 20MB SPA/bundle was
+                    # an OOM vector and a guaranteed provider 400 downstream.
+                    # 500KB: generous for any legitimate page, lethal for
+                    # memory bombs.
+                    raw = r.text[:500_000]
                     out = {"status": r.status_code, "body": raw,
                            "headers": {k.lower(): v for k, v in r.headers.items()},
                            "size": len(raw), "url": url, "final_url": str(r.url),
@@ -731,7 +756,8 @@ def fetch(url, method="GET", headers=None, body=None, timeout=25,
         rq = urllib.request.Request(url, method=method, headers=h)
         try:
             r = rq_method(rq, data=data, timeout=timeout)
-            raw = r.read().decode(errors="replace")
+            # X1.1: same 500KB cap on the urllib path (the primary one).
+            raw = r.read(500_000).decode(errors="replace")
             out = {"status": r.status, "body": raw,
                    "headers": {k.lower(): v for k, v in r.headers.items()},
                    "size": len(raw), "url": url, "final_url": r.geturl(),
@@ -770,7 +796,9 @@ def fetch(url, method="GET", headers=None, body=None, timeout=25,
                 return res
             raw = ""
             try:
-                raw = ex.read().decode(errors="replace")
+                # X1.1: error bodies capped too — a misconfigured target
+                # dumping a huge error page was the same OOM vector.
+                raw = ex.read(200_000).decode(errors="replace")
             except Exception:
                 pass
             out = {"status": ex.code, "body": raw,
@@ -798,12 +826,12 @@ def fetch(url, method="GET", headers=None, body=None, timeout=25,
         ch = _captcha_challenge(out.get("body") or "")
         if ch:
             key = (host, ch[1])
-            if key in _CAPTCHA_DONE or _CAPTCHA_BUDGET[0] <= 0:
+            if key in _CAPTCHA_DONE or _CAPTCHA_BUDGET.get(host, 3) <= 0:
                 out["captcha_wall"] = {"type": ch[0], "sitekey": ch[1],
                                        "solved": False, "hint": "budget/tentative épuisée"}
             else:
                 _CAPTCHA_DONE.add(key)
-                tok = _captcha_solve(ch[0], ch[1], url)
+                tok = _captcha_solve(ch[0], ch[1], url, host=host)
                 if tok:
                     cn = _CAPTCHA_COOKIE[ch[0]]
                     sep = "&" if "?" in url else "?"
@@ -866,8 +894,16 @@ def fetch(url, method="GET", headers=None, body=None, timeout=25,
 
     if cache_key and out["status"] == 200:
         with _lock:
-            _RESP_CACHE[cache_key] = (out, time.time())
-            _resp_cache_evict_locked()  # E-5: purge des expirées + cap 500
+            # X1.3 (audit-3): the cache stored FULL bodies — 500 entries x
+            # 500KB = a 250MB bomb before eviction ever fired. The cached
+            # copy is compact (40KB head: enough for a cache-hit to serve
+            # recon and fingerprinting) and the cap drops to 300.
+            _compact = dict(out)
+            if len(_compact.get("body") or "") > 40_000:
+                _compact["body"] = _compact["body"][:40_000] + "…[cache-compacted]"
+                _compact["cache_compacted"] = True
+            _RESP_CACHE[cache_key] = (_compact, time.time())
+            _resp_cache_evict_locked()  # E-5: purge des expirées + cap
     _mark_host_result(host, out["status"])
     if 0 < out["size"] < 200_000:
         try:

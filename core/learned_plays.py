@@ -118,6 +118,18 @@ def _play_from_call(tool, a, outcome, proof, ts, kind="grammar"):
     path = re.sub(r"(?<=/)[A-Za-z0-9_\-]{18,}(?=/|$)", "{ID}", path)
     qkeys = sorted(parse_qs(sp.query).keys())
     if qkeys:
+        # X2.4 (audit-3): query keys were kept verbatim — ?id=1 vs
+        # ?user=admin on the same path minted two near-duplicate plays
+        # (same IDOR pattern, different param name) that crowded out
+        # genuinely novel plays. Canonical single-param probes: the most
+        # common instance-param name collapses to {PARAM} so the play
+        # identity is the PATTERN, not the spelling.
+        _CANON = {"id", "user", "user_id", "uid", "account", "account_id",
+                  "customer", "customer_id", "order", "order_id", "invoice",
+                  "invoice_id", "doc", "doc_id", "item", "item_id", "ref",
+                  "ref_id", "payment", "payment_id"}
+        if len(qkeys) == 1 and qkeys[0].lower() in _CANON:
+            qkeys = ["{PARAM}"]
         path += "?" + "&".join(k + "=" for k in qkeys)
     body = a.get("body")
     body_keys = sorted(body.keys()) if isinstance(body, dict) else []
@@ -205,9 +217,19 @@ def harvest(mission_id, ws=None, final_text=None, db_path=DB, store=STORE):
         incoming = _plays_from_rows(rows)
         if incoming:
             added = merge_plays(d["plays"], incoming)
-            d["plays"].sort(key=lambda p: -(p.get("uses", 1)))
+            # X2.1 (audit-3): the store sorted by -uses then sliced 400 —
+            # every NEW play (uses=1) sank to the bottom and was evicted
+            # first. The arsenal could never grow into new territory: a
+            # play that worked once on a new target type died before it
+            # could prove itself. Nursery guard: the 60 most recent young
+            # plays (uses < 3) are PROTECTED; the remaining slots go to
+            # proven plays by uses descending.
             if len(d["plays"]) > 400:
-                d["plays"] = d["plays"][:400]
+                _young = [p for p in d["plays"] if p.get("uses", 1) < 3]
+                _old = [p for p in d["plays"] if p.get("uses", 1) >= 3]
+                _young.sort(key=lambda p: p.get("last_seen") or "")
+                _old.sort(key=lambda p: -(p.get("uses", 1)))
+                d["plays"] = _young[-60:] + _old[:400 - min(len(_young), 60)]
         # the agent's own NEXT MISSION PROPOSAL — persisted for the operator.
         # GUARD (op question 2026-09-02): a refusal is a BROKEN brain, its
         # words are not doctrine — the proposal layer eats completed-mission
@@ -254,8 +276,12 @@ def _fmt_play(p, generalize=False):
             f"→ {p['outcome']} ({p['tool']}, uses={p.get('uses', 1)})")
 
 
-def recall_block(mission_text, store=STORE, cap=2600):
-    """FIELD MANUAL for the system prompt — prior campaigns speak first."""
+def recall_block(mission_text, store=STORE, cap=6000):
+    """FIELD MANUAL for the system prompt — prior campaigns speak first.
+    X2.3 (audit-3): the old 2600-char cap showed ~17 plays of a 400-play
+    arsenal — the learned intelligence was invisible. 6000 gives the
+    mature arsenal real room (doctrine gets ~20KB; the field manual that
+    carries PROVEN grammars deserves a third of that)."""
     try:
         d = _load(store)
         plays = d.get("plays") or []
@@ -286,8 +312,20 @@ def recall_block(mission_text, store=STORE, cap=2600):
             n += 1
         if same:
             lines.append("")
-        for p in other[:6]:
+        # X2.2 (audit-3): 6 cross-target plays out of a 400-play store —
+        # grammar transfer barely existed. 14 diverse patterns, picked
+        # across DISTINCT hosts so one busy campaign can't flood the lane.
+        _seen_hosts = set()
+        _picked = 0
+        for p in other:
+            if _picked >= 14:
+                break
+            h = p.get("host")
+            if h in _seen_hosts:
+                continue
+            _seen_hosts.add(h)
             lines.append(_fmt_play(p, generalize=True))
+            _picked += 1
             n += 1
         prop = (d.get("proposals") or {}).get(target)
         if prop:

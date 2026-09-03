@@ -333,7 +333,13 @@ class Pacer:
             else:
                 self._var = (1 - alpha) * (self._var + alpha * (self._rtts[-1] - self._ewma) ** 2)
                 self._ewma = alpha * self._rtts[-1] + (1 - alpha) * self._ewma
-            if status in (429, 403) or (self._ewma and self._rtts[-1] > self._ewma + 3 * math.sqrt(self._var + 1e-9)):
+            # X3.1 (audit-3): 403 was in the multiplicative-decrease set —
+            # but 403 is the NORMAL answer for admin panels and auth-gated
+            # paths during recon (endpoint_oracle probing 10 admin paths =
+            # 10 halvings: 8.0 -> 0.5 req/s, ~750 cleans to recover). The
+            # pacer was friendly-firing on legitimate recon. Rate-limit
+            # signals: 429 + RTT anomalies only. 403 is neutral data.
+            if status == 429 or (self._ewma and self._rtts[-1] > self._ewma + 3 * math.sqrt(self._var + 1e-9)):
                 self.rate = max(0.5, self.rate * 0.5)
                 self._clean = 0
             elif status and status < 400:
@@ -359,7 +365,22 @@ def get_pacer(host, rate=8.0, burst=16.0):
         # R2-9: éviction LRU — le process FastAPI long-vécu ne fuit plus un
         # pacer par host visité depuis le début des temps (pacer_drop n'était
         # appelé que par les tests). Les dormants >1h sortent à 64 entrées.
-        if len(_pacers) >= 64 and host not in _pacers:
+        # X1.4 (audit-3): un burst intra-heure (enum de sous-domaines, 200+
+        # hosts) passait sous le radar du LRU 1h. Cap dur 128 : au-delà, on
+        # jette les plus longuement inactifs même récents.
+        if len(_pacers) >= 128 and host not in _pacers:
+            _now = time.monotonic()
+            _cand = [h for h, p in _pacers.items()
+                     if h != host and _now - getattr(p, "_last", _now) > 60.0]
+            if _cand:
+                for _h in _cand[:len(_pacers) - 127]:
+                    _pacers.pop(_h, None)
+            else:
+                # tout est chaud : sacrifier les 2 plus anciens touchés
+                for _h, _ in sorted(_pacers.items(),
+                                    key=lambda kv: getattr(kv[1], "_last", 0))[:2]:
+                    _pacers.pop(_h, None)
+        elif len(_pacers) >= 64 and host not in _pacers:
             _now = time.monotonic()
             for _h in [h for h, p in _pacers.items()
                        if h != host and _now - getattr(p, "_last", _now) > 3600.0]:

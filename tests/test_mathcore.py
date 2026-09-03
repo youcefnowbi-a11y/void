@@ -66,7 +66,14 @@ for _ in range(20): p.observe(200, 0.05)
 inc = p.rate - 50.0
 ok("AIMD adds after clean streak (Vegas bounds)", 0.2 <= inc <= 2.0, f"inc={inc:.4f}")
 p.observe(403, 0.01)
-ok("penalty on 403 halves the Vegas rate", abs(p.rate - (50.0 + inc) / 2) < 1e-9,
+# X3.1 (audit-3): 403 is now NEUTRAL pacer data — admin-panel probes and
+# auth-gated paths answer 403 by DESIGN during recon; the old penalty
+# locked hosts to crawl speed after legitimate probing (8.0 -> 0.5,
+# ~750 cleans to recover). The rate must NOT move on a 403.
+ok("403 is neutral to the Vegas rate (audit-3 X3.1)",
+   abs(p.rate - (50.0 + inc)) < 1e-9, f"rate={p.rate}")
+p.observe(429, 0.01)
+ok("penalty on 429 still halves", abs(p.rate - (50.0 + inc) / 2) < 1e-9,
    f"rate={p.rate}")
 
 # ── §4 Bayesian fusion ───────────────────────────────────────────────

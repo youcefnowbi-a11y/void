@@ -143,9 +143,15 @@ class LLM:
         attempt = 0
         while True:
             try:
-                r = urllib.request.urlopen(req, data=data, timeout=180)
+                # X4.1 (audit-3): 180s here vs 300s in streaming — a response
+                # that would complete in 4 min via stream died here when
+                # falling back. Aligned at 300.
+                r = urllib.request.urlopen(req, data=data, timeout=300)
                 try:
-                    resp = json.loads(r.read().decode())
+                    # X4.3: a malformed provider echoing the full context
+                    # could return 100KB+ — cap the read, the payload we
+                    # need is a JSON envelope.
+                    resp = json.loads(r.read(2_000_000).decode())
                 finally:
                     try:
                         r.close()
@@ -153,7 +159,9 @@ class LLM:
                         pass
                 break
             except urllib.error.HTTPError as ex:
-                body_txt = ex.read().decode(errors="replace")[:400]
+                # X4.2: 400 chars cut "context length exceeded — reduce to N
+                # tokens" mid-sentence, losing the actionable part.
+                body_txt = ex.read().decode(errors="replace")[:1600]
                 if ex.code in _RETRYABLE and attempt < len(_BACKOFF_S):
                     time.sleep(_BACKOFF_S[attempt])
                     attempt += 1
