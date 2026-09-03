@@ -1006,6 +1006,22 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
             markers += ["# ATTACK PLAN", "## PROPOSED ATTACK CHAINS"]
         return any(m in content.upper() for m in [m.upper() for m in markers])
 
+    @staticmethod
+    def _live_update_text(board, rnd, cap=1200):
+        """Tier B — compact live-graph relay for mid-flight swarm awareness."""
+        try:
+            intel = board.to_prompt(10)
+            if not intel:
+                return ""
+            return ("📡 LIVE GRAPH UPDATE (round " + str(rnd) + ") — parallel "
+                    "lanes have observed the target since you started. Top intel:\n"
+                    + intel[:cap] +
+                    "\nIntegrate silently: never re-test ground another lane "
+                    "already covered; pair your next strikes with the freshest "
+                    "assets.")
+        except Exception:
+            return ""
+
     def _llm_chat_with_retry(self, msgs, rnd, on_event=None):
         """Call LLM with retry + exponential backoff on transient errors.
         A provider-side refusal is treated as recoverable: one reframed
@@ -1282,6 +1298,20 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
             if aborted:
                 self.last_abort_reason = "operator_abort"
                 break
+
+            # ── TIER B: live-graph relay — the swarm lanes see each other
+            #    in flight (every 3 rounds), not only at final synthesis ──
+            if (self.board is not None and rnd > 0 and rnd % 3 == 0):
+                try:
+                    upd = self._live_update_text(self.board, rnd)
+                    if upd:
+                        msgs.append({"role": "user", "content": upd})
+                        if on_event:
+                            on_event({"type": "system",
+                                      "text": f"📡 relais graphique r{rnd} — "
+                                              f"{len(self.board.assets)} asset(s) partagé(s)"})
+                except Exception:
+                    pass
 
             # ── WALL-CLOCK (audit #2): deadline de campagne optionnelle —
             # max_mission_minutes > 0 dans provider.yaml arme un fuseau. 0 = off. ──

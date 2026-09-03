@@ -206,6 +206,25 @@ Two mechanisms keep the operator invisible — in traffic AND in paper:
   touched. Workspace `extractions/` + ledger stay RAW — the operator keeps
   the full data locally; only the paper that travels is clean.
 
+## 6ter. The compounding arsenal & the swarm (tiers A/B)
+
+- **Learned plays** (`core/learned_plays.py`, Tier A) — every mission's PROVEN
+  call grammar (write verb + 2xx/`success:true`, verdict-contract strikes) is
+  harvested mechanically from `tool_runs` into `data/learned/plays.json`
+  (gitignored — the private stockpile): instance IDs generalized to `{ID}`,
+  grammar-identity dedup (the executing tool is NOT the identity). Round 0
+  injects the FIELD MANUAL: same-target plays verbatim, cross-target plays
+  as `{TARGET}` templates with source host named. Rule 10 makes a
+  `## NEXT MISSION PROPOSAL` mandatory — auto-harvested to
+  `missions/<target>/reports/next_mission.md` and recalled on the next
+  campaign on that target. The stockpile compounds; the frozen tools decay.
+- **Swarm live-relay** (Tier B) — the 4-specialist parallel swarm
+  (`core/swarm.py`, ThreadPoolExecutor, shared Living Graph, adversarial
+  verifier, coordinator synthesis) gains the mid-flight relay: every 3
+  rounds each lane receives a compact `📡 LIVE GRAPH UPDATE` (top assets +
+  "never re-test ground another lane covered"), so lanes pair strikes with
+  each other's freshest assets instead of meeting only at synthesis.
+
 ## 7. GUI / PWA
 
 Hand-rolled PWA (no vite-plugin-pwa): `manifest.webmanifest` + `sw.js`
