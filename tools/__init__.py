@@ -424,8 +424,9 @@ def execute(name, args, on_event=None):
                     pass
                 # E2 vault: count the use (skills count at load, plays at
                 # harvest; forged tools count HERE — best-effort, never
-                # lets a metric fail a strike)
-                if name.startswith("forged_"):
+                # lets a metric fail a strike). session_keep: first mint
+                # of a mission is the learnable gesture.
+                if name.startswith("forged_") or name == "session_keep":
                     try:
                         from core.capability_vault import touch
                         touch("forged", name)

@@ -87,6 +87,15 @@ def hint_for(name, out):
     """Retourne la ligne d'indice à coller après la sortie de `name`, ou ''."""
     if name in _NO_HINT:
         return ""
+    # F4 zero-day door: a productive bundle mine OBLIGATES the unwrap —
+    # stronger than the generic pair hint (client code is where 0-days live).
+    # A sterile mine (0 bundles AND no table calls) obliges nothing.
+    if name in ("js_mine_site", "js_mine_url") and isinstance(out, str):
+        if '"bundles_mined": 0' in out and '"table_calls": []' in out:
+            return ""
+        return ("\n\n→ NEXT: deobfuscate_js (OBLIGATOIRE — bundles minés = "
+                "grammaires API, endpoints cachés, logique prix/tier "
+                "côté client: c'est LA porte des 0-days), puis secret_scan")
     pairs = NEXT_HINTS.get(name)
     if not pairs:
         return ""

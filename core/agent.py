@@ -4,6 +4,7 @@ sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from core.llm import LLM
 from core import state as mission_state
+from core import coverage as _cov
 import tools as reg
 
 PERSONA_BLOCK = r"""VOIDFORGE from clipboard 
@@ -545,6 +546,17 @@ DOCTRINE = """
     (tool headers win only when a tool MEANINGFULLY needs one, e.g. a content-type for
     a specific payload). The TRANSPORT POSTURE block in your context tells you the
     active shape and egress: read it, respect it, never try to bypass it.
+12. PHASE COVERAGE LAW — STRIKE BENCHES OR JUSTIFY. Every tool desc carries its bench
+    tag [recon|surface|exploit|post-exploit|adapt]; the run loop counts your strikes
+    per bench and issues ⚠ COVERAGE ORDER user messages when a strike bench is COLD.
+    A cold EXPLOIT or POST-EXPLOIT bench without a one-line written justification =
+    mission incomplète, whatever the recon volume. Three ignored coverage orders and
+    the offline brain proposes your strike chain with real args. AUTH CADENCE: mint
+    session tokens through session_keep (cached, auto-refreshed inside the freshness
+    window) and batch all authenticated strikes of one token window via
+    batch_execute — hand re-minting the same token round after round is session-tax
+    theft from your own round budget. Your history's proven chains are a FLOOR, not
+    a ceiling: after two replays of the same enchaînement, change bench.
 
 ═══ IMPROVISATION DOCTRINE — THINK OUTSIDE THE SCANNER ═══
 
@@ -669,6 +681,15 @@ REPETITION RULE: if the last ~6 tool calls came from one bench and produced
 no NEW confirmed finding, either MOVE to the next phase or rotate to an
 unused tool from the current bench. Repetition without new evidence is the
 #1 mission killer. The catalog is the full menu — order from all of it.
+The run loop ENFORCES this mechanically: every 6 rounds a ⚠ COVERAGE ORDER
+message counts your strikes per bench and orders cold EXPLOIT/POST-EXPLOIT
+benches armed (rule 12). CLIENT CODE IS THE 0-DAY DOOR: every js_mine_site or
+js_mine_url result whose bundles or table_calls are non-empty OBLIGATES a follow-up
+deobfuscate_js on the biggest bundle — API grammars, hidden endpoints,
+client-side price/tier logic and forgeable signatures live in that code,
+and the hint line under the result names the chain (deobfuscate_js →
+secret_scan → file_grep). Mining bundles and never unwrapping them is
+recon theater.
 
 TOOL SELECTION RULES (when two tools cover similar ground):
 - race_smash vs h2_race_attack: use h2_race_attack when target supports HTTP/2 (h2 ALPN), use race_smash for HTTP/1.1-only targets. h2_race_attack is STRICTLY better timing (single TCP segment) but requires nghttp2.
@@ -964,6 +985,12 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
             self.tools = [t for t in all_tools if t["name"] in tools_filter]
         else:
             self.tools = all_tools
+        # ── Tier F6: the benches are VISIBLE — every tool desc carries its
+        # phase tag, so the PHASE GUIDE prose connects to the live catalog ──
+        try:
+            self.tools = _cov.tag_descriptions(self.tools)
+        except Exception:
+            pass
         # Rounds: 0 (ou négatif) = ILLIMITÉ. Les vraies bornes restent: rapport
         # final détecté, mort LLM (3 échecs consécutifs), refusal-wipe, ROE
         # governor, budget contexte. Plus AUCUN clamp artificiel (le vieux
@@ -1196,7 +1223,11 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
             from core.capability_vault import capability_block
             vb = capability_block()
             if vb:
-                msgs.append({"role": "user", "content": vb})
+                msgs.append({"role": "user", "content":
+                    vb + "\n\nRANKING IS A FLOOR, NOT A CEILING: a high reuse "
+                    "score says 'this worked', never 'only this works' — the "
+                    "PHASE COVERAGE LAW (rule 12) outranks the ranking when a "
+                    "strike bench is cold."})
                 if on_event:
                     n_caps = vb.count("\n- [")
                     on_event({"type": "system",
@@ -1282,7 +1313,11 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
             msgs.append({"role": "user", "content":
                 "PROVEN CHAINS FROM PAST MISSIONS (trajectory archive — real outcomes, "
                 "not theory). Prefer these enchaînements when they fit the target:\n\n"
-                + _traj_insight(min_support=2)[:3000]})
+                + _traj_insight(min_support=2)[:3000]
+                + "\n\nA proven chain is a FLOOR, not a ceiling: after two replays of "
+                  "the same enchaînement your next round MUST change bench (PHASE "
+                  "COVERAGE LAW, rule 12) — replaying what worked is how campaigns "
+                  "go blind."})
         except Exception:
             pass
 
@@ -1304,7 +1339,10 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
         # ── Unified event tap: EVERY tool run (outer OR inside batch_execute)
         # feeds the ledger now — previously batch-internal tools were invisible,
         # which starved the power report and hid her true arsenal usage. ──
-        state = {"round": 0, "outer": None, "pending": {}}
+        state = {"round": 0, "outer": None, "pending": {},
+                 "names": [], "targets": []}
+        cov_ignored = 0            # Tier F1: consecutive ignored coverage orders
+        cold_seen = set()          # benches cold at the last audit
         self._t0 = time.time()
 
         def tap(ev):
@@ -1333,6 +1371,19 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                     ws.log_run(name, state["pending"].get(name, {}),
                                "TOOL ERROR: " + str(ev.get("error"))[:300],
                                ev.get("duration") or 0.0, "error", state["round"])
+                # ── Tier F1 ledger: batch-INNER tools feed the bench-coverage
+                # audit here (outer tools are counted at their call site);
+                # her own results also seed the strike-target list the
+                # escalation order aims with. ──
+                if t == "tool_result":
+                    if name != state.get("outer"):
+                        state["names"].append(name)
+                    tgt = state.setdefault("targets", [])
+                    for _u in _cov.harvest_targets(
+                            str(ev.get("result") or "")[:4000]):
+                        if _u not in tgt:
+                            tgt.append(_u)
+                    del tgt[:-12]
             except Exception:
                 pass
 
@@ -1628,9 +1679,12 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                 if trid:
                     mission_state.finish_tool_run(trid, out, dur, "error" if is_error else "ok")
                 # ── learning loop: every ONLINE tool run feeds the bandit ──
+                # (Tier F5: the reward is DISCOVERY or an honest structured
+                # negative — a bare successful fetch earns nothing, so the
+                # bandit stops worshipping tools that merely don't crash.)
                 try:
                     from core.mathcore import bandit_record
-                    bandit_record(name, not is_error, dur)
+                    bandit_record(name, _cov.reward_signal(out), dur)
                 except Exception:
                     pass
                 # ── trajectory archive: the winning-chain memory (CAI recipe) ──
@@ -1641,6 +1695,10 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                           state=_evst(name, not is_error, out))
                 except Exception:
                     pass
+
+                # ── Tier F1: coverage counter — outer strikes count here;
+                # batch_execute inner tools count via the event tap. ──
+                state["names"].append(name)
 
                 # ── Feed the Living Graph: every result enriches the map ──
                 if self.board is not None and not is_error:
@@ -1763,6 +1821,44 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
             # consécutifs → mission morte).
             if _wall_pending:
                 msgs.append({"role": "user", "content": _wall_pending})
+
+            # ── Tier F1: PERIODIC COVERAGE ORDER — every COVERAGE_PERIOD
+            # rounds, cold strike benches earn a HARD user-message order
+            # naming untried weapons from the live registry; ignored orders
+            # escalate (level 3+ aims with real URLs harvested from her own
+            # results and threatens offline-brain takeover). Emitted as its
+            # own user message — separate attention channel from the tool
+            # feed, immune to fresh-JSON sedation. ──
+            try:
+                if (rnd + 1) % _cov.COVERAGE_PERIOD == 0:
+                    seen_names = state.get("names") or []
+                    _covmsg = _cov.coverage_message(
+                        rnd + 1, seen_names, self._rounds_label(),
+                        {t["name"] for t in self.tools},
+                        ignored=cov_ignored,
+                        target_urls=state.get("targets") or ())
+                    if _covmsg:
+                        still_cold = set(_cov.cold_benches(seen_names)) & cold_seen
+                        cov_ignored += 1 if still_cold else 0
+                        cold_seen = set(_cov.cold_benches(seen_names))
+                        # escalation payload: the offline brain aims
+                        if cov_ignored + 1 >= _cov.IGNORED_ESCALATION:
+                            _prop = _cov.strike_proposal(
+                                seen_names, {t["name"] for t in self.tools},
+                                state.get("targets") or ())
+                            _ptxt = _cov.proposal_text(_prop)
+                            if _ptxt:
+                                _covmsg += "\n" + _ptxt
+                        msgs.append({"role": "user", "content": _covmsg})
+                        if on_event:
+                            on_event({"type": "system",
+                                      "text": f"⚠ Ordre de couverture émis — banc(s) froid(s): "
+                                              f"{', '.join(cold_seen)}"})
+                    else:
+                        cov_ignored = 0
+                        cold_seen = set()
+            except Exception:
+                pass
 
             # ── Context diet: old tool results collapse to one-line evidence ──
             # (keeps the last 25 full; provider latency scales with context size.

@@ -131,7 +131,10 @@ def recall(kind=None):
 
 def top(n=12):
     inv = recall()
-    inv.sort(key=lambda x: -x["score"])
+    # deterministic ranking: score desc, then kind, then id — a tie must
+    # never reshuffle the block the agent memorized (prompt-cache stability
+    # AND stable round-0 doctrine position both depend on it)
+    inv.sort(key=lambda x: (-x["score"], x.get("kind", ""), str(x.get("id", ""))))
     return inv[:max(0, int(n))]
 
 

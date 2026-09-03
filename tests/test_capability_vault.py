@@ -107,6 +107,12 @@ def test_capability_block_ranks_and_mentions_kinds():
     # REAL forged tool name from the live registry — the E2 audit caught a
     # test forging a ghost identity ("forged_hot_tool") that touch() counted
     # while recall() rightly never listed it.
+    # AUDIT Tier F: this test used to assert the freshly-touched forged tool
+    # RANKS FIRST — true at E2 commit time (plays had 2 uses in the then-live
+    # meta) but broken since run #76 pushed data_extract to 18 uses. The
+    # state-robust invariants are: (1) the touched tool appears with its
+    # kind label, (2) the block IS ranked (first line's score >= any other),
+    # (3) ranking is deterministic across calls.
     from tools import _REGISTRY, _DISCOVERED
     if not _DISCOVERED:
         from tools import discover
@@ -119,8 +125,14 @@ def test_capability_block_ranks_and_mentions_kinds():
     assert blk and "CAPABILITY VAULT" in blk
     assert f"[forged] {real}" in blk
     lines = [l for l in blk.splitlines() if l.startswith("- [")]
-    assert lines[0].startswith(f"- [forged] {real}"), \
-        f"top-reuse first, got: {lines[0]}"
+    assert len(lines) >= 2
+    # ranked by proven reuse, descending — whatever the live state holds
+    scores = [int(s) for s in
+              __import__("re").findall(r"reuse=(\d+)", blk)]
+    assert scores == sorted(scores, reverse=True), \
+        f"block not ranked: {scores}"
+    # deterministic across calls (prompt-cache + doctrine stability)
+    assert V.top(12) == V.top(12)
 
 
 def test_untried_kinds_still_visible():

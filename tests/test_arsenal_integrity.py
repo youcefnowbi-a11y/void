@@ -35,6 +35,7 @@ MCTS_WHITELIST = {"batch_execute", "replay_mutate", "shell_exec", "otp_brute",
                   "auth_state_audit",   # subprocess engine — needs a live target URL
                   "binary_fuzz_run",    # native C++ core — needs target binary + corpus
                   "h2_race_attack",     # native C++ h2 race — needs live HTTP/2 endpoint
+                  "session_keep",       # Tier F2 — needs the operator's real mint flow
                   "crash_triage_rank",  # native triage — needs a crash dir from a live run
                   "file_grep",          # forensics — needs local file paths from session
                   "crypto_hash",        # local hash/HMAC/b64 utility — brain calls it via strikes
@@ -89,6 +90,9 @@ def test_doctrine_names_exactly_the_registry():
         "claude_behavior", "user_id",
         # rule 11 / E1 transport vocabulary — layer + posture names, not tools
         "traffic_profile", "transport_posture",
+        # rule 12 / Tier F — JSON field names of tool outputs (js_mine_*
+        # grammar) cited by the client-code 0-day door doctrine
+        "table_calls",
     }
     ghosts = {w for w in mentioned if "_" in w and w not in REGISTRY
               and w not in allowed and not w.startswith(("url_", "api_", "auth_"))}
