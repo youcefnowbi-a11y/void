@@ -147,8 +147,11 @@ class SwarmCoordinator:
     verifier, then a final coordinator synthesis — one mission, one brain
     divided into senses."""
 
-    def __init__(self, cfg, target=None, specialist_rounds=10):
+    def __init__(self, cfg, target=None, specialist_rounds=14):
         self.cfg = cfg
+        # WD4 (audit-2 D4): 10 rounds starved exploitation — recon alone
+        # ate 6-8, leaving 2-4 for strikes. 14 gives the chain room to
+        # reach the payload after the map is drawn.
         self.specialist_rounds = specialist_rounds
         self.target = target or _target_from_mission("")
         self.board = Blackboard(self.target)
@@ -182,7 +185,15 @@ class SwarmCoordinator:
             sub_mission = (f"Main mission: {mission}\n\n"
                            f"Execute ONLY your role's portion on {self.target}. "
                            "Use your tools efficiently; batch independent calls.")
-            return role, agent.run(sub_mission)
+            # WD1 (audit-2 D1): the event stream was dropped — the dashboard
+            # showed "SWARM deployed" then total silence for 10 minutes.
+            # Specialists now stream tagged events to the same channel.
+            def _role_event(ev, _role=role):
+                if on_event and isinstance(ev, dict):
+                    ev = dict(ev)
+                    ev["role"] = _role
+                    on_event(ev)
+            return role, agent.run(sub_mission, on_event=_role_event)
 
         with ThreadPoolExecutor(max_workers=len(SPECIALIST_ROLES)) as ex:
             futs = [ex.submit(run_specialist, role, spec)
@@ -202,16 +213,25 @@ class SwarmCoordinator:
             tool_bits = [t for k, t in tr if k == "tool"][:12]
             distill.append(f"### {role.upper()} used: " + " | ".join(
                 b.split(":", 1)[0] for b in tool_bits))
-        verifier = Agent(self.cfg, tools_filter=["__no_tools__"],
+        # WD2 (audit-2 D2): a tools filter of ["__no_tools__"] made the
+        # "adversarial verifier" a text critic — opinions, not evidence.
+        # It now carries the READ-ONLY probe lane so it can actually
+        # re-test claims instead of guessing.
+        _verify_tools = ["data_extract", "web_fingerprint", "endpoint_oracle",
+                         "file_grep", "secret_scan", "workspace_status"]
+        from tools import all_tools as _atl
+        _known = {t["name"] for t in _atl()}
+        _verify_tools = [t for t in _verify_tools if t in _known]
+        verifier = Agent(self.cfg, tools_filter=_verify_tools or ["__no_tools__"],
                          extra_system=VERIFIER_PROMPT, blackboard=self.board)
-        verifier.max_rounds = 1
+        verifier.max_rounds = 3
         verify_mission = (
             f"Target: {self.target}\nIntel graph:\n{self.board.to_prompt(40)}\n\n"
             "Specialists ran: " + ", ".join(self.transcripts.keys()) + "\n" +
             "\n".join(distill) +
             "\n\nProduce your verifier findings now (numbered, evidence-based).")
         try:
-            vt = verifier.run(verify_mission)
+            vt = verifier.run(verify_mission, on_event=on_event)
             self.transcripts["verifier"] = vt
             emit("swarm", "✓ Vérification terminée")
         except Exception as ex:
@@ -235,7 +255,14 @@ class SwarmCoordinator:
 
         transcript = [("system", f"[SWARM] specialists: {', '.join(self.transcripts.keys())}")]
         for role, tr in self.transcripts.items():
-            transcript.extend((f"{role}:{k}", t) for k, t in tr[:60])
+            # WD3 (audit-2 D3): the first 60 entries only hid rounds 7-10
+            # — a specialist's LATE findings (the critical ones) never
+            # reached the final transcript. Keep tools+agents, elide
+            # verbose early noise.
+            _tools = [(f"{role}:tool", t) for k, t in tr if k == "tool"]
+            _agents = [(f"{role}:agent", t) for k, t in tr if k == "agent"]
+            transcript.extend(_tools[-40:])
+            transcript.extend(_agents[-6:])
         transcript.extend(final)
         return transcript
 
@@ -327,7 +354,13 @@ class PlannedSwarm(SwarmCoordinator):
             agent.max_rounds = max(4, min(rounds, 25))
             sub_mission = (f"Execute chain '{name}' on {target}. Stay in scope — "
                            f"other chains cover the rest. Batch independent calls.")
-            return name, agent.run(sub_mission)
+            # WD1: chain subagents stream too — no silent strike team.
+            def _chain_event(ev, _name=name):
+                if on_event and isinstance(ev, dict):
+                    ev = dict(ev)
+                    ev["role"] = f"chain:{_name}"
+                    on_event(ev)
+            return name, agent.run(sub_mission, on_event=_chain_event)
 
         with ThreadPoolExecutor(max_workers=min(self.max_subagents, len(self.chains))) as ex:
             futs = [ex.submit(run_chain, i, c) for i, c in enumerate(self.chains[:self.max_subagents])]

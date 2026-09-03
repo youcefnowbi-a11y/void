@@ -202,7 +202,10 @@ ACTIONS = {
         "pre": lambda s: s.has("endpoint"),
         "targets": lambda s: s.kinds("endpoint"),
         "kinds": ("vuln",), "yield": 1.5,
-        "args": lambda t: {"url_template": t},
+        # WC3 (audit-2 C3): the raw endpoint has no {INJ} slot — the tool
+        # refused immediately and the MCTS entry was dead on arrival.
+        # Mirror sqli_probe_param's template-augmentation.
+        "args": lambda t: {"url_template": (t if "{" in t else t + "?url={INJ}")},
     },
     "graphql_introspect": {
         "pre": lambda s: s.has("endpoint", "graphql"),

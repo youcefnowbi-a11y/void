@@ -1,6 +1,7 @@
 """TOOL: ssrf_test - SSRF detection tool."""
-import json, urllib.request, urllib.error, urllib.parse, time
+import json, time, urllib.parse
 from tools import register
+from tools._transport import fetch
 
 PAYLOADS = [
     "http://127.0.0.1",
@@ -25,21 +26,15 @@ AWS_METADATA_KEYWORDS = [
 
 BASELINE_URL = "http://example.com"
 
+# WC1 (audit-2 C1): the old private urlopen bypassed the hardened
+# transport — no DoH, no proxy rotation, no adaptive pacing, no redirect
+# tracking. SSRF probes were the ONLY unarmored requests in the fleet
+# and got rate-limited/WAF-blocked while every other tool sailed.
 def _send_req(url, timeout=10):
-    rq = urllib.request.Request(url, headers={"User-Agent": "Mozilla/5.0"})
     t0 = time.time()
-    try:
-        with urllib.request.urlopen(rq, timeout=timeout) as resp:
-            body = resp.read().decode("utf-8", errors="replace")
-            dt = time.time() - t0
-            return resp.status, body, round(dt, 3)
-    except urllib.error.HTTPError as ex:
-        dt = time.time() - t0
-        err_body = ex.read().decode("utf-8", errors="replace")
-        return ex.code, err_body, round(dt, 3)
-    except Exception as ex:
-        dt = time.time() - t0
-        return -1, f"{type(ex).__name__}: {str(ex)[:100]}", round(dt, 3)
+    r = fetch(url, timeout=timeout, use_cache=False)
+    return (r.get("status", -1), r.get("body") or "",
+            round(time.time() - t0, 3))
 
 @register(
     name="ssrf_probe",
@@ -61,7 +56,7 @@ def _send_req(url, timeout=10):
     }
 )
 def ssrf_probe(url_template, timeout=10):
-    # V10 (audit 3.2): the tool demanded {PAYLOAD} while the doctrine,
+    # V10 (audit-3.2): the tool demanded {PAYLOAD} while the doctrine,
     # MCTS and every other tool speak {INJ} — the agent following doctrine
     # was refused, burned 3 heals, abandoned. Both spellings accepted.
     if "{INJ}" in url_template:
@@ -123,7 +118,18 @@ def ssrf_probe(url_template, timeout=10):
                 "signals": signals
             })
 
+    # WC2 (audit-2 C2): the verdict was a bare STRING — the bandit reward,
+    # the Living Graph and the coverage system ALL look for the
+    # "exploitable" field, so every SSRF finding was invisible to the
+    # entire intelligence pipeline. Now the field exists and is honest:
+    # metadata leak or multiple concurrent signals = exploitable.
+    _meta_leak = any("cloud_metadata_match" in (v.get("signals") or [])
+                     for v in suspected_vectors)
+    _exploitable = bool(suspected_vectors) and (
+        _meta_leak or len(suspected_vectors) >= 2)
+
     return json.dumps({
+        "tool": "ssrf_probe",
         "url_template": url_template,
         "baseline": {
             "payload": BASELINE_URL,
@@ -134,5 +140,9 @@ def ssrf_probe(url_template, timeout=10):
         "tested_payloads": tested_results,
         "signals_found": len(suspected_vectors),
         "suspected_ssrf_vectors": suspected_vectors,
-        "verdict": "potential SSRF signals detected" if suspected_vectors else "no obvious SSRF indicators"
+        "exploitable": _exploitable,
+        "verdict": ("SSRF CONFIRMED — server-side fetch of internal/metadata "
+                    "resource observed" if _exploitable else
+                    "potential SSRF signals detected" if suspected_vectors
+                    else "no obvious SSRF indicators")
     }, ensure_ascii=False, indent=1)

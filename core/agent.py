@@ -847,7 +847,12 @@ if _AGENT_CFG.get("persona_block"):
 
 
 def _smart_compact(result, limit=300):
-    """Compact a tool result preserving JSON structure when possible."""
+    """Compact a tool result preserving JSON structure when possible.
+    WA1 (audit-2 A1): the old keep-list (tool/exploitable/summary/error)
+    dropped EVERY chaining key — primitive, rce_primitive, oracle, dbms,
+    columns, rows, steps — so a confirmed RCE at round 3 became
+    unexploitable at round 15 because the working payload was forgotten.
+    Inverted: drop only NOISY BULK keys, keep everything else compacted."""
     if len(result) <= limit:
         return result
     try:
@@ -855,14 +860,40 @@ def _smart_compact(result, limit=300):
     except Exception:
         return result[:limit]
     if isinstance(d, dict):
+        # bulk keys: long lists/bodies that are archived in extractions/
+        # anyway — dropping them loses NO chaining ability.
+        _BULK = ("rows", "records", "results", "tested_payloads", "body",
+                 "raw_tail", "evidence", "hosts", "findings", "matches",
+                 "payloads", "variants", "samples", "history", "lines")
+        # WA1 priority: chaining keys FIRST (they carry the working
+        # payload/oracle the agent needs 15 rounds later), verdict keys
+        # second (always ride), prose summary LAST (the primitive data
+        # subsumes it). Iteration order used to be dict-insertion order —
+        # a late oracle key starved when an early summary ate the budget.
+        _CHAIN = ("primitive", "rce_primitive", "oracle", "dbms", "columns",
+                  "render_col", "separator", "payload", "steps", "table",
+                  "ncols", "endpoint", "url_template", "vector", "cmd")
+        _VERDICT = ("tool", "exploitable", "error")
+        _order = ([k for k in _CHAIN if k in d]
+                  + [k for k in _VERDICT if k in d]
+                  + [k for k in d if k not in _CHAIN and k not in _VERDICT])
         kept = {}
         budget = limit - 10  # room for braces
-        for k in ("tool", "exploitable", "summary", "error"):
-            if k in d:
-                s = json.dumps({k: d[k]}, ensure_ascii=False)
-                if len(s) <= budget:
-                    kept[k] = d[k]
-                    budget -= len(s)
+        for k in _order:
+            v = d[k]
+            s = json.dumps({k: v}, ensure_ascii=False)
+            if k in _BULK and len(s) > 400:
+                # summarize the bulk in place: count + head
+                if isinstance(v, list):
+                    v = {"_elided": len(v), "head": str(v[:2])[:150]}
+                else:
+                    v = str(v)[:150] + "…"
+                s = json.dumps({k: v}, ensure_ascii=False)
+            if len(s) <= budget:
+                kept[k] = v
+                budget -= len(s)
+            elif k in ("exploitable", "tool"):
+                kept[k] = v    # verdict keys ride even over budget
         return json.dumps(kept, ensure_ascii=False)
     return result[:limit]
 
@@ -903,7 +934,13 @@ def _feed_result(name, out, total_cap=24000, sub_cap=4000):
         d = json.loads(txt)
         if isinstance(d, dict):
             parts, budget = [], total_cap - 200
-            big_keys = ("text", "json", "body", "results", "findings", "arsenal_map")
+            # WA3 (audit-2 A3): rows/evidence/extracted/open_ports/endpoints/
+            # secrets/hosts are oversized keys too — the old six-key list
+            # let them blow the total and hard-slice the whole result.
+            big_keys = ("text", "json", "body", "results", "findings",
+                        "arsenal_map", "rows", "extracted", "evidence",
+                        "open_ports", "endpoints", "secrets", "hosts",
+                        "records", "steps")
             for k, v in d.items():
                 s = json.dumps({k: v}, ensure_ascii=False)
                 if k in big_keys and len(s) > 3000:
@@ -917,7 +954,17 @@ def _feed_result(name, out, total_cap=24000, sub_cap=4000):
                     budget = 0
                 if budget <= 0:
                     break
-            fed = "{" + ",".join(parts) .lstrip("{").rstrip("}") + "}"
+            # WA2 (audit-2 A2): parts are ALREADY serialized {k:v} JSON
+            # objects — stripping braces from them corrupted nested
+            # structures ({steps:{dbms:...}} lost inner closing braces).
+            # Reassemble with a clean json.loads-based merge instead.
+            merged = {}
+            for p in parts:
+                try:
+                    merged.update(json.loads(p))
+                except Exception:
+                    continue
+            fed = json.dumps(merged, ensure_ascii=False)
             return fed[:total_cap]
     except Exception:
         pass
@@ -1085,15 +1132,32 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
         return "∞" if self.max_rounds > 10**8 else self.max_rounds
 
     def _is_final_summary(self, content):
-        """Check if LLM content is a final executive summary (signal to stop)."""
+        """Check if LLM content is a final executive summary (signal to stop).
+        WE2 (audit-2 E2): hardcoded English markers missed French/mixed
+        phrasing from non-OpenAI providers ("Résumé Final", "## Bilan",
+        "Verdict Final") → the agent nudged "continue" and burned empty
+        rounds. Added French markers + a no-tool-calls + long-prose
+        + contains-evidence-verbs heuristic as fallback."""
         if not content:
             return False
+        cu = content.upper()
         markers = ["RAPPORT DE MISSION", "EXECUTIVE SUMMARY", "MISSION COMPLETE",
-                    "RAPPORT FINAL", "## VERDICT", "# 🎯", "FINAL MISSION REPORT",
-                    "MISSION REPORT"]
+                   "RAPPORT FINAL", "## VERDICT", "# 🎯", "FINAL MISSION REPORT",
+                   "MISSION REPORT", "RAPPORT DE MISSION FINAL", "BILAN DE MISSION",
+                   "RÉSUMÉ FINAL", "RESUME FINAL", "VERDICT FINAL", "SYNTHÈSE FINALE",
+                   "SYNTHESE FINALE", "# BILAN", "## RÉCAPITULATIF", "CONCLUSION"]
         if self.plan_mode:
             markers += ["# ATTACK PLAN", "## PROPOSED ATTACK CHAINS"]
-        return any(m in content.upper() for m in [m.upper() for m in markers])
+        if any(m in cu for m in markers):
+            return True
+        # heuristic fallback: long prose, no tool calls pending, and the
+        # closing vocabulary of a report (French or English)
+        _closing = re.search(
+            r"(?i)\b(conclusion|en conclusion|verdict|bilan|récapitulatif|"
+            r"recapitulatif|synthèse|synthese|summary|in summary|to conclude|"
+            r"au final|finalement)\b", content)
+        return (len(content) > 1200 and _closing is not None
+                and "```" not in content[-200:])
 
     @staticmethod
     def _live_update_text(board, rnd, cap=1200):
@@ -1320,6 +1384,22 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                 on_event({"type": "system",
                           "text": "📋 Intel précédent chargé — continuation de mission activée"})
 
+        # ── WE4: offline-brain digest carried over from a dead-LLM run ──
+        _bd = getattr(self, "_pending_brain_digest", None)
+        if _bd:
+            msgs.append({"role": "user", "content":
+                f"OFFLINE BRAIN FINDINGS (from the MCTS run while the provider was down):\n\n"
+                f"{_bd}\n\nThese tool results are REAL — the offline brain already "
+                "executed them. Chain forward from this state; do NOT re-run what "
+                "already succeeded above."})
+            msgs.append({"role": "assistant", "content":
+                "Understood. The offline brain's findings are loaded. I will chain "
+                "from them directly."})
+            if on_event:
+                on_event({"type": "system",
+                          "text": "🧠 Digest du cerveau offline injecté — continuation sans doublon"})
+            self._pending_brain_digest = None
+
         # ── Commander's pre-mission chat: the operator's voice, top authority ──
         if commander_orders:
             msgs.append({"role": "user", "content":
@@ -1440,7 +1520,11 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                             str(ev.get("result") or "")[:4000]):
                         if _u not in tgt:
                             tgt.append(_u)
-                    del tgt[:-12]
+                    # WB3 (audit-2 B3): the FIFO cap at 12 evicted the
+                    # juiciest round-1 admin endpoints before the coverage
+                    # escalation ever aimed at them. 40 keeps the whole
+                    # recon surface reachable.
+                    del tgt[:-40]
                     # ── G2: every result feeds the living target model ──
                     try:
                         from core import target_model as _tm
@@ -1504,14 +1588,14 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                               "text": f"⏰ deadline de campagne atteinte ({self.max_minutes:.0f} min) — repli ordonné."})
                 break
 
-            # ─── CONTEXT BUDGET v2 (audit #1): tokens réels (~4 chars/tok),
-            # SANS exemption — l'ancien "12 derniers full" laissait ~72k tokens
-            # incompressibles déborder sur un provider 64k (HTTP 400 = mission
-            # morte déguisée en LLM indisponible). Cascade: vieux tools →
-            # 600c, puis les gros restants → 4k. Doctrine+mission intacts. ───
+            # ─── CONTEXT BUDGET v2.1 (audit-2 E1): //4 chars/tok is English
+            # prose — French doctrine and dense JSON run 2-3 c/tok, so the
+            # estimate under-counted and the provider 400'd. //3 is the
+            # conservative planner's number: compact slightly early rather
+            # than die mid-round. ───
             try:
                 _budget = getattr(self, "_ctx_budget_tok", 110000)
-                _total_tok = sum(len(m.get("content") or "") for m in msgs) // 4
+                _total_tok = sum(len(m.get("content") or "") for m in msgs) // 3
                 if _total_tok > _budget:
                     _tool_idx = [i for i, m in enumerate(msgs) if m.get("role") == "tool"]
                     for _i in _tool_idx[:-8]:
@@ -1524,6 +1608,11 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                             _keep = re.findall(
                                 r"(?:eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*"
                                 r"|sk-[A-Za-z0-9]{20,}|hk_[A-Za-z0-9]{20,}"
+                                r"|AKIA[0-9A-Z]{16}"
+                                r"|glpat-[A-Za-z0-9_\-]{20,}"
+                                r"|rk_live_[A-Za-z0-9]{20,}"
+                                r"|xox[baprs]-[A-Za-z0-9\-]{20,}"
+                                r"|ghp_[A-Za-z0-9]{30,}|gho_[A-Za-z0-9]{30,}"
                                 r"|Bearer\s+[A-Za-z0-9_.\-]{20,})", _c)
                             _head = _c[:600]
                             _creds = " ".join(dict.fromkeys(k for k in _keep if k not in _head))[:600]
@@ -1625,6 +1714,7 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                         if on_event:
                             on_event({"type": "plan",
                                       "steps": [{"tool": s[0], "args": s[1]} for s in steps]})
+                        _brain_digest = []
                         for tool_name, args in steps:
                             trid = None
                             if mission_id:
@@ -1654,6 +1744,25 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                                 ws.save_extraction(tool_name, out)
                                 ws.save_finding(tool_name, out)
                             transcript.append(("tool", f"{tool_name}: {out[:6000]}"))
+                            # WE4 (audit-2 E4): offline-brain findings were
+                            # write-only — archived, never fed to the LLM
+                            # context. If the provider recovers in a later
+                            # run, the digest rides in the mission prompt
+                            # so the brain's discoveries chain forward.
+                            _brain_digest.append(
+                                f"- {tool_name}: {_feed_result(tool_name, out, total_cap=1200)}")
+                    if _brain_digest:
+                        try:
+                            from core.workspace import Workspace
+                            _dp = getattr(self, "_brain_digest_path", None)
+                            if ws is not None:
+                                ws.save_extraction(
+                                    "offline_brain_digest",
+                                    json.dumps({"digest": _brain_digest},
+                                               ensure_ascii=False, indent=1))
+                        except Exception:
+                            pass
+                        self._pending_brain_digest = "\n".join(_brain_digest)[:8000]
                     break
 
                 # Mid-mission LLM death: if 3+ consecutive failures, give up
@@ -1669,12 +1778,13 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
 
             # ─── Got a valid LLM response ───
             consecutive_llm_fails = 0  # reset counter
-            # RUN #74 LESSON: the wipe budget must RECOVER on clean rounds —
-            # otherwise any long mission exhausts it long before the end and
-            # dies to a late refusal storm. A clean response is proof the
-            # fresh slate worked → refund one wipe slot.
-            if fresh_restarts > 0:
-                fresh_restarts -= 1
+            # RUN #74 LESSON (WE3, audit-2 E3): a clean response is proof
+            # the fresh slate worked → REFUND one wipe slot, capped at max.
+            # The old `fresh_restarts -= 1` spent the budget on clean
+            # rounds — the exact inverse of the documented intent — so a
+            # late-mission refusal storm met an empty tank.
+            if fresh_restarts < REFUSAL_WIPE_MAX:
+                fresh_restarts += 1
 
             if content:
                 transcript.append(("agent", content))
@@ -1870,46 +1980,64 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                 _WALL_SIG = re.compile(
                     r"(?i)(waf|blocked|403|forbidden|cloudflare|sucuri|rate.?limit|"
                     r"captcha|auth wall|401|not authorized|refus)")
+                # WB2 (audit-2 B2): auth-probing tools EXPECT 401/403 as
+                # DATA (endpoint_oracle admin probes, auth_state_audit,
+                # idor_enum...) — counting those as walls fired false
+                # wall_breaker escalations mid-probe.
+                _NOISE_TOOLS = re.compile(
+                    r"(?i)(auth_state|endpoint_oracle|idor|param_brute|"
+                    r"api_sweep|fuzz_|crash_triage|secret_scan|js_mine|"
+                    r"har_|wayback|cisa_kev|waf_detect|nvd_search)")
                 if (_WALL_SIG.search(out) and not _WALL_SIG.search(name)):
-                    _walls = getattr(self, "_wall_streak", 0) + 1
-                    self._wall_streak = _walls
-                    if _walls >= 2:
-                        _tech = ""
-                        mfp = re.search(r"(?i)(cloudflare|sucuri|akamai|apache|nginx|"
-                                        r"iis|jwt|spring|wordpress|laravel|django)", out)
-                        if mfp:
-                            _tech = mfp.group(0)
-                        try:
-                            # A2 : wall_breaker auto hérite du même périmètre
-                            # (sinon il frappe hors plan-mode hors rôle).
-                            _prev_wb = reg.current_allowed()
-                            # wall_breaker reste légal même en plan-mode : son
-                            # produit est de l'INTEL externe, pas une frappe.
-                            reg.allowed.names = ({t["name"] for t in self.tools}
-                                                 | {"wall_breaker"})
+                    _is_noise = bool(_NOISE_TOOLS.search(name))
+                    if _is_noise:
+                        pass            # expected probe data, not a wall
+                    else:
+                        _walls = getattr(self, "_wall_streak", 0) + 1
+                        self._wall_streak = _walls
+                        if _walls >= 2:
+                            _tech = ""
+                            mfp = re.search(r"(?i)(cloudflare|sucuri|akamai|apache|nginx|"
+                                            r"iis|jwt|spring|wordpress|laravel|django)", out)
+                            if mfp:
+                                _tech = mfp.group(0)
                             try:
-                                _bw = reg.execute("wall_breaker",
-                                                  {"tech": _tech or "waf filtering",
-                                                   "context": f"after {name}: {out[:120]}"},
-                                                  on_event=tap)
-                            finally:
-                                reg.allowed.names = _prev_wb
-                            self._wall_streak = 0
-                            _bmsg = ("\n\n[🧨 WALL BREAKER AUTO — 2 murs d'affilée détectés. "
-                                     "INTEL EXTERIEURE collectée (web/exploit-db/NVD):\n"
-                                     + str(_bw)[:3000] + "\nAdapte ta prochaine frappe avec "
-                                     "cette intelligence — ou change de vector.]")
-                            # A3 : différé — l'injection user se fera après TOUS
-                            # les tool results du round, jamais entre
-                            # assistant(tool_calls) et tool(result).
-                            _wall_pending = _bmsg
-                            transcript.append(("system", "wall_breaker auto-déclenché"))
-                            if on_event:
-                                on_event({"type": "system",
-                                          "text": "🧨 mur détecté — sortie intel automatique (wall_breaker)"})
-                        except Exception:
-                            pass
-                else:
+                                # A2 : wall_breaker auto hérite du même périmètre
+                                # (sinon il frappe hors plan-mode hors rôle).
+                                _prev_wb = reg.current_allowed()
+                                # wall_breaker reste légal même en plan-mode : son
+                                # produit est de l'INTEL externe, pas une frappe.
+                                reg.allowed.names = ({t["name"] for t in self.tools}
+                                                     | {"wall_breaker"})
+                                try:
+                                    _bw = reg.execute("wall_breaker",
+                                                      {"tech": _tech or "waf filtering",
+                                                       "context": f"after {name}: {out[:120]}"},
+                                                      on_event=tap)
+                                finally:
+                                    reg.allowed.names = _prev_wb
+                                self._wall_streak = 0
+                                _bmsg = ("\n\n[🧨 WALL BREAKER AUTO — 2 murs d'affilée détectés. "
+                                         "INTEL EXTERIEURE collectée (web/exploit-db/NVD):\n"
+                                         + str(_bw)[:3000] + "\nAdapte ta prochaine frappe avec "
+                                         "cette intelligence — ou change de vector.]")
+                                # A3 : différé — l'injection user se fera après TOUS
+                                # les tool results du round, jamais entre
+                                # assistant(tool_calls) et tool(result).
+                                _wall_pending = _bmsg
+                                transcript.append(("system", "wall_breaker auto-déclenché"))
+                                if on_event:
+                                    on_event({"type": "system",
+                                              "text": "🧨 mur détecté — sortie intel automatique (wall_breaker)"})
+                            except Exception:
+                                pass
+                elif _cov.honest_status(out) == "ok" and not _NOISE_TOOLS.match(name):
+                    # WB1 (audit-2 B1): only a genuinely CLEAN, productive
+                    # result clears the wall streak. The old blanket else
+                    # reset it on any non-wall output — in a mixed recon/
+                    # strike flow the streak NEVER reached 2 and the
+                    # wall_breaker was dead in practice. Neutral outputs
+                    # (probe errors, noise) must not unblock the wall.
                     self._wall_streak = 0
 
                 msgs.append({"role": "tool", "tool_call_id": tc["id"],

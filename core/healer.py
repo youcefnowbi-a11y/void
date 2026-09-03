@@ -89,7 +89,10 @@ def heal_attempt(tool_name, category, details, original_args):
             return a, "doubled timeout"
         return dict(a), "plain retry (no timeout knob)"
     if category == "NETWORK":
-        time.sleep(4)
+        # WF1 (audit-2 F1): a 4s sleep froze the whole specialist thread
+        # × 3 attempts = 12s dead per blip in swarm mode. 1.2s is still a
+        # real backoff for a transient reset without the paralysis.
+        time.sleep(1.2)
         return original_args, "retry after backoff"
     if category == "FILE_EXPECTED":
         # L'agent a passé une URL là où l'outil veut un fichier local :
