@@ -151,8 +151,18 @@ def _roe_limit():
     return _ROE_LIMIT
 
 def _roe_gate():
-    """Block until an outbound slot opens — global, every transport call."""
+    """Block until an outbound slot opens — global, every transport call.
+    E1: the active profile may SHAPE the wait (jitter envelope) but can
+    never loosen the ROE limit — the governor stays above everything."""
     lim = _roe_limit()
+    prof = _profile()
+    j = prof.get("jitter") or [1.0, 1.0]
+    try:
+        lo, hi = abs(float(j[0])), abs(float(j[1]))
+    except Exception:
+        lo, hi = 1.0, 1.0
+    wait = 0.25 * max(1.0, min(lo, hi) + (max(lo, hi) - min(lo, hi)) *
+                      random.random())
     while True:
         with _ROE_LOCK:
             now = time.time()
@@ -161,7 +171,92 @@ def _roe_gate():
             if len(_ROE_WINDOW) < lim:
                 _ROE_WINDOW.append(now)
                 return
-        time.sleep(0.25)
+        time.sleep(wait)
+
+
+# ── E1: malleable traffic profiles — the detection surface is DATA ──
+# config/transport.yaml → transport.profiles.<name>: {headers: {Name: value,
+# ordered by declaration for reference}, header_order: [..], referer: "...",
+# origin: "...", jitter: [lo, hi], ua_family: "chrome|firefox|safari|any"}
+# Resolution precedence: tool headers > profile > identity > defaults.
+# The profile may SET headers; it NEVER rewrites User-Agent after identity
+# (single-writer rule) and NEVER loosens the ROE limit (governor stays above).
+_PROFILE = [None]          # resolved profile cache (per process)
+_PROFILE_LOADED = [False]
+_PROFILE_LOCK = threading.Lock()
+
+# the ONLY header op_identity owns — profiles never touch it post-identity
+_IDENTITY_OWNED = {"User-Agent", "Accept-Language"}
+
+
+def _load_profile():
+    if _PROFILE_LOADED[0]:
+        return _PROFILE[0]
+    with _PROFILE_LOCK:
+        if _PROFILE_LOADED[0]:
+            return _PROFILE[0]
+        _PROFILE_LOADED[0] = True
+        try:
+            import yaml as _y
+            p = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                             os.pardir, "config", "transport.yaml")
+            with open(p, encoding="utf-8") as f:
+                d = _y.safe_load(f) or {}
+            t = d.get("transport") or {}
+            name = t.get("profile") or ""
+            profs = t.get("profiles") or {}
+            prof = profs.get(name) if name and isinstance(profs, dict) else None
+            if isinstance(prof, dict):
+                prof = dict(prof)
+                prof["__name"] = name
+                _PROFILE[0] = prof
+        except Exception:
+            _PROFILE[0] = None
+    return _PROFILE[0]
+
+
+def _profile():
+    return _load_profile() or {}
+
+
+def profile_hash():
+    """Short fingerprint of the ACTIVE traffic shape (for the ROE header):
+    which profile is on duty + a hash of its declared shape. Data, not code."""
+    prof = _profile()
+    if not prof:
+        return "default"
+    shape = json.dumps({k: v for k, v in prof.items()
+                        if not k.startswith("__")}, sort_keys=True,
+                       ensure_ascii=False, default=str)
+    import hashlib as _h
+    return f"{prof.get('__name', '?')}:{_h.sha1(shape.encode()).hexdigest()[:8]}"
+
+
+def _apply_profile(h: dict, host: str):
+    """Layer the active profile onto the built header dict, respecting
+    single-writer: identity already wrote UA/Accept-Language; the profile
+    adds/overwrites everything EXCEPT those, then tool headers (applied
+    later by the caller) win over both."""
+    prof = _profile()
+    if not prof:
+        return
+    hdrs = prof.get("headers") or {}
+    if isinstance(hdrs, dict):
+        for k, v in hdrs.items():
+            if k not in _IDENTITY_OWNED:
+                h[k] = v
+    # ordered extras beyond the dict (some shapes care about insertion order)
+    order = prof.get("header_order") or []
+    if isinstance(order, list) and order:
+        known = {k for k in list(h.keys())}
+        h["__header_order"] = [k for k in order if k in known]
+    for gk in ("Referer", "Origin"):
+        gv = prof.get(gk.lower())
+        if gv and isinstance(gv, str):
+            # {TARGET} generalized to the current scheme+host
+            sp = urllib.parse.urlsplit
+            parts = sp("https://" + host) if "//" not in host else sp(host)
+            h.setdefault(gk, gv.replace("{TARGET}", f"{parts.scheme}://{host}"))
 
 
 # ── wave2 P1/P2: optional proxy pool — config/transport.yaml, OFF by default.
@@ -495,6 +590,13 @@ def fetch(url, method="GET", headers=None, body=None, timeout=25,
         pass
     if headers:
         h.update({k: v for k, v in headers.items()})
+    # E1 — la forme du trafic (profil malleable) se couche entre l'identité
+    # et les headers de l'outil : le profil ne touche JAMAIS UA/Accept-Language
+    # (single-writer: identité), les headers d'outil restent prioritaires.
+    try:
+        _apply_profile(h, host)
+    except Exception:
+        pass
 
     # E-3: cache-hit checké AVANT _roe_gate — un GET déjà caché ne doit ni
     # bloquer ni consommer un slot du rate global.

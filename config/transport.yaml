@@ -24,3 +24,40 @@ transport:
   # P5: impersonation TLS/JA3 via curl_cffi — profil navigateur ("chrome",
   # "chrome124", "safari"...) ou none. Tombe les checks CDN de fingerprint.
   impersonate: "chrome"
+  # E1 — malleable traffic profiles: la SURFACE DE DÉTECTION est de la
+  # donnée. transport.profile choisit le profil actif ("" = off, tout
+  # comme avant). Le profil ne touche JAMAIS User-Agent/Accept-Language
+  # (propriété de l'identité op, single-writer) et n'assouplit jamais la
+  # limite ROE — il peut seulement TASSER la cadence via jitter [lo, hi].
+  # {TARGET} dans referer/origin = schéma+hôte de la requête courante.
+  profile: ""
+  profiles:
+    # browser_strict: ressemble à une navigation classique sur SaaS web
+    browser_strict:
+      headers:
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+        Accept-Encoding: "gzip, deflate, br, zstd"
+        Upgrade-Insecure-Requests: "1"
+        Sec-Fetch-Dest: "document"
+        Sec-Fetch-Mode: "navigate"
+        Sec-Fetch-Site: "none"
+        Sec-CH-UA: '"Chromium";v="128", "Not;A=Brand";v="24"'
+        Sec-CH-UA-Platform: '"Windows"'
+        Sec-CH-UA-Mobile: "?0"
+      referer: "{TARGET}/"
+      jitter: [1.0, 1.9]
+    # api_client: franchise assumée d'un client API (monitors, scripts) —
+    # pour les cibles où un navigateur mentirait plus qu'il ne cache
+    api_client:
+      headers:
+        Accept: "application/json"
+        Accept-Encoding: "gzip, deflate"
+        Connection: "keep-alive"
+      jitter: [0.9, 1.2]
+    # mobile_web: profil de navigation mobile pour cibles avec app-first
+    # mobile_web:
+    #   headers:
+    #     Sec-CH-UA-Mobile: "?1"
+    #     Sec-CH-UA-Platform: '"Android"'
+    #   referer: "{TARGET}/"
+    #   jitter: [1.2, 2.4]

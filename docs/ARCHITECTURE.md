@@ -277,6 +277,25 @@ sized from the roster). Evidence index gained `bin_crash` and
 `privesc_track` proof markers — binary findings land in the same
 impact-completion pipeline as web findings. Skill: `skills/binary_lane.md`.
 
+## 6quater-2. Malleable traffic profiles (E1 — law 4: surface = config)
+
+`config/transport.yaml` → `transport.profile` selects the ACTIVE shape;
+`transport.profiles.<name>` declares it: ordered header set, Referer /
+Origin grammar (`{TARGET}` = current scheme+host), jitter envelope
+`[lo, hi]` that only ever TIGHTENS the gate wait, never the ROE limit.
+
+Layering order in `fetch` (single-writer discipline):
+`identity (UA + Accept-Language, owns burn) → profile (everything else,
+never identity-owned keys) → tool headers (always win)`.
+
+The active shape is stamped as DATA in the report ROE header:
+`| Traffic profile | <name>:<sha1-8> |` — the engagement paper states
+which fingerprint the wire presented, and any shape change produces a
+new hash (shape is content-addressed). Malformed profile blocks degrade
+to the default behavior, never crash. Two different profiles on the
+same target share zero (key, value) pairs on the wire — the Cobalt
+Strike malleable-profile law, local edition.
+
 ## 7. GUI / PWA
 
 ## 11. Roadmap (aspirations, pas de code — decided 2026-09-02)

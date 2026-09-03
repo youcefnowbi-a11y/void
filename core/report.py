@@ -51,6 +51,17 @@ def _identity_line():
     except Exception:
         return []
 
+
+def _profile_line():
+    """E1 — la FORME du trafic présentée au target, comme donnée: quel
+    profil malleable était de service + hash de sa shape déclarée."""
+    try:
+        from tools._transport import profile_hash
+        ph = profile_hash()
+        return [f"| Traffic profile | {ph} |"]
+    except Exception:
+        return []
+
 def _extract_findings(transcript):
     """Scan transcript text, dedupe matches, rank by severity."""
     seen, findings = set(), []
@@ -134,6 +145,7 @@ def write_report(mission, transcript, folder, board=None):
         f"| Max request rate | {_or(str(roe.get('max_request_rate', 'NOT RECORDED')))} /min |",
         *(_egress_line()),
         *(_identity_line()),
+        *(_profile_line()),
         f"| Operator / Agent | LO / VOIDFORGE |",
         f"| Generated | {ts} |",
         "",
