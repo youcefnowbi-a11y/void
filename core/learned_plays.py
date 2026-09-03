@@ -164,9 +164,19 @@ def harvest(mission_id, ws=None, final_text=None, db_path=DB, store=STORE):
             d["plays"].sort(key=lambda p: -(p.get("uses", 1)))
             if len(d["plays"]) > 400:
                 d["plays"] = d["plays"][:400]
-        # the agent's own NEXT MISSION PROPOSAL — persisted for the operator
+        # the agent's own NEXT MISSION PROPOSAL — persisted for the operator.
+        # GUARD (op question 2026-09-02): a refusal is a BROKEN brain, its
+        # words are not doctrine — the proposal layer eats completed-mission
+        # speech only; the plays themselves stay wire-evidence (tool_runs),
+        # which a refusal cannot fake.
         if final_text:
-            idx = final_text.upper().find("NEXT MISSION PROPOSAL")
+            try:
+                from core.framing import is_refusal
+                refused = is_refusal(final_text)
+            except Exception:
+                refused = False
+            idx = (final_text.upper().find("NEXT MISSION PROPOSAL")
+                   if not refused else -1)
             if idx >= 0 and ws is not None:
                 try:
                     sect = final_text[idx - 3:]

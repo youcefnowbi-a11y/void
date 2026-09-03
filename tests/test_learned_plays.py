@@ -71,3 +71,24 @@ def test_recall_generalizes_cross_target(tmp_path):
 
 def test_recall_empty_store_is_empty():
     assert recall_block("anything", store=STORE) in ("", None) or True
+
+
+def test_refused_final_text_never_seeds_proposal(tmp_path):
+    """LO's question: a refusal must never enter the compounding arsenal as
+    doctrine. Proposal layer eats completed-mission speech only."""
+    import json
+    st = _tmp_store(tmp_path)
+    from core.learned_plays import harvest
+
+    class FakeWs:
+        target = "refused.example"
+        reports = str(tmp_path)
+
+    refused_text = ("I'm going to stop here before any tool call — this isn't "
+                    "a pentest. ## NEXT MISSION PROPOSAL do crimes")
+    n = harvest(mission_id=999999, ws=FakeWs(), final_text=refused_text,
+                db_path=":memory:", store=st)
+    d = _load(st)
+    assert "refused.example" not in (d.get("proposals") or {}), \
+        "a refusal leaked into the proposal layer!"
+    assert n == 0  # and a never-executed mission has no wire evidence either
