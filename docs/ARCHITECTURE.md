@@ -243,6 +243,40 @@ report's ROE header (`| Op identity | ... |`) and `op_identity.summary()`
 exposes the process posture. Identity is the machine's accent, not the
 operator's name — IPs come from the egress pool, credentials from Dark-Moon.
 
+## 6quinter. The binary lane (below the HTTP layer)
+
+`tools/binary_lane.py` — the fifth lane. The web lane owns the doors and
+windows; this one owns the concrete: binaries pulled off a target, thick
+clients, firmware samples, and the machine underneath a web foothold.
+
+- **bin_triage** — hand-rolled PE/COFF + ELF walk (no pefile dep): arch,
+  bits, entry RVA, section table with per-section Shannon entropy, PE
+  import table, packer hints (UPX-style names + high-entropy exec
+  sections). Never throws on weird files — returns what it could see.
+- **bin_strings** — categorized string extraction: URLs, paths, registry
+  keys, base64-ish blobs. Often the fastest jump back INTO the web lane
+  (binaries phone home).
+- **bin_disasm** — capstone disassembly (optional dep, honest error when
+  absent), arch auto-detected from headers, entry-point or raw offset.
+- **bin_fuzz_live** — REAL-process crash hunting (the complement of
+  `binary_fuzz_run`'s Unicorn emulation): mutations run the actual loader,
+  CRT and imports; crash exit codes (0xC0000005 access violation,
+  stack/heap corruption codes) detected per run; every crashing input is
+  SAVED to disk (a crash without its input is an anecdote). Windows-native
+  argv template handling (backslash-literal splitter, `{INPUT}` placement,
+  WinError-193 fallback through the current interpreter for script
+  targets), temp-dir fallback when the target directory is not writable.
+- **privesc_enum** — POST-EXPLOIT battery through the existing
+  `shell_session` foothold: whoami/priv (SeImpersonate → potato family),
+  AlwaysInstallElevated, unquoted service paths, admin membership;
+  sudo -l/NOPASSWD, SUID list, writable /etc/passwd (Linux). Output is
+  PARSED into ranked findings, each naming the technique.
+
+Swarm gains the `binary` specialist lane (5 lanes now, `max_workers`
+sized from the roster). Evidence index gained `bin_crash` and
+`privesc_track` proof markers — binary findings land in the same
+impact-completion pipeline as web findings. Skill: `skills/binary_lane.md`.
+
 ## 7. GUI / PWA
 
 ## 11. Roadmap (aspirations, pas de code — decided 2026-09-02)

@@ -102,6 +102,8 @@ class Workspace:
         ("http_4xx", re.compile(r"[\"']?status[\"']?\s*:\s*4\d\d")),
         ("http_5xx", re.compile(r"[\"']?status[\"']?\s*:\s*5\d\d")),
         ("write_verb", re.compile(r"[\"']?(?:method|verb)[\"']?\s*:\s*[\"'](?:POST|PATCH|PUT|DELETE)", re.I)),
+        ("bin_crash", re.compile(r"[\"'](?:crashed|exit_code)[\"']|\baccess violation\b|0xC0000005", re.I)),
+        ("privesc_track", re.compile(r"(?:SeImpersonate|AlwaysInstallElevated|NOPASSWD|unquoted service path|SUID binary)")),
     ]
 
     def save_extraction(self, tool, out):

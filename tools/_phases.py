@@ -51,6 +51,9 @@ PHASE_MAP = {
     # --- post-exploit ------------------------------------------------------
     "c2_pulse": POST, "deploy_watch": POST, "binary_fuzz_run": EXPLOIT,
     "crash_triage_rank": POST, "crash_triage_next": POST,
+    # --- binary lane (static recon + live crash hunting + escalation) ------
+    "bin_triage": SURFACE, "bin_strings": SURFACE, "bin_disasm": SURFACE,
+    "bin_fuzz_live": EXPLOIT, "privesc_enum": POST,
     # --- adapt -------------------------------------------------------------
     "batch_execute": ADAPT, "replay_mutate": ADAPT,
 }

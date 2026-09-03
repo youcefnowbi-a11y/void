@@ -86,6 +86,23 @@ SPECIALIST_ROLES = {
                   "with no public PoC is YOUR zero-day to build. "
                   "Finish with a distilled FACTS list."),
     },
+    "binary": {
+        "tools": ["bin_triage", "bin_strings", "bin_disasm", "bin_fuzz_live",
+                  "binary_fuzz_run", "crash_triage_rank", "file_grep",
+                  "web_search", "nvd_search", "batch_execute"],
+        "brief": ("You are the BINARY SPECIALIST. Everything below the HTTP layer: "
+                  "binaries, firmware samples, thick clients, and ESCALATION once "
+                  "another lane lands a foothold (shell_session output -> "
+                  "privesc_enum on that shell_url). Ladder discipline: bin_triage "
+                  "WHAT it is -> bin_strings what it touches -> bin_disasm what it "
+                  "does -> binary_fuzz_run (emulation) / bin_fuzz_live (real "
+                  "process) where it breaks -> crash_triage_rank what is "
+                  "exploitable. SKILL: skill_load binary_lane at start; "
+                  "privesc_windows / privesc_linux when privesc_enum returns a "
+                  "finding. A crash without its saved crashing input is an "
+                  "anecdote; a privesc without a whoami/root proof is an opinion. "
+                  "Finish with a distilled FACTS list."),
+    },
 }
 
 VERIFIER_PROMPT = """You are the ADVERSARIAL VERIFIER. Another team just ran an
@@ -167,7 +184,7 @@ class SwarmCoordinator:
                            "Use your tools efficiently; batch independent calls.")
             return role, agent.run(sub_mission)
 
-        with ThreadPoolExecutor(max_workers=4) as ex:
+        with ThreadPoolExecutor(max_workers=len(SPECIALIST_ROLES)) as ex:
             futs = [ex.submit(run_specialist, role, spec)
                     for role, spec in SPECIALIST_ROLES.items()]
             for fut in futs:

@@ -275,6 +275,37 @@ ACTIONS = {
         "kinds": ("data", "rce"), "yield": 3.5,
         "args": lambda t: {"shell_url": t},
     },
+    # ── BINARY LANE (below the HTTP layer) ──
+    "bin_triage": {
+        "pre": lambda s: s.has("binary") or s.has("file"),
+        "targets": lambda s: (s.kinds("binary") + s.kinds("file"))[:6],
+        "kinds": ("tech", "vuln"), "yield": 2.0,
+        "args": lambda t: {"path": t},
+    },
+    "bin_strings": {
+        "pre": lambda s: s.has("binary") or s.has("file"),
+        "targets": lambda s: (s.kinds("binary") + s.kinds("file"))[:6],
+        "kinds": ("endpoint", "secret"), "yield": 2.0,
+        "args": lambda t: {"path": t},
+    },
+    "bin_disasm": {
+        "pre": lambda s: s.has("binary") or s.has("file"),
+        "targets": lambda s: (s.kinds("binary") + s.kinds("file"))[:6],
+        "kinds": ("vuln",), "yield": 2.0,
+        "args": lambda t: {"path": t},
+    },
+    "bin_fuzz_live": {
+        "pre": lambda s: s.has("binary"),
+        "targets": lambda s: s.kinds("binary"),
+        "kinds": ("vuln",), "yield": 4.0,
+        "args": lambda t: {"target": t},
+    },
+    "privesc_enum": {
+        "pre": lambda s: s.has("shell"),
+        "targets": lambda s: s.kinds("shell"),
+        "kinds": ("vuln", "data"), "yield": 4.5,
+        "args": lambda t: {"shell_url": t},
+    },
     # ── ZERO-DAY PIPELINE ──
     "fuzz_attack_surface": {
         "pre": lambda s: s.has("url") or s.has("domain") or s.has("endpoint"),
