@@ -233,15 +233,28 @@ _HOST_FAILS = {}   # host -> consecutive non-2xx count (identity-burn signal)
 _HOST_FAILS_LOCK = threading.Lock()
 
 
-def _mark_host_result(host, status):
+def _mark_host_result(host, status, sub=False):
     """Tier C — 4 refus consécutifs sur une cible = l'identité parle mal.
-    Burn : la prochaine requête part avec un accent neuf."""
+    Burn : la prochaine requête part avec un accent neuf.
+
+    AUDIT F2: tous les non-2xx ne se valent pas — 404 est le bruit NORMAL
+    du dir_brute, pas un rejet d'identité ; seuls les rejets VRAIS
+    (403/429/WAF, 5xx répétés) comptent. F7: les chemins récursifs
+    (redirect follow / proxy rotation) re-marquent le même appel → flag
+    _sub pour ne compter qu'une fois par requête de l'opérateur."""
+    if sub:
+        return
     n = 0
     try:
+        host = host or ""
+        hard_reject = status in (403, 407, 429, 503)
+        soft_5xx = (status or 0) >= 500
         with _HOST_FAILS_LOCK:
-            if 200 <= (status or 0) < 300 or status in (301, 302, 303):
+            if 200 <= (status or 0) < 300 or status in (301, 302, 303, 404):
                 _HOST_FAILS[host] = 0
                 return
+            if not (hard_reject or soft_5xx):
+                return  # 4xx non-rejet (404 déjà traité) : ni strike ni reset
             n = _HOST_FAILS.get(host, 0) + 1
             _HOST_FAILS[host] = n
             if n >= 4:

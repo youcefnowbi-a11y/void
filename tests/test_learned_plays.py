@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Guard tests — the compounding arsenal (learned plays)."""
+import json
 import os
 import sys
 
@@ -75,9 +76,19 @@ def test_recall_empty_store_is_empty():
 
 def test_refused_final_text_never_seeds_proposal(tmp_path):
     """LO's question: a refusal must never enter the compounding arsenal as
-    doctrine. Proposal layer eats completed-mission speech only."""
+    doctrine. Proposal layer eats completed-mission speech only.
+    AUDIT F8: real temp sqlite DB — a broken db_path must not fake a PASS."""
     import json
+    import sqlite3
+    import tempfile
     st = _tmp_store(tmp_path)
+    db = os.path.join(str(tmp_path), "m.db")
+    con = sqlite3.connect(db)
+    con.execute("CREATE TABLE tool_runs (id INTEGER PRIMARY KEY, mission_id "
+                "INTEGER, round INTEGER, tool_name TEXT, args_json TEXT, "
+                "result_json TEXT, started_at TEXT)")
+    con.commit()
+    con.close()
     from core.learned_plays import harvest
 
     class FakeWs:
@@ -86,9 +97,57 @@ def test_refused_final_text_never_seeds_proposal(tmp_path):
 
     refused_text = ("I'm going to stop here before any tool call — this isn't "
                     "a pentest. ## NEXT MISSION PROPOSAL do crimes")
-    n = harvest(mission_id=999999, ws=FakeWs(), final_text=refused_text,
-                db_path=":memory:", store=st)
+    n = harvest(mission_id=1, ws=FakeWs(), final_text=refused_text,
+                db_path=db, store=st)
     d = _load(st)
     assert "refused.example" not in (d.get("proposals") or {}), \
         "a refusal leaked into the proposal layer!"
-    assert n == 0  # and a never-executed mission has no wire evidence either
+    assert n == 0
+
+
+def test_batch_fail_never_creates_ghost_plays():
+    """AUDIT F1: a 403 POST inside a batch next to a 200 GET must NOT become
+    a play — attribution is per item, never per row."""
+    rows = [{
+        "round": 40, "tool_name": "batch_execute",
+        "args_json": json.dumps({"calls": [
+            {"tool": "data_extract", "args": {
+                "url": "https://t.example/api/list", "method": "GET"}},
+            {"tool": "data_extract", "args": {
+                "url": "https://t.example/api/update", "method": "POST",
+                "body": {"tier": "plus"}}},
+        ]}),
+        "result_json": json.dumps({"executed": 2, "results": [
+            {"tool": "data_extract", "ok": True,
+             "result": '{\n "status": 200,\n "body": "ok"}'},
+            {"tool": "data_extract", "ok": False,
+             "result": '{\n "status": 403,\n "body": "forbidden"}'},
+        ]}),
+        "started_at": "2026-09-02T10:00:00",
+    }]
+    plays = _plays_from_rows(rows)
+    assert plays == [], "a 403 write became a ghost play!"
+
+
+def test_batch_per_item_attribution():
+    rows = [{
+        "round": 41, "tool_name": "batch_execute",
+        "args_json": json.dumps({"calls": [
+            {"tool": "data_extract", "args": {
+                "url": "https://t.example/api/buy", "method": "POST",
+                "body": {"tier": "plus"}}},
+            {"tool": "data_extract", "args": {
+                "url": "https://t.example/api/sync", "method": "GET"}},
+        ]}),
+        "result_json": json.dumps({"executed": 2, "results": [
+            {"tool": "data_extract", "ok": True,
+             "result": '{\\"status\\": 200, \\"verdict\\": {\\"exploitable\\": true, \\"summary\\": \\"free upgrade chain\\"}}'},
+            {"tool": "data_extract", "ok": True, "result": "plain text"},
+        ]}),
+        "started_at": "2026-09-02T10:05:00",
+    }]
+    plays = _plays_from_rows(rows)
+    assert any(p["method"] == "POST" and p["path"] == "/api/buy"
+               and p["kind"] == "verdict" for p in plays), \
+        "proven POST in batch must yield a play"
+    assert not any(p["path"] == "/api/sync" for p in plays)

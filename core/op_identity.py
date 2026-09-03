@@ -25,14 +25,6 @@ _UA_POOL = [
 _LANG_POOL = ["en-US,en;q=0.9", "en-GB,en;q=0.7", "fr-FR,fr;q=0.9,en;q=0.5",
               "de-DE,de;q=0.9,en;q=0.6", "es-ES,es;q=0.9,en;q=0.5"]
 
-# UA family ↔ plausible language pairing (a French Firefox on a Windows-NT
-# build is fine; a Safari-mac UA speaking de-DE screams automation).
-_LANG_BY_UA_FAMILY = {
-    "Chrome/128.0.0.0": None,          # any pool lang, seeded per host
-    "Firefox/127.0": None,
-    "Version/17.4 Safari": None,
-}
-
 
 def _derive(host, gen):
     """Deterministic per (host, generation) identity — stable within a

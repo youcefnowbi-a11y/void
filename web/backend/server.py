@@ -1521,15 +1521,20 @@ async def _run_mission_streaming(mission: str, mode: str, ws: WebSocket,
                                                    final_text=final_text)
                         _ws.write_app_state_report(transcript=transcript,
                                                    final_text=final_text)
-                        # l'arsenal compose : la mission devient des plays +
-                        # sa NEXT MISSION PROPOSAL est archivée pour l'opérateur
+                    except Exception:
+                        pass
+                    # AUDIT F4: l'arsenal récolte MÊME si un livrable a crashé
+                    try:
+                        final_text = final_text if 'final_text' in dir() else next(
+                            (t for k, t in reversed(transcript)
+                             if k == "agent" and t), "")
                         from core.learned_plays import harvest as _lp_harvest
                         _n = _lp_harvest(mission_id=mid, ws=_ws,
                                          final_text=final_text)
                         if _n:
                             print(f"  📚 Arsenal: +{_n} play(s) appris")
-                    except Exception:
-                        pass
+                    except Exception as _ex:
+                        print(f"  ⚠ Arsenal harvest failed: {_ex}")
                 else:
                     report_path = write_report(mission, transcript, REPORTS_DIR, board=board)
                     if _ws is None and report_path and os.path.exists(report_path):

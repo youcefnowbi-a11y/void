@@ -97,8 +97,13 @@ def _play_from_call(tool, a, outcome, proof, ts, kind="grammar"):
         return None
     sp = urlsplit(url)
     host = sp.netloc.lower()
-    if not host or host.startswith(("127.", "192.168.", "10.")):
+    if not host:
         return None
+    first_label = host.split(":")[0].split(".")[0]
+    if (host.startswith(("127.", "192.168.", "10.", "169.254."))
+            or first_label == "localhost"
+            or re.match(r"^172\.(1[6-9]|2\d|3[01])\.", host)):
+        return None  # AUDIT F9: jamais de play depuis une adresse privée
     method = (a.get("method") or "GET").upper()
     path = sp.path or "/"
     # généralisation : tout jeton d'instance vivant dans le path (sess_xxx,
@@ -117,33 +122,59 @@ def _play_from_call(tool, a, outcome, proof, ts, kind="grammar"):
 
 
 def _plays_from_rows(rows, ts_default=None):
-    """rows: [{round, tool_name, args_json, result_json, started_at}] → plays."""
+    """rows: [{round, tool_name, args_json, result_json, started_at}] → plays.
+
+    AUDIT F1: les batchs sérialisent un résultat PAR APPEL dans
+    results[i]["result"] (string échappée) — l'ordre d'exécution = l'ordre
+    des calls. L'attribution est donc PAR ITEM, jamais par ligne : un
+    web_fingerprint 200 dans le même batch qu'un POST 403 ne fabrique plus
+    de play fantôme. Sans forme reconnaissable, seule une ligne à UN appel
+    est attribuable honnêtement."""
     out = []
+
+    def _call_play(tool, a, item_res, ts):
+        m = (a.get("method") or "GET").upper()
+        ok_write = m in _WRITE_VERBS and (
+            re.search(r'"status":\s*2\d\d', item_res) or
+            '"success": true' in item_res or '"success":true' in item_res)
+        if ok_write:
+            p = _play_from_call(tool, a, f"{m} accepted", "", ts)
+            if p:
+                out.append(p)
+        if re.search(r'"exploitable":\s*(true|"partial")', item_res, re.I):
+            msum = re.search(r'"summary":\s*"([^"]{10,180})', item_res)
+            p = _play_from_call(tool, a, (msum.group(1) if msum else
+                                          "verdict exploitable"),
+                                "", ts, kind="verdict")
+            if p:
+                out.append(p)
+
     for r in rows:
         ts = (r.get("started_at") or ts_default or "")[:19]
-        # les batchs sérialisent leurs sous-résultats EN STRING → guillemets
-        # échappés (\"status\": 200). Normaliser AVANT tout matching, sinon
-        # la moitié des preuves rate silencieusement.
-        res = (r.get("result_json") or "").replace('\\"', '"')
+        row_res = r.get("result_json") or ""
         args = r.get("args_json") or ""
-        # proven write grammar: write verb + 200/201 in the same run
-        proven_2xx = bool(re.search(r'"status":\s*2\d\d', res))
-        proven_ok = '"success": true' in res or '"success":true' in res
-        for tool, a in _iter_calls(args):
-            m = (a.get("method") or "GET").upper()
-            if m in _WRITE_VERBS and (proven_2xx or proven_ok):
-                p = _play_from_call(tool, a, f"{m} accepted", "", ts)
-                if p:
-                    out.append(p)
-        # verdict-contract wins (exploitable true/partial) — the strikes
-        if re.search(r'"exploitable":\s*(true|"partial")', res, re.I):
-            msum = re.search(r'"summary":\s*"([^"]{10,180})', res)
-            for tool, a in _iter_calls(args):
-                p = _play_from_call(tool, a, (msum.group(1) if msum else
-                                              "verdict exploitable"),
-                                    "", ts, kind="verdict")
-                if p:
-                    out.append(p)
+        calls = list(_iter_calls(args))
+        # forme batch reconnue → attribution par item (l'ordre = les calls)
+        items = None
+        try:
+            parsed = json.loads(row_res)
+            if isinstance(parsed, dict) and isinstance(
+                    parsed.get("results"), list):
+                items = parsed["results"]
+        except Exception:
+            items = None
+        if items is not None and len(items) == len(calls):
+            for (tool, a), it in zip(calls, items):
+                if not isinstance(it, dict):
+                    continue
+                item_res = (it.get("result") or "").replace('\\"', '"')
+                _call_play(tool, a, item_res, ts)
+        elif len(calls) == 1:
+            # ligne mono-appel : le résultat EST cet appel (échappements normalisés)
+            tool, a = calls[0]
+            _call_play(tool, a, row_res.replace('\\"', '"'), ts)
+        # sinon (batch non reconnu, N appels) → pas d'attribution : mieux
+        # vaut un arsenal petit et VRAI qu'un arsenal riche et menteur.
     return out
 
 
@@ -201,6 +232,11 @@ def _fmt_play(p, generalize=False):
     host = "{TARGET}" if generalize else p["host"]
     bk = ",".join(p.get("body_keys") or [])
     body = f" body({bk})" if bk else ""
+    if generalize:
+        # AUDIT F6: pas de prose d'une autre cible en round 0 — la structure
+        # transfère, le texte de la cible A ne doit pas encadrer la cible B.
+        return (f"- [{p['kind']}] {p['method']} https://{host}{p['path']}{body} "
+                f"({p['tool']}, uses={p.get('uses', 1)}) [adapted from {p['host']}]")
     return (f"- [{p['kind']}] {p['method']} https://{host}{p['path']}{body} "
             f"→ {p['outcome']} ({p['tool']}, uses={p.get('uses', 1)})")
 
@@ -214,8 +250,18 @@ def recall_block(mission_text, store=STORE, cap=2600):
             return ""
         from core.mission_workspace import extract_target
         target = extract_target(mission_text)
-        same = [p for p in plays if target and p.get("host") == target]
-        other = [p for p in plays if not target or p.get("host") != target]
+
+        # AUDIT F3: la mission dit "venice.ai", les plays vivent sur
+        # "outerface.venice.ai" — un play est SAME-TARGET dès que son host
+        # EST la cible ou un SOUS-DOMAINE de la cible. Sinon le rappel
+        # verbatim ne tire jamais et tout finit "adapted" à tort.
+        def _same(h):
+            if not target or not h:
+                return False
+            return h == target or ("." in target and h.endswith("." + target))
+
+        same = [p for p in plays if _same(p.get("host"))]
+        other = [p for p in plays if not _same(p.get("host"))]
         lines = ["FIELD MANUAL (learned plays — proven call grammars from "
                  "prior campaigns. Same-target entries are VERIFIED on this "
                  "host: reuse them directly instead of re-deriving; adapted "
@@ -228,8 +274,7 @@ def recall_block(mission_text, store=STORE, cap=2600):
         if same:
             lines.append("")
         for p in other[:6]:
-            lines.append(_fmt_play(p, generalize=True) +
-                         f" [adapted from {p['host']}]")
+            lines.append(_fmt_play(p, generalize=True))
             n += 1
         prop = (d.get("proposals") or {}).get(target)
         if prop:

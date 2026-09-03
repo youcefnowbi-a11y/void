@@ -20,10 +20,13 @@ _STRINGS = []      # exact operator strings to replace (longest first)
 _IPS = []          # literal operator IPs -> [OPERATOR-IP-n]
 _RELAYS = []       # egress URLs -> [EGRESS-n]
 _FALLBACK_USER = re.compile(r"C:\\Users\\[^\\\s:]+\\", re.I)
-# défense en profondeur : TOUTE URL à credentials explicites (relay non
-# configurée, callback d'un outil) perd ses credentials, quels qu'ils soient
+# AUDIT F5 — défense en profondeur SANS destruction de preuve : les credentials
+# socks (relays, jamais de la cible) sont masqués même non configurés ; mais
+# `https://admin:admin@target.example` peut ÊTRE la découverte (creds-in-URL)
+# — la preuve cible http(s)/ftp reste intacte. Les relays http configurés
+# sont déjà couverts par le masque _RELAYS ci-dessus.
 _CREDS_URL = re.compile(
-    r"\b((?:socks5h?|socks4|https?|ftp)://)([^\s/:@]+):([^\s/@]+)@", re.I)
+    r"\b((?:socks5h?|socks4)://)([^\s/:@]+):([^\s/@]+)@", re.I)
 
 
 def _mask_relay(i, url):
