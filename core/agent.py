@@ -1359,14 +1359,17 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                 if t == "tool_start":
                     state["pending"][name] = ev.get("args") or {}
                 elif t == "tool_result":
+                    _res = ev.get("result") or ""
+                    # W2: honest status at the tap — inner batch failures were
+                    # ledgered [ok] because they returned strings, not raises
                     ws.log_run(name, state["pending"].get(name, {}),
-                               (ev.get("result") or ""), ev.get("duration") or 0.0,
-                               "ok", state["round"])
+                               _res, ev.get("duration") or 0.0,
+                               _cov.honest_status(_res), state["round"])
                     if name != state.get("outer"):
                         # inner batch tools: archive from the event stream
                         # (the outer call is archived full-fidelity in the loop)
-                        ws.save_extraction(name, ev.get("result") or "")
-                        ws.save_finding(name, ev.get("result") or "")
+                        ws.save_extraction(name, _res)
+                        ws.save_finding(name, _res)
                 elif t == "tool_error":
                     ws.log_run(name, state["pending"].get(name, {}),
                                "TOOL ERROR: " + str(ev.get("error"))[:300],
@@ -1553,7 +1556,9 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                             t0 = time.time()
                             out = reg.execute(tool_name, args, on_event=on_event)
                             dur = round(time.time() - t0, 2)
-                            status = "error" if isinstance(out, str) and out.startswith("TOOL ERROR") else "ok"
+                            # W2: honest status — a wrapped subprocess death is
+                            # a failure, not a silent [ok]
+                            status = _cov.honest_status(out)
                             if trid:
                                 mission_state.finish_tool_run(trid, out, dur, status)
                             try:
@@ -1675,9 +1680,10 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                 dur = round(time.time() - t0, 2)
                 state["outer"] = None
 
-                is_error = isinstance(out, str) and out.startswith("TOOL ERROR")
+                is_error = _cov.honest_status(out) == "error"
                 if trid:
-                    mission_state.finish_tool_run(trid, out, dur, "error" if is_error else "ok")
+                    mission_state.finish_tool_run(trid, out, dur,
+                                                  "error" if is_error else "ok")
                 # ── learning loop: every ONLINE tool run feeds the bandit ──
                 # (Tier F5: the reward is DISCOVERY or an honest structured
                 # negative — a bare successful fetch earns nothing, so the

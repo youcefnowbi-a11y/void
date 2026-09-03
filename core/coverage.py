@@ -145,6 +145,27 @@ def coverage_message(round_no, tool_names, total_rounds_label, available,
 
 _URL_RX = re.compile(r"https?://[^\s\"'<>\\)]+")
 
+# ── W2: honest ledger status ────────────────────────────────────────
+_FAIL_EXIT_RX = re.compile(r"\bexit=([1-9]\d*)\b")
+_OK_FALSE_RX = re.compile(r'"ok"\s*:\s*false')
+
+
+def honest_status(out):
+    """W2 (mission-76 autopsy): the ledger must not call a failed run a
+    success. auth_state_audit died on 'exit=2 [stderr] target /health
+    failed' and the ledger recorded [ok]; forged_siwx_signer returned
+    {'ok': false, 'errors': [missing modules]} — also [ok]. Both are
+    failures. Honest NEGATIVES (an 'exploitable': false verdict) stay
+    'ok': closing a lane with evidence is work, not an error."""
+    s = str(out or "")
+    if s.startswith("TOOL ERROR"):
+        return "error"
+    if _FAIL_EXIT_RX.search(s) and "[stderr]" in s:
+        return "error"
+    if _OK_FALSE_RX.search(s[:400]):
+        return "error"
+    return "ok"
+
 
 def harvest_targets(out, limit=5):
     """Scrape plausible strike URLs from a tool result (her own recon)."""

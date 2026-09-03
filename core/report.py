@@ -8,15 +8,58 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ENGAGEMENT_FILE = os.path.join(ROOT, "config", "engagement.yaml")
 
 SEVERITY_RULES = [
-    ("CRITICAL", re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----|sk_live_[A-Za-z0-9]{16,}|service_role", re.I)),
-    ("CRITICAL", re.compile(r"(?:postgres|mysql|mongodb(?:\+srv)?|redis)://[^\s'\"]{8,}", re.I)),
-    ("HIGH",     re.compile(r"eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,}(\.[A-Za-z0-9_-]{10,})?")),  # JWT (2 ou 3 segments)
-    ("HIGH",     re.compile(r"(?:anon[_\s-]?key|api[_\s-]?key|access[_\s-]?token|webhook[_\s-]?secret)\s*[:=]\s*['\"]?[A-Za-z0-9_\-/+=]{12,}", re.I)),
-    ("HIGH",     re.compile(r"AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|xoxb-[A-Za-z0-9\-]{10,}|AIza[A-Za-z0-9_\-]{35}")),
-    ("MEDIUM",   re.compile(r"\.r2\.dev|\.s3\.amazonaws\.com|storage/v1/bucket|supabase\.co", re.I)),
-    ("MEDIUM",   re.compile(r"(?:/rest/v1/|/auth/v1/(?:signup|anonymous-signin)|/functions/v1/)[^\s]*\s*[-–]\s*(?:200|201|307)", re.I)),
-    ("MEDIUM",   re.compile(r"(?:waf|cloudflare|edge function|redirect)[:,]", re.I)),
+    # rule_kind: "secret" (real key material, provenance-proof) | "jwt" |
+    # "cred" (credential assignment) | "cloudkey" | "infra" — W1 provenance
+    # gate needs to know WHAT matched, not only how bad it looks.
+    ("CRITICAL", re.compile(r"-----BEGIN [A-Z ]*PRIVATE KEY-----|sk_live_[A-Za-z0-9]{16,}|service_role", re.I), "secret"),
+    ("CRITICAL", re.compile(r"(?:postgres|mysql|mongodb(?:\+srv)?|redis)://[^\s'\"]{8,}", re.I), "secret"),
+    ("HIGH",     re.compile(r"eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,}(\.[A-Za-z0-9_-]{10,})?"), "jwt"),  # JWT (2 ou 3 segments)
+    ("HIGH",     re.compile(r"(?:anon[_\s-]?key|api[_\s-]?key|access[_\s-]?token|webhook[_\s-]?secret)\s*[:=]\s*['\"]?[A-Za-z0-9_\-/+=]{12,}", re.I), "cred"),
+    ("HIGH",     re.compile(r"AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|xoxb-[A-Za-z0-9\-]{10,}|AIza[A-Za-z0-9_\-]{35}"), "cloudkey"),
+    ("MEDIUM",   re.compile(r"\.r2\.dev|\.s3\.amazonaws\.com|storage/v1/bucket|supabase\.co", re.I), "infra"),
+    ("MEDIUM",   re.compile(r"(?:/rest/v1/|/auth/v1/(?:signup|anonymous-signin)|/functions/v1/)[^\s]*\s*[-–]\s*(?:200|201|307)", re.I), "infra"),
+    ("MEDIUM",   re.compile(r"(?:waf|cloudflare|edge function|redirect)[:,]", re.I), "infra"),
 ]
+
+# ── W1 (mission-76 autopsy): finding quality is PROVENANCE-AWARE ──────
+# The engagement report claimed "25 HIGH findings" that were 25 raw JWT
+# blobs — six of them HER OWN alg=none forgeries, the rest self-minted
+# session tokens, all harvested mechanically from the transcript while the
+# agent's own honest verdict count said ZERO. Rules:
+#   1. PROVENANCE — material inside our strike/forge/crypto tools is our
+#      own MUNITION (we made it, we know it), never a discovery. Real key
+#      material (secret/cloudkey kinds) still passes: if OUR tool output
+#      carries the target's live key, that IS a finding.
+#   2. NATURE — a captured JWT without an administrative marker in its
+#      context is credential material in transit: evidence (MEDIUM), not
+#      impact (HIGH). Rule 8: no demonstrated end-state = no HIGH.
+#   3. IDENTITY DEDUP — two JWTs of the same (iss, sub, aud) are ONE
+#      finding; the old exact-blob dedup counted every re-mint as a new
+#      discovery (mission 76 minted ~14 near-identical session tokens).
+_SELF_ARTIFACT_TOOLS = {
+    "jwt_forge_replay", "jwt_analyst", "crypto_hash", "session_keep",
+    "payload_library", "har_tokens", "replay_mutate", "arsenal_selftest",
+}
+_ADMIN_MARKER = re.compile(
+    r"(?i)\b(service[_\s-]?role|admin|internal|secret[_\s-]?key|"
+    r"sk_live|privilege|root[_\s-]?token|api[_\s-]?key)\b")
+
+
+def _jwt_identity(blob):
+    """Structural identity (iss|sub|aud) of a JWT — same identity = same
+    finding, however many times it was re-minted. Best-effort b64 decode;
+    blob-prefix fallback (header b64 is identical per signing key)."""
+    import base64
+    try:
+        seg = blob.split(".")
+        if len(seg) < 2:
+            return blob[:48]
+        pad = "=" * (-len(seg[1]) % 4)
+        payload = json.loads(base64.urlsafe_b64decode(seg[1] + pad) or b"{}")
+        ident = "|".join(str(payload.get(k, "")) for k in ("iss", "sub", "aud"))
+        return ident or blob[:48]
+    except Exception:
+        return blob[:48]
 
 def _load_engagement():
     try:
@@ -63,10 +106,23 @@ def _profile_line():
         return []
 
 def _extract_findings(transcript):
-    """Scan transcript text, dedupe matches, rank by severity."""
-    seen, findings = set(), []
+    """Scan transcript text, dedupe matches, rank by severity.
+
+    W1 (mission-76 autopsy): PROVENANCE-AWARE finding quality — our own
+    strike-munition (JWTs inside jwt_forge_replay/crypto_hash/forged_*)
+    is never a discovery; a captured JWT without an administrative marker
+    is evidence (MEDIUM), not impact (HIGH); same-identity JWTs collapse
+    to one finding. A report's FINDINGS section must read like findings,
+    not like our ammo inventory."""
+    seen, jwt_seen, findings = set(), set(), []
     for kind, text in transcript:
-        for sev, pat in SEVERITY_RULES:
+        # ── provenance: whose bytes are these? ──
+        tool_name = ""
+        if kind == "tool" or kind.endswith(":tool"):
+            tool_name = (text or "").split(":", 1)[0].strip()
+        is_self_artifact = (tool_name in _SELF_ARTIFACT_TOOLS
+                            or tool_name.startswith("forged_"))
+        for sev, pat, rule_kind in SEVERITY_RULES:
             for m in pat.finditer(text or ""):
                 # B-R2 : clé de dédup = match COMPLET. Le préfixe [:80] avalait
                 # deux secrets DISTINCTS partageant 80 chars (JWTs du même
@@ -74,10 +130,31 @@ def _extract_findings(transcript):
                 key = (sev, m.group(0))
                 if key in seen:
                     continue
-                seen.add(key)
                 snippet = m.group(0)
                 # contexte : la ligne qui contient le match
                 line = next((ln.strip()[:160] for ln in (text or "").splitlines() if m.group(0) in ln), snippet)
+                # W1-1 PROVENANCE: munition made by our own tools is not a
+                # discovery — EXCEPT real target key material (secret/cloudkey:
+                # if our forge output carries the target's live key, the
+                # target leaked it and it counts).
+                if is_self_artifact and rule_kind in ("jwt", "cred", "infra"):
+                    continue
+                # W1-3 IDENTITY DEDUP: re-minted same-identity JWTs are one
+                # finding, not N (mission 76: 14 near-identical session tokens
+                # each counted as a fresh HIGH discovery).
+                if rule_kind == "jwt":
+                    ident = _jwt_identity(snippet)
+                    if ident in jwt_seen:
+                        continue
+                    jwt_seen.add(ident)
+                # W1-2 NATURE: a captured JWT with no administrative marker in
+                # its context line is credential material in transit —
+                # evidence, not demonstrated impact (rule 8: no end-state, no
+                # HIGH).
+                if rule_kind == "jwt" and sev == "HIGH" \
+                        and not _ADMIN_MARKER.search(line):
+                    sev = "MEDIUM"
+                seen.add(key)
                 cap = 400 if any(p in snippet for p in ("eyJ", "sk_", "AKIA")) else 120
                 findings.append({"severity": sev, "evidence": snippet[:cap], "context": line})
     order = {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2}
