@@ -108,16 +108,20 @@ def egress_summary():
 
 
 def scrub(text):
-    """Strip operator identity from deliverable text. Idempotent."""
+    """Strip operator identity from deliverable text. Idempotent.
+    Y3.1 (audit-4): Windows hostnames/usernames are case-insensitive —
+    str.replace missed DESKTOP-ABC vs desktop-abc and the identity
+    leaked into client deliverables. All identity replaces are now
+    case-insensitive regex substitutions."""
     if not text:
         return text
     _load()
     for i, url in enumerate(_RELAYS):
-        text = text.replace(url, _mask_relay(i, url))
+        text = re.sub(re.escape(url), lambda m, _u=url, _i=i: _mask_relay(_i, _u), text, flags=re.I)
     for i, ip in enumerate(_IPS):
-        text = text.replace(ip, f"[OPERATOR-IP-{i + 1}]")
+        text = re.sub(re.escape(ip), f"[OPERATOR-IP-{i + 1}]", text, flags=re.I)
     for s in _STRINGS:
-        text = text.replace(s, "[OPERATOR]")
+        text = re.sub(re.escape(s), "[OPERATOR]", text, flags=re.I)
     # credentials dans une URL (configurée ou pas) : jamais
     text = _CREDS_URL.sub(lambda m: f"{m.group(1)}[REDACTED]@", text)
     # dernier filet : tout chemin utilisateur résiduel (autre session Windows)

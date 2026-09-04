@@ -157,11 +157,20 @@ def deposit(kind, payload, provenance=""):
     h = _content_hash(payload)
     if kind == "play":
         try:
-            from core.learned_plays import merge_plays, _load
-            added = merge_plays(_load().get("plays", []),
+            # Y1.1 (audit-4): the old code merged into a FRESH dict from
+            # _load() and never called _save — {"ok": True} while the
+            # data evaporated with the local variable. Every vault
+            # depositor was writing to /dev/null with a receipt.
+            from core.learned_plays import merge_plays, _load, _save, STORE
+            d = _load()
+            added = merge_plays(d.setdefault("plays", []),
                                 [payload] if isinstance(payload, dict)
                                 else [])
-            return {"ok": True, "kind": kind, "merged": len(added)}
+            _save(d, STORE)
+            # merge_plays returns the ADDED count (int) — the old len()
+            # on it crashed post-save and the except turned the whole
+            # deposit into {"error": ...} even though the write happened.
+            return {"ok": True, "kind": kind, "merged": int(added)}
         except Exception as e:
             return {"error": f"play merge failed: {e}"}
     cap_id = (payload.get("id") if isinstance(payload, dict)
@@ -203,7 +212,23 @@ def capability_block(cap=_MAX_BLOCK_CHARS):
         lines.append(f"- [{r['kind']}] {r['id']} "
                      f"(reuse={r['score']}) {desc}")
     shown = {(r["kind"]) for r in rows}
+    # Y1.2 (audit-4): top(10) ranked purely by reuse buried skills and
+    # forged tools below high-use plays — used-once capabilities were
+    # invisible to the LLM. Every KIND now gets a guaranteed slot: the
+    # top entry of any silent kind rides the block.
     inv = recall()
+    for kind in ("skill", "forged"):
+        if kind in shown:
+            continue
+        items = sorted((r for r in inv if r["kind"] == kind),
+                       key=lambda r: -r["score"])
+        if items:
+            r = items[0]
+            desc = (r["payload"].get("desc") or
+                    r["payload"].get("title") or "")[:90]
+            lines.append(f"- [{kind}] {r['id']} (reuse={r['score']}) {desc}"
+                         f"  ← top of {len(items)} available {kind}s")
+            shown.add(kind)
     for kind, label in (("forged", "forged tools"),
                         ("skill", "skills")):
         if kind in shown:

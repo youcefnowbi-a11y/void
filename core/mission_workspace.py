@@ -55,10 +55,19 @@ def extract_target(mission):
 
 
 class Workspace:
-    def __init__(self, target=None):
+    def __init__(self, target=None, isolate=False):
         self.created = time.strftime("%Y%m%d_%H%M%S")
         self.target = _slug(target) if target else None
         base = os.path.join(WORKSPACES, self.target or f"untitled_{self.created}")
+        # Y2.2 (audit-4): two concurrent missions on the SAME target
+        # shared one ledger/extractions/findings dir — re-running a
+        # mission while a swarm was still live blended both ledgers and
+        # the power report showed phantom tools. isolate=True (set by
+        # the launcher when a collision is detected) gives the run its
+        # own subdirectory; the classic path stays identical for
+        # single-run flows so prior missions remain readable.
+        if isolate:
+            base = os.path.join(base, f"run_{self.created}")
         self.dir = base
         self.extractions = os.path.join(base, "extractions")
         self.findings = os.path.join(base, "findings")
@@ -73,10 +82,23 @@ class Workspace:
     def log_run(self, tool, args, out, duration, status, round_num):
         verdict = None
         try:
-            parsed = json.loads(out) if isinstance(out, str) and out.startswith("{") else None
-            if isinstance(parsed, dict) and "exploitable" in parsed:
-                verdict = {"exploitable": parsed.get("exploitable"),
-                           "summary": (parsed.get("summary") or "")[:300]}
+            # Y2.3 (audit-4): leading whitespace/BOM/debug lines made
+            # startswith("{") miss — the verdict died in the ledger even
+            # when the tool returned one. Strip, then accept any JSON
+            # value and keep dict-shaped verdicts.
+            _o = (out.lstrip("\ufeff \t\r\n") if isinstance(out, str) else "")
+            _j = None
+            if _o.startswith("{") or _o.startswith("["):
+                _j = json.loads(_o)
+            if isinstance(_j, dict) and "exploitable" in _j:
+                verdict = {"exploitable": _j.get("exploitable"),
+                           "summary": (_j.get("summary") or "")[:300]}
+            elif isinstance(_j, list):
+                for _it in _j:
+                    if isinstance(_it, dict) and "exploitable" in _it:
+                        verdict = {"exploitable": _it.get("exploitable"),
+                                   "summary": (_it.get("summary") or "")[:300]}
+                        break
         except Exception:
             pass
         entry = {"ts": time.strftime("%Y-%m-%d %H:%M:%S"), "round": round_num,
@@ -320,12 +342,28 @@ class Workspace:
                 except Exception:
                     continue
                 verdict = None
-                m = re.search(r"```json\n(\{.*?\})", card, re.S)
+                # Y2.1 (audit-4): the non-greedy .*? stopped at the FIRST
+                # } — a nested verdict ({"steps": {"dbms": ...}}) was one
+                # brace short, json.loads failed, and the finding lost its
+                # structured data in the dossier. Balanced-brace walk.
+                m = re.search(r"```json\s*\n", card)
                 if m:
-                    try:
-                        verdict = json.loads(m.group(1))
-                    except Exception:
-                        verdict = None
+                    _start = card.find("{", m.end())
+                    if _start != -1:
+                        _depth, _i = 0, _start
+                        while _i < len(card):
+                            if card[_i] == "{":
+                                _depth += 1
+                            elif card[_i] == "}":
+                                _depth -= 1
+                                if _depth == 0:
+                                    break
+                            _i += 1
+                        if _depth == 0 and _i < len(card):
+                            try:
+                                verdict = json.loads(card[_start:_i + 1])
+                            except Exception:
+                                verdict = None
                 tag = "CONFIRMED" if "_confirmed" in fn else (
                     "PARTIAL" if "_partial" in fn else "VERDICT")
                 sev = (verdict or {}).get("severity") or ("HIGH" if tag == "CONFIRMED" else "MEDIUM")
@@ -684,6 +722,8 @@ def _json_compact(args):
 #  module for the mission context the agent loop established)
 import threading
 _thread_local = threading.local()
+_LIVE_LOCK = threading.Lock()      # Y2.2: registry of live target claims
+_LIVE_TARGETS = {}
 
 
 def set_active(ws):
@@ -694,6 +734,26 @@ def get_active():
     return getattr(_thread_local, "active_ws", None)
 
 
-def workspace_for(mission):
-    """Create (or reuse) the workspace for this mission's target."""
-    return Workspace(extract_target(mission))
+def workspace_for(mission, isolate=None):
+    """Create (or reuse) the workspace for this mission's target.
+    Y2.2: auto-isolate when a LIVE mission already holds the target —
+    ledger collisions between a swarm and a manual re-run corrupted
+    both. A second concurrent claim on a busy target gets its own
+    run_<ts> directory; the first claim keeps the classic path."""
+    tgt = extract_target(mission)
+    with _LIVE_LOCK:
+        busy = _LIVE_TARGETS.get(tgt)
+        isolate = bool(isolate) if isolate is not None else bool(busy)
+        ws = Workspace(tgt, isolate=isolate)
+        _LIVE_TARGETS[tgt] = ws
+    return ws
+
+
+def release_workspace(ws):
+    """Mark a target's workspace as no longer live (mission closed)."""
+    try:
+        with _LIVE_LOCK:
+            if _LIVE_TARGETS.get(getattr(ws, "target", None)) is ws:
+                _LIVE_TARGETS.pop(getattr(ws, "target", None), None)
+    except Exception:
+        pass

@@ -2115,6 +2115,13 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                                       f"(forte: {sum(1 for k,_ in transcript if k=='tool')} coups tracés)"})
             except Exception:
                 pass
+            # Y2.2: libère la cible — un re-run manuel ne s'isolera plus
+            # inutilement après la fermeture propre de la mission.
+            try:
+                from core.mission_workspace import release_workspace
+                release_workspace(ws)
+            except Exception:
+                pass
 
         # ── D-B1 : flush de la Living Graph au teardown — le save coalescé
         # (R2-6) peut laisser _dirty posé quand la dernière observation date

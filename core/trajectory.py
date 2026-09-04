@@ -82,7 +82,9 @@ def record(mission_id, target, tool, ok, duration, round_num=0, args_digest="",
 
 
 def _count_lines(path):
-    """Comptage par blocs de 1 Mo — O(octets), zéro parse JSON (R2-7)."""
+    """Comptage par blocs de 1 Mo — O(octets), zéro parse JSON (R2-7).
+    Y4.1: kept for callers that need the count itself, but _events no
+    longer uses it (reverse tail-read below)."""
     n = 0
     try:
         with open(path, encoding="utf-8", errors="replace") as f:
@@ -96,30 +98,51 @@ def _count_lines(path):
     return n
 
 
-def _events():
-    """R2-7 : seule la queue du corpus alimente les bigrammes — on saute
-    l'entête (n - 2000 lignes) et on parse uniquement la fin du fichier."""
-    evs = []
+def _tail_lines(path, n):
+    """Y4.1 (audit-4): read the LAST n lines by seeking from EOF —
+    the old path counted every newline in the file (O(size)) and then
+    re-read the whole file skipping lines. One pass, bounded reads."""
     try:
-        n_lines = _count_lines(_PATH)
-        with open(_PATH, encoding="utf-8", errors="replace") as f:
-            skip = max(0, n_lines - _TAIL_LINES)
-            for _ in range(skip):
-                if not f.readline():
+        with open(path, "rb") as f:
+            f.seek(0, 2)               # EOF
+            pos = f.tell()
+            chunk = 1 << 16
+            buf = b""
+            while pos > 0:
+                step = min(chunk, pos)
+                pos -= step
+                f.seek(pos)
+                buf = f.read(step) + buf
+                if buf.count(b"\n") >= n:
                     break
-            for line in f:
+        lines = buf.split(b"\n")
+        # drop the possible partial head and/or empty trailing element
+        if pos > 0 and lines:
+            lines = lines[1:]
+        if lines and not lines[-1].strip():
+            lines = lines[:-1]
+        out = []
+        for ln in lines[-n:]:
+            if ln.strip():
                 try:
-                    evs.append(json.loads(line))
+                    out.append(json.loads(ln.decode("utf-8", "replace")))
                 except Exception:
                     continue
+        return out
     except Exception:
-        pass
-    return evs
+        return []
+
+
+def _events():
+    """R2-7 : seule la queue du corpus alimente les bigrammes — on saute
+    l'entête (n - 2000 lignes) et on parse uniquement la fin du fichier.
+    Y4.1: reverse tail-read — no full-file pass, no double read."""
+    return _tail_lines(_PATH, _TAIL_LINES)
 
 
 def tool_reliability(limit=15):
     """Per-tool success rate + count across all archived missions."""
-    stats = defaultdict(lambda: [0, 0.0])  # tool -> [n, sum(dur)]
+    stats = defaultdict(lambda: [0, 0.0])  # tool -> [runs, wins]  (Y4.2: was mislabeled [n, sum(dur)] — s[1] counts successes, not durations)
     for e in _events():
         t = e.get("tool")
         if not t:
