@@ -88,18 +88,20 @@ def ingest(target, name, out):
             model = _load(target)
             changed = False
             # endpoints from any URL seen in results
-            for host, _ in _ENDPOINT_RX.findall(text[:12000]):
-                for m in re.finditer(r"https?://[^\s\"'<>\\)}\]]+", text[:12000]):
-                    tpl = _templatize(m.group(0))
-                    if tpl not in [e["tpl"] for e in model["endpoints"]]:
-                        model["endpoints"].append(
-                            {"tpl": tpl, "seen_with": name,
-                             "ts": time.time(), "hits": 1})
-                        changed = True
-                    else:
-                        for e in model["endpoints"]:
-                            if e["tpl"] == tpl:
-                                e["hits"] = int(e.get("hits", 1)) + 1
+            # Z2.2 (audit-5): the old outer findall loop was dead code —
+            # its body ran the same full-text finditer every iteration
+            # and never used the outer match. One pass, same results.
+            for m in re.finditer(r"https?://[^\s\"'<>\\)}\]]+", text[:12000]):
+                tpl = _templatize(m.group(0))
+                if tpl not in [e["tpl"] for e in model["endpoints"]]:
+                    model["endpoints"].append(
+                        {"tpl": tpl, "seen_with": name,
+                         "ts": time.time(), "hits": 1})
+                    changed = True
+                else:
+                    for e in model["endpoints"]:
+                        if e["tpl"] == tpl:
+                            e["hits"] = int(e.get("hits", 1)) + 1
             # client belief candidates: money/tier logic in JS or payloads
             src = name if (name or "").startswith(("js", "deobf", "forged_js")) \
                 else None

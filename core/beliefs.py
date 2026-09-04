@@ -83,7 +83,11 @@ def record(target, claim, verdict, direction="violated", evidence="",
                 min(1.0, max(0.0, c + (v - c) * step * 2)), 3)
             existing["verdict"] = verdict
             existing["ts"] = ts
+            # Z4.1 (audit-5): a re-test that CONFIRMS must carry its own
+            # direction — the first record's default ("violated") used to
+            # persist forever, painting a confirmed defense as a violation.
             if verdict == "CONFIRMED":
+                existing["direction"] = str(direction or "violated")[:12]
                 existing["evidence"] = str(evidence or existing.get("evidence", ""))[:500]
             existing["mission_id"] = mission_id or existing.get("mission_id")
             existing["source_tool"] = source_tool or existing.get("source_tool")

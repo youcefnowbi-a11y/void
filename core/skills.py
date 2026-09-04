@@ -66,15 +66,30 @@ def _parse(path):
             "path": path, "text": text}
 
 
+_LIST_CACHE = {"mtime": None, "skills": None}  # Z5.3: disk scan memoized
+
+
 def list_skills():
     out = []
     if not os.path.isdir(SKILLS_DIR):
         return out
+    # Z5.3 (audit-5): the old code re-read and re-parsed every .md file
+    # on EVERY call — select_block() alone triggered 3 full disk scans
+    # per mission start. Memoize on the directory's mtime signature.
+    try:
+        sig = max((os.path.getmtime(os.path.join(SKILLS_DIR, fn))
+                   for fn in os.listdir(SKILLS_DIR)), default=0.0)
+    except OSError:
+        sig = 0.0
+    if _LIST_CACHE["skills"] is not None and _LIST_CACHE["mtime"] == sig:
+        return _LIST_CACHE["skills"]
     for fn in sorted(os.listdir(SKILLS_DIR)):
         if fn.endswith(".md"):
             s = _parse(os.path.join(SKILLS_DIR, fn))
             if s:
                 out.append(s)
+    _LIST_CACHE["mtime"] = sig
+    _LIST_CACHE["skills"] = out
     return out
 
 

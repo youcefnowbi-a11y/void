@@ -274,7 +274,7 @@ def write_report(mission, transcript, folder, board=None):
     lines += ["## FULL TRANSCRIPT (evidence)", ""]
     for kind, text in transcript:
         icon = "🧠" if kind == "agent" else "⚙"
-        lines.append(f"\n### {icon} {kind.upper()}\n```\n{(text or '')[:8000]}\n```")
+        lines.append(f"\n### {icon} {kind.upper()}\n```\n{(text or '')[:16000]}\n```")  # Z5.1: 8K->16K — nmap/spa_crawl tails survive
 
     # scrub opérateur : hostname/username/IPs locales/URLs d'egress ne
     # partent JAMAIS dans le livrable client (une passe, idempotent)

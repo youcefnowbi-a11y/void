@@ -131,94 +131,58 @@ def _next_cursor(items, cursor_field=None, hint=None):
 
 def _http(url, method="GET", headers=None, body=None, timeout=25,
           content_type=None, _redirects=0, use_jar=False):
-    """Raw HTTP with full response capture.  Follows 307/308, captures
-    Set-Cookie, and supports json / form / raw body encoding.
+    """Data-exfil HTTP lane, now riding the hardened transport.
 
-    content_type: "json" (default) | "form" | "raw"
-      json  → dict/list JSON-encoded, Content-Type: application/json
-      form  → dict url-encoded, str sent raw; Content-Type: x-www-form-urlencoded
-      raw   → body sent as-is, no Content-Type override
-
-    use_jar (W12): replay this host's stored cookies on the outgoing
-    request — session chains survive across calls. Set-Cookie capture
-    happens on EVERY call regardless.
+    Z1.2 (audit-5): _http() was a standalone naked urllib client — no
+    proxy pool, no TLS impersonation, no captcha hook, no ROE governor,
+    no response cache, no DNS fallback. A WAF the transport would
+    rotate around blocked the PRIMARY data-extraction tools forever.
+    Now a thin adapter over tools._transport.fetch: same call shape
+    (W15 auto-POST, W14 form/JSON body encoding, W12 cookie jar, 307/308
+    redirects), all transport features underneath.
+    Returns the _http contract: status/body/headers/cookies/size/
+    final_url (+ redirect fields on hops).
     """
-    # ── W15 (mission-79 autopsy): a body on a default-GET request never
-    # reaches the wire — urllib sends GET-with-body, servers ignore the
-    # body, FastAPI answers 422 "Field required" and the agent burns
-    # rounds diagnosing a strike that was never sent. A body present
-    # with no explicit method IS a POST; make it one. ──
     if body is not None and (method or "GET").upper() == "GET":
         method = "POST"
-    h = {"User-Agent": UA}
-    if headers:
-        h.update(headers)
+    h = dict(headers or {})
     if use_jar:
         h = _jar_merge(url, h)
-    rq = urllib.request.Request(url, method=method, headers=h)
-    data = None
+    # body encoding: form (W14) / raw / json — pre-cooked so fetch
+    # ships the exact bytes the old lane shipped.
+    wire = None
     if body is not None:
         ct = (content_type or "json").lower()
         if ct == "form":
             if isinstance(body, dict):
-                # W14 (mission-78 autopsy): nested dict/list values in a
-                # form body must serialize as JSON INSIDE the field (web
-                # convention) — urlencode() alone str()-ifies Python
-                # dicts, and Clerk reads that as a literal "{'a': 1}"
-                # string → 422 form_param_unknown.
                 flat = {k: (json.dumps(v) if isinstance(v, (dict, list))
                             else v) for k, v in body.items()}
-                data = urllib.parse.urlencode(flat).encode()
+                wire = urllib.parse.urlencode(flat).encode()
             elif isinstance(body, str):
-                data = body.encode()
+                wire = body.encode()
             else:
-                data = str(body).encode()
-            if "Content-Type" not in h and "content-type" not in h:
-                rq.add_header("Content-Type", "application/x-www-form-urlencoded")
+                wire = str(body).encode()
+            h.setdefault("Content-Type", "application/x-www-form-urlencoded")
         elif ct == "raw":
-            data = body.encode() if isinstance(body, str) else body
-        else:  # json (default)
-            data = json.dumps(body).encode() if isinstance(body, (dict, list)) else body.encode()
-            if "Content-Type" not in h and "content-type" not in h:
-                rq.add_header("Content-Type", "application/json")
-    try:
-        r = urllib.request.urlopen(rq, data=data, timeout=timeout)
-        resp_hdrs = dict(r.headers) if hasattr(r, "headers") else {}
-        cookies = r.headers.get_all("Set-Cookie") if hasattr(r.headers, "get_all") else []
-        _jar_capture(url, cookies)
-        raw = r.read().decode(errors="replace")
-        return {"status": r.status, "body": raw, "headers": resp_hdrs,
-                "cookies": cookies or [],
-                "size": len(raw), "final_url": r.geturl()}
-    except urllib.error.HTTPError as ex:
-        loc = ex.headers.get("Location") if ex.code in (301, 302, 303, 307, 308) else None
-        if loc and _redirects < 3:
-            nxt = urllib.parse.urljoin(url, loc)
-            m2 = "GET" if ex.code in (301, 302, 303) else method
-            res = _http(nxt, method=m2, headers=headers, body=body,
-                        content_type=content_type,
-                        timeout=timeout, _redirects=_redirects + 1,
-                        use_jar=use_jar)
-            res["redirected_from"] = url
-            res["redirect_status"] = ex.code
-            return res
-        resp_hdrs = dict(ex.headers) if hasattr(ex, "headers") else {}
-        cookies = ex.headers.get_all("Set-Cookie") if hasattr(ex.headers, "get_all") else []
-        _jar_capture(url, cookies)
-        try:
-            raw = ex.read().decode(errors="replace")
-        except Exception:
-            # R5-11: reset pendant la lecture du body — la réponse cible
-            # (status réel) reste authentique, body vide par défaut
-            raw = ""
-        return {"status": ex.code, "body": raw, "headers": resp_hdrs,
-                "cookies": cookies or [],
-                "size": len(raw), "final_url": url}
-    except Exception as ex:
-        return {"status": -1, "body": f"{type(ex).__name__}: {str(ex)[:200]}",
-                "headers": {}, "cookies": [], "size": 0, "final_url": url}
-
-
+            wire = body.encode() if isinstance(body, str) else body
+        else:
+            wire = json.dumps(body).encode() if isinstance(body, (dict, list)) \
+                else body.encode()
+            h.setdefault("Content-Type", "application/json")
+    from tools._transport import fetch as _fetch
+    out = _fetch(url, method=method, headers=h or None, body=wire,
+                 timeout=timeout, use_cache=False)
+    cookies = out.get("headers", {}).get("set-cookie")
+    if isinstance(cookies, str):
+        cookies = [cookies]
+    _jar_capture(url, cookies or [])
+    res = {"status": out.get("status", -1), "body": out.get("body", ""),
+           "headers": out.get("headers", {}), "cookies": cookies or [],
+           "size": out.get("size", 0), "final_url": out.get("final_url") or url}
+    if out.get("redirect_status"):
+        res["redirected_from"] = url
+        res["redirect_status"] = out["redirect_status"]
+    return res
 # ─────────────────────────────────────────────────────────
 # 1. GENERIC DATA EXTRACTION — hit any URL with any auth
 # ─────────────────────────────────────────────────────────

@@ -182,14 +182,20 @@ class Blackboard:
         return cov
 
     def unmade_connections(self, limit=8):
-        """Hunt pairs the agent never tried. Returns ranked suggestions."""
+        """Hunt pairs the agent never tried. Returns ranked suggestions.
+        Z2.1 (audit-5): linked() is O(edges) per call — inside the keys x
+        endpoints loop this was O(E x K x P): 50 keys x 200 endpoints x
+        500 edges = 5M iterations per coverage order. One pre-built set
+        of unordered pairs makes every lookup O(1)."""
         out = []
         keys = [a for a in self.assets.values() if a["kind"] == "key"]
         endpoints = [a for a in self.assets.values() if a["kind"] == "endpoint"]
+        with self.lock:
+            pairs = {frozenset((s, d)) for (s, _r, d) in self.edges}
         for k in keys:
             for e in endpoints:
                 kk, ek = f"key:{k['value']}", f"endpoint:{e['value']}"
-                if self.linked(kk, ek):
+                if frozenset((kk, ek)) in pairs:
                     continue
                 boost = 0.15 if not self.is_tested(ek) else 0.0
                 out.append({"suggestion": f"probe {e['value']} using {k['kind']} {k['value'][:24]}…",

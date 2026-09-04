@@ -85,29 +85,27 @@ def test_w13_triage_directory_autodiscovery(tmp_path=None):
 # ── W14: form-encoding nested values ──────────────────────────────
 
 def test_w14_form_nested_values_json_encoded():
-    from tools.data_exfil import _http
+    # Z1.2 migrated _http onto tools._transport.fetch — the W14 encoding
+    # now lives in the adapter's pre-cooked wire body. Assert the same
+    # contract at the new seam.
+    from unittest.mock import patch
+    from tools import data_exfil
     sent = {}
 
-    def fake_urlopen(rq, data=None, timeout=None):
-        sent["data"] = data
-        class R:
-            status = 200
-            headers = {"Content-Type": "application/json"}
-            def read(self): return b"{}"
-            def geturl(self): return rq.full_url
-        return R()
+    def fake_fetch(url, method="GET", headers=None, body=None,
+                   timeout=25, use_cache=False):
+        sent["body"] = body
+        sent["ct"] = (headers or {}).get("Content-Type")
+        return {"status": 200, "body": "{}", "headers": {},
+                "size": 2, "final_url": url}
 
-    import urllib.request as _ur
-    orig = _ur.urlopen
-    _ur.urlopen = fake_urlopen
-    try:
-        _http("https://api.example.com/login", method="POST",
-              body={"identifier": "op@x.io", "strategy": "password",
-                    "meta": {"device": "test"}},
-              content_type="form")
-    finally:
-        _ur.urlopen = orig
-    body = (sent["data"] or b"").decode()
+    with patch("tools._transport.fetch", fake_fetch):
+        data_exfil._http("https://api.example.com/login", method="POST",
+                         body={"identifier": "op@x.io", "strategy": "password",
+                               "meta": {"device": "test"}},
+                         content_type="form")
+    body = (sent["body"] or b"").decode()
     assert "identifier=op%40x.io" in body
     assert "meta=%7B%22device%22%3A" in body, \
         "nested dict must JSON-encode inside the form field"
+    assert sent["ct"] == "application/x-www-form-urlencoded"
