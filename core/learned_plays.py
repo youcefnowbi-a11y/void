@@ -151,6 +151,13 @@ def _plays_from_rows(rows, ts_default=None):
     out = []
 
     def _call_play(tool, a, item_res, ts):
+        # wave-2-B fix #7: refusal/error strings never mint plays — a
+        # dead call's traceback tail can echo target-controlled text
+        # that matches the verdict regexes, polluting the persistent
+        # arsenal under the real tool's name.
+        _s = str(item_res or "")
+        if _s.startswith(("TOOL ERROR", "TOOL DEFERRED")) or not _s.strip():
+            return
         m = (a.get("method") or "GET").upper()
         ok_write = m in _WRITE_VERBS and (
             re.search(r'"status":\s*2\d\d', item_res) or

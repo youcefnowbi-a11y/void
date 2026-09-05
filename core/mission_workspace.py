@@ -42,6 +42,30 @@ def _slug(name):
     return s[:48] or "target"
 
 
+def _load_jsonl_tolerant(path, dicts_only=True):
+    """wave-2-B fix #3: line-tolerant JSONL loader — one corrupt line
+    (crash mid-append, power cut) must never zero the whole deliverable.
+    Returns (rows, bad_count)."""
+    rows, bad = [], 0
+    try:
+        with open(path, encoding="utf-8", errors="replace") as f:
+            for ln in f:
+                ln = ln.strip()
+                if not ln:
+                    continue
+                try:
+                    d = json.loads(ln)
+                    if dicts_only and not isinstance(d, dict):
+                        bad += 1
+                        continue
+                    rows.append(d)
+                except Exception:
+                    bad += 1
+    except Exception:
+        pass
+    return rows, bad
+
+
 def extract_target(mission):
     """Best-effort target name from the mission text (hostname preferred,
     port stripped — one folder per target, whatever the service)."""
@@ -342,12 +366,7 @@ class Workspace:
         d'engagement reste le dossier technique complet ; celui-ci est la
         lecture humaine, preuve par preuve."""
         try:
-            rows = []
-            try:
-                with open(self.ledger_path, encoding="utf-8") as f:
-                    rows = [json.loads(ln) for ln in f if ln.strip()]
-            except Exception:
-                pass
+            rows, _bad = _load_jsonl_tolerant(self.ledger_path)
 
             confirmed, partial, negatives = [], [], []
             for fn in sorted(x for x in os.listdir(self.findings)
@@ -497,10 +516,14 @@ class Workspace:
                       f"de signal de preuve (détection mécanique à la frappe)*", "",
                       "| Heure | Outil | Statut | Signaux | Fichier |", "|---|---|---|---|---|"]
                 for e in idx_rows[-60:]:
+                    # wave-2-B: a hand-edited/partial index entry must not
+                    # KeyError the whole dossier table.
                     mk = ", ".join(e.get("markers") or []) or "—"
                     st = e.get("status") if e.get("status") is not None else "—"
-                    L.append(f"| {e.get('ts', '—')[11:19]} | {e['tool']} | {st} "
-                             f"| {mk} | `extractions/{e['file']}` |")
+                    _ts = str(e.get("ts") or "—")
+                    L.append(f"| {_ts[11:19] if len(_ts) > 19 else _ts} "
+                             f"| {e.get('tool', '?')} | {st} "
+                             f"| {mk} | `extractions/{e.get('file', '?')}` |")
             else:
                 try:
                     L.append(self.proof_section(cap=4500))
@@ -554,12 +577,7 @@ class Workspace:
         pour que l'opérateur corrige VOIDFORGE jusqu'à la perfection.
         Couche mécanique (ledger) + la section de l'agent si elle l'a écrite."""
         try:
-            rows = []
-            try:
-                with open(self.ledger_path, encoding="utf-8") as f:
-                    rows = [json.loads(ln) for ln in f if ln.strip()]
-            except Exception:
-                pass
+            rows, _bad = _load_jsonl_tolerant(self.ledger_path)
             fails = [r for r in rows if r.get("status") not in ("ok", None, "")]
             L = [f"# ÉTAT DE L'APPLICATION — {self.target or 'untitled'}",
                  f"*Rapport d'incidents de la mission — {time.strftime('%Y-%m-%d %H:%M:%S')} · "
@@ -728,10 +746,10 @@ class Workspace:
                 out.append(f"- `{fn}` (lecture impossible)")
         # 3. ledger summary
         try:
-            with open(self.ledger_path, encoding="utf-8") as f:
-                rows = [json.loads(l) for l in f if l.strip()]
-            n_err = sum(1 for r in rows if r["status"] == "error")
-            out.append(f"\n### Campagne (ledger) — {len(rows)} exécutions, {n_err} échec(s)")
+            rows, _bad = _load_jsonl_tolerant(self.ledger_path)
+            n_err = sum(1 for r in rows if r.get("status") == "error")
+            out.append(f"\n### Campagne (ledger) — {len(rows)} exécutions, {n_err} échec(s)"
+                       + (f" · {_bad} ligne(s) corrompue(s) ignorée(s)" if _bad else ""))
         except Exception:
             pass
         text = "\n".join(out)

@@ -406,19 +406,27 @@ class Blackboard:
 
 
 # ── context-global active board (transport hooks write here) ─────
-_active = None
+# wave-2-B fix #11: the module-global _active let a second in-process
+# mission (swarm) redirect the FIRST mission's observe() traffic onto
+# the new board — cross-mission asset crossfeed. Thread-local now (the
+# same class the event emitters and workspaces already fixed); the
+# process-wide pointer stays as a compat fallback for mixed-thread calls.
+_tls = threading.local()
+_active = None            # last-set board — mixed-thread fallback only
 _active_lock = threading.Lock()
 
 
 def set_active(board):
     global _active
     with _active_lock:
+        _tls.active_board = board
         _active = board
 
 
 def get_active():
     with _active_lock:
-        return _active
+        b = getattr(_tls, "active_board", None)
+        return b if b is not None else _active
 
 
 def observe(tool_name, result):

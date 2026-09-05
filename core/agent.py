@@ -1605,6 +1605,7 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
         # must not poison this mission's pivot decisions.
         try:
             from core import stop_rails
+            stop_rails.mission_open()   # wave-2-B #10: live-mission count
             stop_rails.reset()
         except Exception:
             pass

@@ -222,18 +222,21 @@ owns server.py's working copy; expected failure, not ours).
     first RLock fix deadlocked the battery — Lock non-reentrant, caught
     by the full run); _healed marker stamped on RESULTS (not args —
     a stray kwarg would kill the tool run).
-  - 2-B periphery: 11 findings (1 HIGH, 6 MEDIUM, 4 LOW) —
-    honest_status tri-state ("TOOL DEFERRED" was banked as ok:
-    never-executed Ω1 defers fed tool_runs/bandit/trajectory/twin
-    ranks; now "deferred" banks NOTHING, both online and offline
-    paths); reward_signal refuses ERROR-tail matches; line-tolerant
-    JSONL readers (index.jsonl inventory + power report — one corrupt
-    line zeroed the whole deliverable); save_finding lstrip fix (Y2.3
-    whitespace class) + healed-tail JSON head parse; rails see through
-    batch JSON-escaped statuses; evidence_state strips echoed-payload
-    blocks (forgeable ^VERIFIED markers in attacker-controlled echo).
-    LOWs (rails reset / blackboard _active seams, truncation zombies)
-    documented in map — in-process swarm seams accepted as designed.
+  - 2-B periphery (detailed report, fully closed): honest_status
+    tri-state + empty-string zombie + full-string ok:false scan (the
+    400-char window hid deep batch failures); defers bank NOTHING
+    (online + offline gated); reward_signal refuses ERROR tails;
+    line-tolerant JSONL loader at ALL FIVE deliverable sites (power
+    report, dossier ledger, evidence inventory, app-state, proof
+    section) + corrupt-count surfaced + e['tool'] KeyError guard;
+    save_finding lstrip fix; rails see through batch JSON-escaped
+    statuses; evidence_state strips echoed-payload blocks (forgeable
+    markers in attacker-controlled echoes); learned_plays _call_play
+    error-gate (dead-call tracebacks minted phantom plays into the
+    persistent arsenal); rails live-mission counter (in-process swarm
+    reset no longer wipes a sibling's window); blackboard thread-local
+    _active (cross-mission board crossfeed closed — same class as the
+    R3-24/Y2.2 fixes).
 
 ## Calibration verdict (final)
 6 completed missions, 13 real weaknesses found and fixed. The doctrine

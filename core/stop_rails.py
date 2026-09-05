@@ -42,9 +42,16 @@ _STATUS_RE = re.compile(r'\\?"status(?:_code)?\\?"\s*:\s*(-?\d+)')
 _LOCK = threading.Lock()
 _WINDOW = collections.deque(maxlen=400)     # bounded response memory
 _DELIVERED = {}                             # rail -> share when delivered
+_LIVE = [0]                                  # wave-2-B #10: live-mission count
 _MIN_N = 50                                 # ffuf: rails arm at 50+ responses
 _WALL_SHARE = 0.95                           # ffuf: >95% 403 = wall
 _RATE_SHARE = 0.20                           # ffuf: >20% 429 = rate wall
+
+
+def mission_open():
+    """Register a live mission (called from agent.run init)."""
+    with _LOCK:
+        _LIVE[0] += 1
 
 
 def observe(name, out):
@@ -108,8 +115,14 @@ def deliver(rail, share):
 
 
 def reset():
-    """New mission → fresh window, no delivery memory."""
+    """New mission → fresh window, no delivery memory.
+    wave-2-B fix #10: in-process swarm (concurrent run() calls) — a
+    reset from mission B wiped mission A's live window mid-flight.
+    Track live missions; skip the wipe while another mission runs."""
     with _LOCK:
+        _LIVE[0] = max(0, _LIVE[0] - 1)
+        if _LIVE[0] > 0:
+            return          # another live mission still owns the window
         _WINDOW.clear()
         _DELIVERED.clear()
 

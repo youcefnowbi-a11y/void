@@ -172,9 +172,16 @@ def honest_status(out):
         return "error"
     if s.startswith("TOOL DEFERRED"):
         return "deferred"
+    # wave-2-B fix #9: an EMPTY output is a zombie — nothing happened
+    # is not a successful detection.
+    if not s.strip():
+        return "error"
     if _FAIL_EXIT_RX.search(s) and "[stderr]" in s:
         return "error"
-    if _OK_FALSE_RX.search(s[:400]):
+    # wave-2-B fix #8: scan the FULL string — the 400-char window hid a
+    # deep '"ok": false' (batch envelopes push it past 400); the regex
+    # over 60KB is cheap and this is the ledger's honesty gate.
+    if _OK_FALSE_RX.search(s):
         return "error"
     return "ok"
 
