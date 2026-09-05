@@ -68,9 +68,17 @@ def _fire(req):
 
 def _oracle_hit(oracle, resp):
     o = oracle or {}
-    if o.get("expect_status") and \
-            int(resp.get("status") or 0) != int(o["expect_status"]):
-        return False
+    # calib-A fix: the LLM sends expect_status as a LIST ([200]) — the
+    # int() cast crashed on lists. Accept int OR list (Ω1 semantics).
+    es = o.get("expect_status")
+    if es:
+        allowed = es if isinstance(es, (list, tuple, set)) else [es]
+        try:
+            allowed = [int(x) for x in allowed]
+            if int(resp.get("status") or 0) not in allowed:
+                return False
+        except (TypeError, ValueError):
+            return False
     marker = o.get("expect_contains")
     if marker and marker not in str(resp.get("body") or ""):
         return False

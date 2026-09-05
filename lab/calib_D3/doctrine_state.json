@@ -1,0 +1,53 @@
+{
+ "entries": [
+  {
+   "predicate": "FastAPI/exposure plane: pull openapi.json FIRST (auto-published schema names every endpoint including admin ones)",
+   "context": "any-target",
+   "where": "api_sweep",
+   "expected": "self-discovered pattern reproduced across missions",
+   "origin": "win-taught",
+   "evidence": {
+    "signature": "openapi[._-]?json.{0,400}?(200|exposed|FULL|schema)"
+   },
+   "score": 0.898,
+   "used": 7,
+   "worked": 7,
+   "failed": 0,
+   "times_re_minted": 4,
+   "ts": 1788540935.317
+  },
+  {
+   "predicate": "the admin gate is a single shared-secret header (X-Admin-Token) found client-side in gate JS — extract the H() builder, not the login flow",
+   "context": "any-target",
+   "where": "file_grep",
+   "expected": "self-discovered pattern reproduced across missions",
+   "origin": "win-taught",
+   "evidence": {
+    "signature": "X-Admin-Token|X-Api-Token|admin.{0,20}header.{0,40}single shared"
+   },
+   "score": 0.987,
+   "used": 80,
+   "worked": 80,
+   "failed": 0,
+   "times_re_minted": 4,
+   "ts": 1788540935.319
+  },
+  {
+   "predicate": "when display truncation hides grammar, FORGE a grep/extraction weapon instead of re-pulling with data_extract",
+   "context": "any-target",
+   "where": "forge_tool",
+   "expected": "self-discovered pattern reproduced across missions",
+   "origin": "win-taught",
+   "evidence": {
+    "signature": "forge_tool.{0,200}(ok|ARMÉ|live)"
+   },
+   "score": 0.931,
+   "used": 10,
+   "worked": 10,
+   "failed": 0,
+   "times_re_minted": 5,
+   "ts": 1788540935.32
+  }
+ ],
+ "graveyard": []
+}

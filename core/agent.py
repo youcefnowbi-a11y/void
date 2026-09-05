@@ -413,7 +413,19 @@ DOCTRINE = """
    Then adapt based on what you discover — if Supabase detected, launch supabase_full_assault.
    If Telegram handles found, chain tg_probe → tg_history_harvest.
 
-2. NEVER STOP EARLY. If a tool fails, TRY ALTERNATE VECTORS:
+2. NEVER STOP EARLY — AND NEVER BELIEVE "LOCKED" (PRIME LAW P0).
+   THERE IS NO PERFECT SYSTEM, NO 100% LOCKED SYSTEM. Every "held",
+   "solid", "proven sound" gate has leaks nobody knows yet — finding
+   them is THE job: build the system that uses the leak, prove it.
+   - A "gate held" verdict closes the KNOWN vectors on the TESTED
+     surface only. It is a phase marker, NEVER a finish line.
+   - When a plane is exhausted, MOVE PLANES (other subdomains, other
+     auth personas, other time windows, other protocol layers, the
+     seller/buyer side, the infrastructure behind the edge) — do not
+     stop.
+   - Every final report MUST include a "NEXT LEAK-HUNT AXIS" section
+     naming the untested surface and the concrete next strike.
+   If a tool fails, TRY ALTERNATE VECTORS:
    - Tool crashes → use a different tool that covers similar ground
    - 403/401 → try different paths, encodings, parameters
    - Empty results → widen scope (different ports, subdomains, archived versions)
@@ -775,6 +787,20 @@ a CHAIN to follow. Browse the full library anytime with skill_list; pull a
 playbook with skill_load(skill_id) the moment the mission enters its domain.
 A tool executes; a skill decides.
 
+════ PREDICT BEFORE YOU STRIKE (Ω1 — SURPRISE IS THE SIGNAL) ════
+
+Every tool call MAY carry a "predict" object (the registry extracts it;
+the tool never sees it) with three fields: the status you EXPECT (like
+200), a string you expect to FIND in the output, and an optional
+sentinel marker that must appear. The world model measures your
+prediction against the real result and keeps a SURPRISE MAP of every
+endpoint where the target defied you. A predicted 200 that returns 200
+carries ZERO information. A predicted 200 that returns 403/302/500 is
+GOLD — that is where the model is blind, and blindness is where
+exploits live. Predict on your SCOUTS (endpoint_oracle, param probes,
+auth tests); read the PREDICT notes in tool results; hunt the violated
+endpoints first.
+
 ═══ MISSION WORKSPACE — YOUR DOSSIER ═══
 
 Every mission has a workspace folder (missions/<target>/): every extraction
@@ -791,7 +817,16 @@ ledger. But the archive is YOURS to narrate:
   concrete. This is your voice in the console.
 - workspace_status() — consult what is already archived; build on your
   earlier evidence instead of re-running the same tools.
+- mission_globals(action, key, value) — the MISSION DATASTORE: set a
+  global ONCE (auth token, cookies, api key, sticky headers, proxy) and
+  every later tool call auto-fills matching missing params from it.
+  One login → the whole arsenal inherits the session. Explicit call
+  args always win; the cascade only fills holes.
 
+- dream_rehearsal(target) — BETWEEN missions: mine the archived
+  campaign for untaken branches and mint verified plays for the
+  next run (reads the archive only, zero live traffic). The plays
+  load automatically at the next mission's round 0.
 Write often. A mission with no reports is a mission nobody can audit.
 
 ═══ STRIKE DISCIPLINE — THE LAW OF BALANCE ═══
@@ -815,6 +850,23 @@ law of a real campaign:
   so their verdicts drive your next move.
 Write "negative" verdicts honestly when probes come back clean — that is
 intelligence too. But never confuse "I did not probe" with "nothing there".
+
+════ THE ADVERSARIAL TWIN (Ω2 — NO VERDICT WITHOUT PROOF) ════
+
+Every CONFIRMED blind-class verdict you produce is challenged by a
+standing adversary before it can ride into the report: honeypot?
+canary bait? misread status? A blind confirmation WITHOUT an OOB
+callback receipt and WITHOUT inline differential evidence is CAPPED
+at "partial" — the report can only cite what survived the challenge.
+When you read an Ω2 TWIN note in a tool result, treat its arguments
+as live doubt: either produce the re-proof it names or drop the
+claim. A tool with a low reliability rank must re-prove its finding
+before you escalate it.
+
+A DOCTRINE block may open your mission: self-authored rules from prior
+missions' autopsies and dreams. Each rule names its evidence and carries
+a live confidence score — follow the strong ones; when one fails you,
+it retires itself.
 
 ═══ LAW OF THE REPORT — PROOF OR IT DIDN'T HAPPEN ═══
 
@@ -998,7 +1050,8 @@ class Agent:
                   "secret_scan", "graphql_introspect", "api_sweep", "data_extract",
                   "deploy_watch", "batch_execute", "arsenal_selftest",
                   "workspace_status", "evidence_pack", "report_write",
-                  "file_grep", "har_dissect", "har_tokens", "jwt_analyst"}
+                  "file_grep", "har_dissect", "har_tokens", "jwt_analyst",
+                  "mission_globals"}
 
     PLAN_MODE_PROMPT = """═══ PLAN MODE — RECON ONLY, THEN THE ATTACK PLAN ═══
 
@@ -1045,6 +1098,13 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                  blackboard=None, plan_mode=False):
         p = cfg["provider"]
         self.llm = LLM(p["base_url"], p["api_key"], p["model"], p.get("temperature", 0.3))
+        # Phase 2 (Ω2): bind the adversarial twin to this agent's provider
+        # (budgeted second opinion; unbinds on garbage)
+        try:
+            from core import twin as _twin_mod
+            _twin_mod.configure(cfg)
+        except Exception:
+            pass
         self.plan_mode = bool(plan_mode)
         all_tools = reg.all_tools()
         # ── Plan mode: restrict the arsenal to recon-only tools ──
@@ -1141,15 +1201,32 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
         if not content:
             return False
         cu = content.upper()
-        markers = ["RAPPORT DE MISSION", "EXECUTIVE SUMMARY", "MISSION COMPLETE",
-                   "RAPPORT FINAL", "## VERDICT", "# 🎯", "FINAL MISSION REPORT",
-                   "MISSION REPORT", "RAPPORT DE MISSION FINAL", "BILAN DE MISSION",
-                   "RÉSUMÉ FINAL", "RESUME FINAL", "VERDICT FINAL", "SYNTHÈSE FINALE",
-                   "SYNTHESE FINALE", "# BILAN", "## RÉCAPITULATIF", "CONCLUSION"]
-        if self.plan_mode:
-            markers += ["# ATTACK PLAN", "## PROPOSED ATTACK CHAINS"]
-        if any(m in cu for m in markers):
+        # final-audit fix #7: two-tier markers. STRONG markers end the
+        # mission anywhere they appear (they're unambiguous report
+        # titles). WEAK markers ("CONCLUSION", "MISSION REPORT"...) only
+        # count as HEADINGS — a line starting with #/bold — so mid-flight
+        # prose ("En conclusion, ...", "I'll draft the mission report next")
+        # no longer amputates the mission.
+        strong = ["RAPPORT DE MISSION FINAL", "RAPPORT DE MISSION",
+                  "RAPPORT FINAL", "EXECUTIVE SUMMARY", "MISSION COMPLETE",
+                  "FINAL MISSION REPORT", "BILAN DE MISSION", "VERDICT FINAL",
+                  "# 🎯"]
+        if any(m in cu for m in strong):
             return True
+        weak = ["MISSION REPORT", "## VERDICT", "RÉSUMÉ FINAL", "RESUME FINAL",
+                "SYNTHÈSE FINALE", "SYNTHESE FINALE",
+                "# BILAN", "## RÉCAPITULATIF"]
+        if self.plan_mode:
+            weak += ["# ATTACK PLAN", "## PROPOSED ATTACK CHAINS"]
+        if any(m in cu for m in weak):
+            # only as a heading: line-start (markdown heading or bold)
+            for ln in content.splitlines():
+                ls = ln.strip()
+                if not ls:
+                    continue
+                if any(m in ls.upper() for m in weak) and (
+                        ls.startswith(("#", "**", "##", "###"))):
+                    return True
         # heuristic fallback: long prose, no tool calls pending, and the
         # closing vocabulary of a report (French or English)
         _closing = re.search(
@@ -1275,6 +1352,59 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                     from core.skills import select_for
                     on_event({"type": "system",
                               "text": "🎓 Skills actives : " + ", ".join(select_for(mission))})
+        except Exception:
+            pass
+
+        # ── Phase 3 (Ω3.2): dream plays — between-mission rehearsals minted
+        # from the ARCHIVE of this target's earlier campaigns. The next
+        # mission starts knowing what the dead branches promised.
+        _tgt = ""                # shared by dream plays + doctrine block
+        try:
+            from core import dream as _dream_mod
+            from core.mission_workspace import extract_target
+            _tgt = extract_target(mission) or ""
+            _plays = _dream_mod.load_plays(limit=8, target=_tgt)
+            if _plays:
+                _pl = "\n".join(
+                    f"- {p.get('action', {}).get('tool', '?')} sur "
+                    f"{str(p.get('action', {}).get('on', ''))[:60]} "
+                    f"({p.get('precondition', '')[:60]})"
+                    for p in _plays if isinstance(p, dict))
+                if _pl:
+                    msgs.append({"role": "user", "content":
+                                 "DREAM PLAYS (répétitions inter-missions — les "
+                                 "branches mortes d'avant-hier sont tes raccourcis "
+                                 "d'aujourd'hui; tente-les tôt):\n" + _pl})
+                    if on_event:
+                        on_event({"type": "system",
+                                  "text": f"💤 {len(_plays)} dream plays chargées"})
+        except Exception:
+            pass
+
+        # ── Phase 4 (Ω4.1): doctrine block — the self-authored law, read at
+        # round 0. Prior missions/dreams/autopsies wrote these rules; the
+        # entries carry evidence and Bayesian scores.
+        # NOTE (swarm caveat): a concurrent mission's _doc.load() replaces
+        # the live entries — armed refs then miss and their verdicts drop
+        # (honest no-op, never a crash). Single-mission console is exact.
+        _doctrine_armed = []       # entries whose rule this mission may follow
+        try:
+            from core import doctrine as _doc
+            if _doc.load():
+                _dblock = _doc.round0_block(target=_tgt or "", limit=8)
+                if _dblock:
+                    msgs.append({"role": "user", "content": _dblock})
+                    # Ω4.4 wiring: the armed entries self-verify against
+                    # this mission's outcomes (used-and-worked reinforces;
+                    # used-and-failed retires)
+                    _u = getattr(_doc, "_UNIVERSAL_CTX", {"", "any-target", "any", "all", "*"})
+                    _doctrine_armed = [
+                        e for e in _doc._ENTRIES
+                        if str(e["context"]).strip().lower() in _u
+                        or _doc._ctx_matches(e["context"], _tgt or "")]
+                    if on_event:
+                        on_event({"type": "system",
+                                  "text": "📜 Doctrine self-authored chargée"})
         except Exception:
             pass
 
@@ -1467,8 +1597,54 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
 
         consecutive_llm_fails = 0
         fresh_restarts = 0          # chat-recipe clean restarts on refusal
+        _wipe_spent = False         # final-audit #2: refund only post-wipe
         base_msgs = list(msgs)      # the clean-slate snapshot (pre-poison)
         _op_orders = []             # fix#4: ordres opérateur (survivent au wipe)
+
+        # Phase 0.2: fresh rails per mission — the previous target's wall
+        # must not poison this mission's pivot decisions.
+        try:
+            from core import stop_rails
+            stop_rails.reset()
+        except Exception:
+            pass
+        # Phase 0.5: fresh skip ledger per mission — the autopsy must
+        # answer "what never fired and why" for THIS mission only.
+        try:
+            from core import skip_ledger
+            skip_ledger.start_mission(mission_id)
+        except Exception:
+            pass
+        # Phase 0.6: fresh datastore mission layer — the previous
+        # mission's cookies/tokens must not leak into this one.
+        try:
+            from core import datastore
+            datastore.start_mission(mission_id)
+        except Exception:
+            pass
+        # Phase 1 (Ω1): fresh world model per mission — the previous
+        # target's surprise map is poison for this one.
+        try:
+            from core import world_model
+            world_model.reset()
+        except Exception:
+            pass
+        # Phase 2 (Ω2): refresh twin ranks from the trajectory archive —
+        # cross-mission evidence, refreshed once per mission start.
+        try:
+            from core import twin
+            twin.refresh_from_trajectory()
+        except Exception:
+            pass
+        # Phase 3 (Ω3): bind the dream's provenance context — every fact
+        # minted from here on carries mission/target/step (caldera port).
+        try:
+            from core import dream
+            from core.mission_workspace import extract_target
+            dream.bind_mission(mission_id,
+                               extract_target(mission) or str(mission)[:120])
+        except Exception:
+            pass
 
         # ── Unified event tap: EVERY tool run (outer OR inside batch_execute)
         # feeds the ledger now — previously batch-internal tools were invisible,
@@ -1648,6 +1824,8 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                 # death at round 18 with the mission unfinished. Budget is now
                 # deep enough to outlast a provider's spicy streak.
                 fresh_restarts += 1
+                _wipe_spent = True   # final-audit #2: mark the slot spent —
+                #                      the next clean response refunds it
                 time.sleep(REFUSAL_WIPE_BASE_DELAY)  # streaks clear with a pause
                 print(f"\n[VOIDFORGE r{rnd+1}] provider refusal — console memory "
                       f"cleared, clean restart {fresh_restarts}/{REFUSAL_WIPE_MAX}")
@@ -1660,7 +1838,11 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                 # fix#4: les ordres opérateur mid-mission survivent au wipe —
                 # ils sont réinjectés (ils ne sont PAS du poison, ils sont
                 # l'autorité). base_msgs est re-snapshoté à chaque message op.
-                msgs.extend(_op_orders)
+                # final-audit fix #1 (CRITICAL): _op_orders are RAW STRINGS —
+                # extending a message list with them ships `["OPERATOR MESSAGE:
+                # ..."]` to the provider → 400 → llm_dead. Wrap as user turns.
+                msgs.extend({"role": "user", "content": o}
+                            for o in _op_orders)
                 continue
 
             if self._is_llm_error(content) or _is_ref(content):
@@ -1670,7 +1852,8 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                     # the next round. Run #74 died precisely because the old
                     # fall-through kept the poisoned context and cascaded.
                     msgs = list(base_msgs)
-                    msgs.extend(_op_orders)
+                    msgs.extend({"role": "user", "content": o}
+                                for o in _op_orders)
                 consecutive_llm_fails += 1
                 print(f"\n[VOIDFORGE r{rnd+1}] LLM dead after {LLM_RETRY_MAX} retries: {content[:150]}")
                 transcript.append(("error", content))
@@ -1698,6 +1881,12 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                     if not steps:
                         from core.planner import plan
                         steps = plan(mission)
+                    _brain_digest = []  # final-audit fix #3 (HIGH): was init'd
+                    #                    inside `if steps:` — an empty plan
+                    #                    NameError'd at the `if _brain_digest:`
+                    #                    check below, crashing run() past the
+                    #                    loop and skipping the ENTIRE teardown
+                    #                    (no autopsy, no flush, no report).
                     # A1 : le cerveau offline ne connaît ni plan_mode ni le
                     # filtre de rôle — il passe par LE même périmètre que le
                     # LLM. En plan-mode, les strikes du planner ne partent
@@ -1714,7 +1903,6 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                         if on_event:
                             on_event({"type": "plan",
                                       "steps": [{"tool": s[0], "args": s[1]} for s in steps]})
-                        _brain_digest = []
                         for tool_name, args in steps:
                             trid = None
                             if mission_id:
@@ -1778,13 +1966,16 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
 
             # ─── Got a valid LLM response ───
             consecutive_llm_fails = 0  # reset counter
-            # RUN #74 LESSON (WE3, audit-2 E3): a clean response is proof
-            # the fresh slate worked → REFUND one wipe slot, capped at max.
-            # The old `fresh_restarts -= 1` spent the budget on clean
-            # rounds — the exact inverse of the documented intent — so a
-            # late-mission refusal storm met an empty tank.
-            if fresh_restarts < REFUSAL_WIPE_MAX:
-                fresh_restarts += 1
+            # RUN #74 LESSON (WE3, audit-2 E3): a clean response AFTER A WIPE
+            # is proof the fresh slate worked → refund one wipe slot, capped
+            # at max. final-audit fix #2 (HIGH): the refund was paid on
+            # EVERY clean round — 5 ordinary rounds permanently drained the
+            # wipe tank, so a late-mission refusal storm met an empty budget
+            # (the run-#74 cascade, reintroduced). Refund ONLY right after
+            # a wipe was actually spent.
+            if _wipe_spent and fresh_restarts > 0:
+                fresh_restarts -= 1
+            _wipe_spent = False
 
             if content:
                 transcript.append(("agent", content))
@@ -1803,7 +1994,7 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                     # Agent returned text but no tools and no summary — nudge her
                     msgs.append({"role": "assistant", "content": content})
                     msgs.append({"role": "user",
-                                 "content": "Continue the mission. You have not exhausted all vectors yet. Use more tools or write your RAPPORT DE MISSION FINAL if you believe the target is fully mapped. REMINDER: before the final report, call evidence_pack() — the report must cite real evidence: verdicts, data pulled, assets discovered."})
+                                 "content": "Continue the mission. You have not exhausted all vectors yet. PRIME LAW P0: there is no perfect system — a HELD gate only closes the tested surface; hunt the next plane (other subdomain, other persona, other encoding, other protocol edge). Use more tools or write your RAPPORT DE MISSION FINAL if you believe the target is fully mapped. REMINDER: before the final report, call evidence_pack() — the report must cite real evidence: verdicts, data pulled, assets discovered, and a NEXT LEAK-HUNT AXIS section."})
                     continue
                 else:
                     # Last round — force stop
@@ -1831,8 +2022,17 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
             _wall_pending = None
             for tc in tcs:
                 name, args = tc["name"], tc["args"]
+                _rail_note = ""     # Phase 0.2: rail rides the tool result
                 # ── Malformed-arguments self-correction: the model must LEARN ──
                 if isinstance(args, dict) and "_args_error" in args:
+                    # final-audit fix #11 (L4): the schema-mismatch skip was
+                    # invisible to the autopsy — categorize it.
+                    try:
+                        from core import skip_ledger as _sl11
+                        _sl11.skip("other", tool=name,
+                                   detail=str(args.get("_args_error", ""))[:200])
+                    except Exception:
+                        pass
                     fix = (f"ARGS ERROR: your call to '{name}' had invalid arguments — "
                            f"{args['_args_error']}. Re-issue the call with a valid JSON "
                            f"object matching the tool's parameter schema.")
@@ -1887,24 +2087,152 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                 state["outer"] = None
 
                 is_error = _cov.honest_status(out) == "error"
+                # final-audit fix #5 (MEDIUM): the bandit/trajectory/state
+                # records moved BELOW the Ω2 twin cap — they were reading the
+                # UNCAPPED out, so a blind claim later capped to "partial"
+                # had already been banked as trajectory evidence and bandit
+                # reward. The archive only ever sees the honest verdict.
+                # (Records fire after the twin block, same tc iteration.)
+
+                # ── Phase 0.2 stop rails (ffuf discipline): feed the
+                # rolling status window; when a rail arms (95% 403 / 20%
+                # 429 over 50+ responses) it becomes a system event the
+                # next round must obey — the mission PIVOTS, it doesn't
+                # grind. Delivery bookkeeping prevents nagging.
+                try:
+                    from core import stop_rails
+                    stop_rails.observe(name, out)
+                    _rail = stop_rails.pending()
+                    if _rail:
+                        stop_rails.deliver(_rail["rail"], _rail["share"])
+                        try:
+                            from core import skip_ledger as _sl
+                            _sl.skip("rail_pivot", tool=name,
+                                     detail=f"{_rail['rail']} at "
+                                            f"{int(_rail['share']*100)}%",
+                                     round_num=rnd + 1)
+                        except Exception:
+                            pass
+                        if on_event:
+                            on_event({"type": "system", "text":
+                                      f"🛑 RAIL { _rail['rail'] } — "
+                                      f"{int(_rail['share']*100)}% des "
+                                      f"{_rail['n']} dernières réponses "
+                                      f"({'403 WAF wall' if _rail['rail']=='wall_403' else '429 rate-limit'}). "
+                                      f"PIVOTE: change de vecteur/surface; "
+                                      f"le grinding est interdit."})
+                        transcript.append(("system",
+                                            f"RAIL {json.dumps(_rail)}"))
+                        # A3 discipline: NEVER a mid-conversation system
+                        # message (strict providers 400 on it like they do
+                        # on user-between-tool_calls). The rail rides the
+                        # tool result content, where pacing already lives.
+                        _rail_note = (f"\n\n[🛑 RAIL/{_rail['rail']}] "
+                                      f"{int(_rail['share']*100)}% des "
+                                      f"{_rail['n']} dernières réponses sont "
+                                      f"{'403 (mur WAF)' if _rail['rail']=='wall_403' else '429 (rate-limit)'}. "
+                                      f"Le budget se vide sur un mur. PIVOTE maintenant: "
+                                      f"autre vecteur, autre surface, autre identité. "
+                                      f"Ne relance PAS le même probing.")
+                except Exception:
+                    pass
+                # ── Phase 2 (Ω2): adversarial twin — a CONFIRMED blind-class
+                # verdict (oob structure in the output) passes the standing
+                # challenger BEFORE it can ride into the report. Deterministic
+                # weapons (blind policy cap, rank discount) always run; the
+                # LLM second opinion is budgeted and cached. The twin note
+                # rides the tool result (A3 discipline).
+                try:
+                    # trigger: blind-class structure + a CONFIRMED verdict —
+                    # robust to both spaced and compact JSON separators
+                    if '"oob"' in out and ('"exploitable": true' in out
+                                          or '"exploitable":true' in out):
+                        from core import twin as _twn
+                        _bp = _twn.blind_policy(out)
+                        if _bp[0] is True:
+                            _rail_note += _twn.twin_note({
+                                "attacked": True, "survived": True,
+                                "arguments": [_bp[1]], "reproof": ""})
+                        elif _bp[0] is not None:
+                            out = _bp[0]
+                            _rail_note += _twn.twin_note({
+                                "attacked": True, "survived": False,
+                                "arguments": [_bp[1]], "reproof": ""})
+                except Exception:
+                    pass
+                # final-audit fix #5: the mission-state / bandit / trajectory
+                # records live HERE (post-twin-cap) — see the moved comment
+                # above. `out` is now the honest version in every consumer.
                 if trid:
                     mission_state.finish_tool_run(trid, out, dur,
                                                   "error" if is_error else "ok")
-                # ── learning loop: every ONLINE tool run feeds the bandit ──
-                # (Tier F5: the reward is DISCOVERY or an honest structured
-                # negative — a bare successful fetch earns nothing, so the
-                # bandit stops worshipping tools that merely don't crash.)
                 try:
                     from core.mathcore import bandit_record
                     bandit_record(name, _cov.reward_signal(out), dur)
                 except Exception:
                     pass
-                # ── trajectory archive: the winning-chain memory (CAI recipe) ──
                 try:
                     from core.trajectory import record as _traj, evidence_state as _evst
                     _traj(mission_id, getattr(ws, "target", None) or "unknown",
                           name, not is_error, dur, round_num=rnd + 1,
                           state=_evst(name, not is_error, out))
+                except Exception:
+                    pass
+                # Phase 3 (Ω3.1): provenance — one step per tool result;
+                # facts minted downstream carry mission/target/step.
+                try:
+                    from core import dream as _dream_mod
+                    _dream_mod.step_bump()
+                except Exception:
+                    pass
+                # Phase 4 (Ω4.4): doctrine self-verification — when this
+                # mission follows an armed doctrine rule (the tool the
+                # entry names), the outcome is the verdict: ok reinforces,
+                # error/blank decays. Doctrine that stops working retires.
+                try:
+                    if _doctrine_armed and name:
+                        from core import doctrine as _doc
+                        from core import coverage as _cov4
+                        # final-audit fix B1 (CRITICAL): the verdict must
+                        # measure the RULE being followed, not tool-genre
+                        # luck. Three gates before any report_use:
+                        #   (a) skip non-executions — blank output, refusals
+                        #       (TOOL ERROR), defers (TOOL DEFERRED) say
+                        #       nothing about law quality;
+                        #   (b) rule↔call correlation — a distinctive token
+                        #       of the entry's predicate must appear in the
+                        #       call args or the result, else this call
+                        #       wasn't an application of this rule;
+                        #   (c) every armed entry sharing this `where`
+                        #       verifies (no break — the first match used
+                        #       to starve the others).
+                        _o4 = (out or "").strip()
+                        _real_exec = (_o4
+                                      and not _o4.startswith(("TOOL ERROR",
+                                                             "TOOL DEFERRED")))
+                        if _real_exec:
+                            _ok4 = (_cov4.honest_status(out) == "ok")
+                            _blob4 = json.dumps(args or {}, default=str)[:400] + out[:600]
+                            for _de in _doctrine_armed:
+                                if _de.get("where") != name:
+                                    continue
+                                _pred4 = str(_de.get("predicate", ""))
+                                _toks4 = [w for w in re.findall(r"[a-z0-9_.-]{4,}",
+                                                                _pred4.lower())
+                                          if w not in ("first", "then", "with",
+                                                       "must", "always", "header",
+                                                       "token", "secret", "admin",
+                                                       "json", "http", "https",
+                                                       "target", "single")]
+                                _corr4 = (not _toks4) or any(
+                                    t in _blob4.lower() for t in _toks4)
+                                if not _corr4:
+                                    continue  # not an application of this rule
+                                _r4 = _doc.report_use(_de, _ok4)
+                                if _r4 and _r4.get("retired") and on_event:
+                                    on_event({"type": "system",
+                                              "text": "📜 Doctrine retired "
+                                                      "(stopped working)"})
                 except Exception:
                     pass
 
@@ -1967,6 +2295,22 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                     pacing = (f"\n\n[⏱ ROUND {rnd + 1}/{self._rounds_label()} — "
                               f"extract:{t_extract} strike:{t_strike} — "
                               f"loi d'équilibre : STRIKES ≥20% des coups.]")
+                # ── Ω1 (Phase 1): the surprise digest — the endpoints where
+                # the model was wrong are the mission's true to-do list.
+                # Deterministic (world_model computes; here we only render).
+                try:
+                    from core import world_model as _wm
+                    _d = _wm.surprise_digest(limit=3)
+                    if _d and rnd >= 1:
+                        _lines = "; ".join(
+                            f"{e['endpoint']} ({e['violations']}x, "
+                            f"via {e['last_tool']})" for e in _d)
+                        pacing += (f"\n\n[Ω1 SURPRISE MAP] Ton modèle mental a "
+                                   f"faux sur: {_lines}. Les écarts sont le "
+                                   f"signal — ces surfaces méritent le prochain "
+                                   f"round, pas les voies qui ont obéi.")
+                except Exception:
+                    pass
                 if _dupe:
                     pacing += ("\n\n[G10 STOP-CONDITION] Appel IDENTIQUE au précédent "
                                "(même outil, mêmes args) = boucle stérile. Change de "
@@ -2042,7 +2386,8 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
 
                 msgs.append({"role": "tool", "tool_call_id": tc["id"],
                              "content": _feed_result(name, out, total_cap=24000,
-                                                     sub_cap=4000) + pacing})
+                                                     sub_cap=4000) + pacing
+                             + _rail_note})
 
             # A3 : l'intel wall-breaker arrive APRÈS tous les tool results du
             # round — un `user` entre assistant(tool_calls) et tool(result)
@@ -2134,6 +2479,23 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                 _teardown_board.flush()
             except Exception:
                 pass
+
+        # ── Phase 4 (Ω4.3): the autopsy — the mission's skips AND self-
+        # discovered wins become doctrine. The loop closes: this
+        # mission's failures teach the next one, its victories too.
+        try:
+            from core import doctrine as _doc
+            from core import skip_ledger as _sl
+            _doc.autopsy(target=_tgt or "",
+                         skip_summary=_sl.summary(),
+                         extra_entries=[],
+                         transcript=transcript)
+            if on_event:
+                on_event({"type": "system",
+                          "text": "📜 Autopsy: doctrine minted from this "
+                                  "mission's skips + wins"})
+        except Exception:
+            pass
 
         if on_event:
             on_event({"type": "mission_complete", "rounds": rnd + 1,

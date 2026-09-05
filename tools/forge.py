@@ -53,7 +53,8 @@ def _list_forged():
 
 
 @register(name="forge_tool",
-          desc="Forge a NEW tool into the live arsenal: write its Python code, syntax-check it, hot-register it as forged_<name>. Also lists existing forged tools with mode='list'. The agent's self-extension mechanism.",
+          desc="Forge a NEW tool into the live arsenal: write its Python code, syntax-check it, hot-register it as forged_<name>. Also lists existing forged tools with mode='list'. The agent's self-extension mechanism. "
+               "SESSION LAW: forged tools live ONLY in the session that armed them — a tool forged in a PAST mission is listed but NOT callable; re-forge it (code + overwrite=true) instead of calling it. ",
           params={"type": "object", "properties": {
               "name": {"type": "string", "description": "Tool name (snake_case, 3-40 chars) — 'list' to list forged tools"},
               "desc": {"type": "string", "description": "One-line tool description for the LLM"},
@@ -80,7 +81,17 @@ def forge_tool(name, desc="", code="", params=None, danger="active",
                                 "desc": (spec or {}).get("desc", "?")[:140]})
             except Exception:
                 entries.append({"name": f"forged_{fn}", "live": False, "desc": "?"})
-        return json.dumps({"forged": entries}, ensure_ascii=False, indent=1)
+        # weakness #13 (mission D3): ~6 rounds burned calling PREVIOUS-
+        # session forged tools that the list showed as names. Make the
+        # session law impossible to miss.
+        _live_names = [e["name"] for e in entries if e["live"]]
+        return json.dumps({
+            "forged": entries,
+            "SESSION LAW": "live=false tools are from PAST sessions — NOT "
+                           "callable now. Only live=true entries execute. "
+                           "Re-forge with code (overwrite=true if same "
+                           "name) to arm this session.",
+            "live_now": _live_names}, ensure_ascii=False, indent=1)
 
     if not re.fullmatch(r"[a-z][a-z0-9_]{2,39}", name):
         return json.dumps({"error": "nom invalide — snake_case, 3-40 chars, commence par une lettre"})
@@ -193,6 +204,10 @@ def forge_tool(name, desc="", code="", params=None, danger="active",
         modname = f"tools.forged_{name}"
         if modname in sys.modules:
             del sys.modules[modname]
+        # Windows: the FileFinder caches the directory listing — a file
+        # written THIS run is not always visible to import_module (mtime
+        # granularity races). Invalidate before every hot-load.
+        importlib.invalidate_caches()
         importlib.import_module(modname)
         t = all_tools()
         spec = next((x for x in t if x["name"] == f"forged_{name}"), None)

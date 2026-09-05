@@ -129,11 +129,11 @@ _UAS = [
 @register(name="c2_pulse",
           desc="C2: beacon discipline for a deployed shell — N heartbeats with ±jitter on the sleep, rotating UA fingerprints, exponential backoff on 5xx, session id. Measures shell liveness the way real C2 keeps beacons breathing.",
           params={"type": "object", "properties": {
-              "shell_url": {"description": "confirmed webshell URL; {CMD} optional, else ?cmd="},
-              "rounds": {"description": "heartbeat count"},
-              "sleep_s": {"description": "base sleep between heartbeats (jittered ±40%)"},
-              "param": {"description": "command parameter name"},
-              "session": {"description": "session id (auto-generated when omitted)"}},
+              "shell_url": {"description": "confirmed webshell URL; {CMD} optional, else ?cmd=", "type": "string"},
+              "rounds": {"description": "heartbeat count", "type": "number"},
+              "sleep_s": {"description": "base sleep between heartbeats (jittered ±40%)", "type": "number"},
+              "param": {"description": "command parameter name", "type": "string"},
+              "session": {"description": "session id (auto-generated when omitted)", "type": "string"}},
               "required": ["shell_url"]},
           danger="loud")
 def c2_pulse(shell_url, rounds=6, sleep_s=2.0, param="cmd", session=None):

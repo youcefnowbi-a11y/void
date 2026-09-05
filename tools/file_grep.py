@@ -35,12 +35,16 @@ from tools import register
               "required": ["path", "pattern"]})
 def file_grep(path, pattern, is_regex=False, case_sensitive=False,
               context_lines=2, max_matches=30, extensions=None, max_file_mb=10):
-    # Resolve path — relative to missions/ or absolute
+    # Resolve path — relative to repo root, missions/, or missions/_jsdump
+    # (calib-A: the agent had to GUESS the _jsdump prefix; make it a
+    # first-class candidate so "keypool.duskyr.com_.js" resolves directly)
     if not os.path.isabs(path):
         base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         candidates = [
             os.path.join(base, path),
             os.path.join(base, "missions", path),
+            os.path.join(base, "missions", "_jsdump", path),
+            os.path.join(base, "missions", "_archive", path),
         ]
         resolved = None
         for c in candidates:

@@ -1,0 +1,37 @@
+{
+ "entries": [
+  {
+   "predicate": "host went dark mid-campaign (3 transport deaths) — verify host health before strikes",
+   "context": "any-target",
+   "where": "patience",
+   "expected": "skips of this class cost 2 calls last mission",
+   "origin": "skip-autopsy",
+   "evidence": {
+    "category": "quarantined",
+    "count": 2,
+    "example": "dark host x.example"
+   },
+   "score": 0.6,
+   "used": 0,
+   "worked": 0,
+   "failed": 0,
+   "times_re_minted": 1,
+   "ts": 1788509247.683
+  },
+  {
+   "predicate": "report rule",
+   "context": "any",
+   "where": "report_write",
+   "expected": "",
+   "origin": "mission",
+   "evidence": {},
+   "score": 0.6,
+   "used": 0,
+   "worked": 0,
+   "failed": 0,
+   "times_re_minted": 1,
+   "ts": 1788509247.683
+  }
+ ],
+ "graveyard": []
+}

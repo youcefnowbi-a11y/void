@@ -2,6 +2,7 @@
 import json, re
 from tools import register
 from tools._transport import fetch as _fetch
+from tools._exploit_lib import verdict
 
 INTROSPECTION_QUERY = {
     "query": "{__schema{types{name fields{name type{name kind ofType{name}}}}}}"
@@ -12,7 +13,8 @@ GRAPHQL_PATHS = [
     "/_graphql",
     "/api/graphql",
     "/v1/graphql",
-    "/graphql/v1"
+    "/graphql/v1",
+    "/pg_graphql/v1"
 ]
 
 SENSITIVE_KEYWORDS = ["admin", "user", "password", "secret", "token", "payment", "delete", "role"]
@@ -32,7 +34,7 @@ def _post_graphql(url, query_payload, anon_key=None, timeout=15):
     params={
         "type": "object",
         "properties": {
-            "base": {"type": "string", "description": "Base URL of the target (e.g. https://example.com)"},
+            "base": {"type": "string", "description": "Base URL of the target or direct GraphQL endpoint (e.g. https://example.com or https://example.com/graphql)"},
             "anon_key": {"type": "string", "description": "Optional API / anon key (e.g. Supabase pg_graphql apikey header)"}
         },
         "required": ["base"]
@@ -47,32 +49,30 @@ def graphql_introspect(base, anon_key=None):
     working_path = None
     schema_data = None
 
-    for path in GRAPHQL_PATHS:
-        url = base_clean + path
+    # Ω1.3 (audit-6): If base already contains /graphql, test it directly first
+    paths_to_try = list(GRAPHQL_PATHS)
+    if any(base_clean.lower().endswith(p) for p in ("/graphql", "/_graphql", "/api/graphql", "/v1/graphql", "/graphql/v1", "/pg_graphql/v1")):
+        paths_to_try = [""] + [p for p in GRAPHQL_PATHS if not base_clean.lower().endswith(p)]
+
+    for path in paths_to_try:
+        url = base_clean + path if path else base_clean
         status, body = _post_graphql(url, INTROSPECTION_QUERY, anon_key=anon_key)
-        tested.append({"path": path, "url": url, "status": status})
+        tested.append({"path": path or "/", "url": url, "status": status})
 
         if status == 200 and body:
             try:
                 parsed = json.loads(body)
                 if isinstance(parsed, dict) and "data" in parsed and "__schema" in (parsed.get("data") or {}):
                     schema_data = parsed["data"]["__schema"]
-                    working_path = path
+                    working_path = path or "/"
                     break
             except Exception:
                 pass
 
     if not schema_data or not working_path:
-        return json.dumps({
-            "base": base_clean,
-            "introspection_enabled": False,
-            "working_path": None,
-            "tested_paths": tested,
-            "types_found": [],
-            "sensitive_fields": [],
-            "mutations": [],
-            "summary": "GraphQL introspection is disabled or no GraphQL endpoints were detected."
-        }, ensure_ascii=False, indent=1)
+        return verdict("graphql_introspect", False,
+                       "GraphQL introspection is disabled or no GraphQL endpoints were detected.",
+                       tested_paths=tested)
 
     raw_types = schema_data.get("types", []) or []
     type_names = []
@@ -129,16 +129,17 @@ def graphql_introspect(base, anon_key=None):
             dedup_sens.append(item)
 
     user_types = [tn for tn in type_names if not tn.startswith("__")]
+    endpoint = (base_clean + working_path) if working_path != "/" else base_clean
 
-    return json.dumps({
-        "base": base_clean,
-        "introspection_enabled": True,
-        "working_path": working_path,
-        "endpoint": base_clean + working_path,
-        "total_types": len(type_names),
-        "user_defined_types_count": len(user_types),
-        "types_found": user_types,
-        "mutations": mutations,
-        "sensitive_fields": dedup_sens,
-        "schema_sample": {k: type_field_map[k] for k in list(type_field_map.keys())[:15]}
-    }, ensure_ascii=False, indent=1)
+    summary = (f"CONFIRMED: GraphQL introspection OPEN at {endpoint} — {len(user_types)} user types, "
+               f"{len(mutations)} mutations, {len(dedup_sens)} sensitive field matches")
+    return verdict("graphql_introspect", True, summary,
+                   evidence=[f"{s['type']}.{s['field']} ({s['matched_keyword']})" for s in dedup_sens[:10]],
+                   endpoint=endpoint,
+                   working_path=working_path,
+                   total_types=len(type_names),
+                   user_defined_types_count=len(user_types),
+                   types_found=user_types[:30],
+                   mutations=mutations[:30],
+                   sensitive_fields=dedup_sens[:40],
+                   schema_sample={k: type_field_map[k] for k in list(type_field_map.keys())[:15]})

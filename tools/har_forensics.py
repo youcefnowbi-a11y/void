@@ -12,61 +12,64 @@ PATTERNS = {
     "google": re.compile(r"AIza[A-Za-z0-9_\-]{30,}"),
 }
 
+def _resolve_har(har_path):
+    import os
+    if not har_path:
+        return None
+    if os.path.isabs(har_path) and os.path.exists(har_path):
+        return har_path
+    resolved = None
+    try:
+        from core.mission_workspace import get_active
+        ws = get_active()
+        if ws:
+            candidates = [
+                os.path.join(ws.dir, "captures", har_path),
+                os.path.join(ws.dir, har_path),
+                os.path.join(ws.dir, "captures", os.path.basename(har_path)),
+            ]
+            for c in candidates:
+                if os.path.exists(c):
+                    return c
+    except Exception:
+        pass
+    base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    for d in [os.getcwd(), base, os.path.join(base, "missions")]:
+        for root, _, files in os.walk(d):
+            if os.path.basename(har_path) in files:
+                return os.path.join(root, os.path.basename(har_path))
+    return None
+
 @register(name="har_dissect",
           desc="Dissect a HAR file: host map, secrets (JWT/API keys), cookies, interesting endpoints.",
           params={"type":"object","properties":{"har_path":{"type":"string"}},
                   "required":["har_path"]})
 def har_dissect(har_path):
-    import os
-    # Resolve path: try mission workspace captures/, then workspace root, then absolute
-    if not os.path.isabs(har_path) or not os.path.exists(har_path):
-        resolved = None
-        try:
-            from core.mission_workspace import get_active
-            ws = get_active()
-            if ws:
-                candidates = [
-                    os.path.join(ws.dir, "captures", har_path),
-                    os.path.join(ws.dir, har_path),
-                    os.path.join(ws.dir, "captures", os.path.basename(har_path)),
-                ]
-                for c in candidates:
-                    if os.path.exists(c):
-                        resolved = c
-                        break
-        except Exception:
-            pass
-        if resolved is None:
-            # Last resort: check CWD and common paths
-            base = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-            for d in [os.getcwd(), base, os.path.join(base, "missions")]:
-                for root, _, files in os.walk(d):
-                    if os.path.basename(har_path) in files:
-                        resolved = os.path.join(root, os.path.basename(har_path))
-                        break
-                if resolved:
-                    break
-        if resolved:
-            har_path = resolved
-        elif not os.path.exists(har_path):
-            return json.dumps({"error": f"HAR file not found: {har_path}",
-                               "hint": "Provide absolute path or filename from captures/ folder"})
-    raw = open(har_path, encoding="utf-8", errors="replace").read()
+    resolved = _resolve_har(har_path)
+    if not resolved:
+        return json.dumps({"error": f"HAR file not found: {har_path}",
+                           "hint": "Provide absolute path or filename from captures/ folder"})
+    har_path = resolved
+    # Ω3.1 (audit-6): Capped read with context manager
+    with open(har_path, encoding="utf-8", errors="replace") as f:
+        raw = f.read(25_000_000)
     try:
         entries = (json.loads(raw).get("log") or {}).get("entries") or []
     except Exception as ex:
         return f"TOOL ERROR [BAD_HAR]: {str(ex)[:140]} — HAR malformé ou non-JSON"
     hosts, secrets, endpoints = {}, [], set()
     for i, e in enumerate(entries):
-        u = e["request"]["url"]
+        u = e.get("request", {}).get("url", "")
         m = re.match(r"https?://([^/]+)", u)
         if m: hosts[m.group(1)] = hosts.get(m.group(1), 0) + 1
-        blob = json.dumps(e.get("request", {})) + str((e.get("response", {}).get("content") or {}).get("text", "")[:100000])
+        blob = json.dumps(e.get("request", {})) + str((e.get("response", {}).get("content") or {}).get("text", "")[:50000])
         for name, pat in PATTERNS.items():
             for mm in pat.finditer(blob):
                 secrets.append({"type": name, "match": mm.group(0)[:160], "req_index": i, "url": u[:120]})
         if re.search(r"pro|vip|admin|auth|user|payment|token|key", u, re.I):
-            endpoints.add(f"{e['request']['method']} {u[:140]} [{e['response'].get('status')}]")
+            req_m = e.get("request", {}).get("method", "GET")
+            resp_st = e.get("response", {}).get("status", "")
+            endpoints.add(f"{req_m} {u[:140]} [{resp_st}]")
     return json.dumps({
         "total_requests": len(entries),
         "hosts": sorted(hosts.items(), key=lambda x: -x[1])[:15],
@@ -80,10 +83,11 @@ def har_dissect(har_path):
           params={"type":"object","properties":{"har_path":{"type":"string"}},
                   "required":["har_path"]})
 def har_tokens(har_path):
-    import os
-    if not har_path or not os.path.isfile(har_path):
+    resolved = _resolve_har(har_path)
+    if not resolved:
         return f"TOOL ERROR [NO_HAR]: fichier introuvable: {har_path}"
-    raw = open(har_path, encoding="utf-8", errors="replace").read()
+    with open(resolved, encoding="utf-8", errors="replace") as f:
+        raw = f.read(25_000_000)
     found = set()
     for m in re.finditer(r'"name":\s*"[Aa]uthorization",\s*"value":\s*"([^"]+)"', raw):
         found.add(m.group(1))

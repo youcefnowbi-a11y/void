@@ -397,6 +397,87 @@ def _mark_host_result(host, status, sub=False):
         pass
 
 
+# ── Phase 0.3: per-host circuit breaker (nuclei hosterrorscache) ──────────
+# Transport-death quarantine: 3 consecutive network-level failures
+# (timeout / refused / reset / DNS — status -1) = the host is DOWN or
+# blackholing us. Martyr-retrying it burns budget and pacer slots while
+# the mission should pivot. Quarantine carries a CAUSE (the last
+# exception class), expiry (probe again after it), and success-removes
+# (nuclei discipline: a success clears the whole entry, not a count).
+_TRANSPORT_FAILS = {}    # host -> {"count": int, "cause": str, "until": ts}
+_TB_LOCK = threading.Lock()
+_TB_THRESHOLD = 3        # consecutive transport deaths to quarantine
+_TB_COOLDOWN = 300.0     # seconds a quarantined host stays dark (probe window)
+_TB_MAX_HOSTS = 4096     # bound: a scan of a /24 must not OOM the breaker
+
+
+def _tb_mark_locked(host, cause):
+    e = _TRANSPORT_FAILS.get(host)
+    if not e:
+        e = {"count": 0, "cause": "", "until": 0.0}
+        _TRANSPORT_FAILS[host] = e
+    e["count"] += 1
+    e["cause"] = str(cause or "transport")[:60]
+    if e["count"] >= _TB_THRESHOLD:
+        e["until"] = time.time() + _TB_COOLDOWN
+    # bound: /24-scale scans must not OOM the breaker
+    if len(_TRANSPORT_FAILS) > _TB_MAX_HOSTS:
+        for k in sorted(_TRANSPORT_FAILS,
+                        key=lambda k: _TRANSPORT_FAILS[k].get("until", 0)):
+            _TRANSPORT_FAILS.pop(k, None)
+            if len(_TRANSPORT_FAILS) <= _TB_MAX_HOSTS:
+                break
+
+
+def _tb_success(host):
+    """nuclei discipline: success = FULL removal, not a decrement."""
+    with _TB_LOCK:
+        _TRANSPORT_FAILS.pop(host, None)
+
+
+def host_quarantined(host, refresh=False):
+    """Is this host quarantined (transport-dead)? When refresh=True the
+    stale entry (cooldown elapsed) is reaped so a later probe can retry.
+    Returns None or {"host","cause","until","remaining_s"}."""
+    if not host:
+        return None
+    with _TB_LOCK:
+        e = _TRANSPORT_FAILS.get(host)
+        if not e:
+            return None
+        if e.get("until", 0) > time.time():
+            return {"host": host, "cause": e.get("cause"),
+                    "until": e["until"],
+                    "remaining_s": round(e["until"] - time.time(), 1)}
+        if refresh:
+            _TRANSPORT_FAILS.pop(host, None)
+        return None
+
+
+def _tb_observe(host, out):
+    """Post-fetch bookkeeping: transport death marks, live host clears.
+    Called from fetch()'s epilogue; never raises (a breaker that crashes
+    the transport it guards is worse than no breaker). Status -1 is the
+    only real transport-death signal on the wire path (budget-dead -2
+    and breaker-skip -3 must NOT re-mark: they'd auto-perpetuate)."""
+    try:
+        host = host or ""
+        st = (out or {}).get("status")
+        if st == -1:
+            with _TB_LOCK:
+                _tb_mark_locked(host, str(out.get("body") or "")[:60])
+        elif st and st > 0:
+            _tb_success(host)
+    except Exception:
+        pass
+
+
+def fetch_skips_quarantined(host):
+    """Fast pre-check for batch tools: skip firing at a dark host.
+    Reaps the stale entry so the cooldown expiry actually re-arms."""
+    return host_quarantined(host, refresh=True) is not None
+
+
 # ── wave2 P4: captcha hook — detection + solver auto-injection (OFF sans config)
 # Source: captcha_proxies/SYNTHESE.md §1.1 — submit → poll → inject. Budget ROE
 # style: 3 résolutions max par process, 1 tentative par (host, sitekey).
@@ -611,9 +692,84 @@ def _resp_cache_evict_locked():
             _RESP_CACHE.pop(k, None)
 
 
+# ── Phase 0.4: in-flight coalescer (nuclei cluster-before-send, our shape).
+# nuclei hashes single-request templates and fans ONE wire request to N
+# matcher sets. Our fleet's duplication isn't sequential (the cache owns
+# that) — it's SIMULTANEOUS: batch tools fire parallel probes on the same
+# endpoint, swarm/inner strikes duplicate the same recon call. The
+# coalescer: the first caller flies the request; concurrent identical
+# callers join the same flight and receive the same response dict.
+# Only for cacheable GETs (strikes with bodies / methods ≠ GET stay
+# un-coalesced: side effects must hit the wire).
+_INFLIGHT = {}          # cache_key -> threading.Event + shared out
+_INFLIGHT_LOCK = threading.Lock()
+_INFLIGHT_MAX = 64      # bound concurrent coalesced flights
+
+
+def _inflight_join(cache_key, make):
+    """Join the flight for cache_key or become the flyer. make() runs the
+    real fetch; joiners block on the event and receive a copy of the
+    response. The flyer pops the flight entry in finally and passes the
+    result through the box BEFORE setting the event (joiners waking on a
+    corpse flight re-fly solo). Only called for GETs (see fetch)."""
+    if not cache_key:
+        return make()
+    with _INFLIGHT_LOCK:
+        slot = _INFLIGHT.get(cache_key)
+        if slot is not None:
+            joiner_ev, joiner_box = slot
+        elif len(_INFLIGHT) < _INFLIGHT_MAX:
+            ev = threading.Event()
+            box = []
+            _INFLIGHT[cache_key] = (ev, box)
+            flyer = True
+        else:
+            flyer = False
+            joiner_ev = None
+            joiner_box = None
+    if slot is None:
+        if flyer:
+            # ── flyer path: run the request, publish, wake joiners ──
+            out = None
+            try:
+                out = make()
+            finally:
+                with _INFLIGHT_LOCK:
+                    ev, box = _INFLIGHT.pop(cache_key, (None, None))
+                if ev is not None and out is not None:
+                    box.append(out)
+                    ev.set()
+                elif ev is not None:
+                    ev.set()      # corpse wake: joiners re-fly solo
+            return out
+        return make()          # at flight capacity: solo
+    # ── joiner path: block for the flyer's result ──
+    joiner_ev.wait(timeout=180)
+    if joiner_box:
+        return dict(joiner_box[0])
+    return make()              # corpse flight (timeout/expiry): fly solo
+
+
+def _cache_store_locked(cache_key, out):
+    """Shared cache-write for the coalescer flyer and fetch()'s epilogue
+    (Phase 0.4: the flyer runs the wire body but never reaches fetch()'s
+    epilogue — the cache write is factored out so joiners and later
+    callers both benefit). Caller holds no lock; this takes _lock."""
+    if not cache_key or (out or {}).get("status") != 200:
+        return
+    with _lock:
+        _compact = dict(out)
+        if len(_compact.get("body") or "") > 40_000:
+            _compact["body"] = _compact["body"][:40_000] + "…[cache-compacted]"
+            _compact["cache_compacted"] = True
+        _RESP_CACHE[cache_key] = (_compact, time.time())
+        _resp_cache_evict_locked()  # E-5: purge des expirées + cap
+
+
 def fetch(url, method="GET", headers=None, body=None, timeout=25,
           use_cache=True, retries=2, _redirects=0, redirect_chain=None,
-          _proxy_tried=None, deadline=None):
+          _proxy_tried=None, deadline=None, _nocoalesce=False,
+          _coalesce_key=None):
     """One HTTP call with everything on. Returns a dict:
     {status, body, headers, size, url, final_url, redirect_chain, cache_hit, attempts}
     Proxy pool (config/transport.yaml) + rotate-on-block are transparent.
@@ -664,6 +820,37 @@ def fetch(url, method="GET", headers=None, body=None, timeout=25,
             out = dict(hit[0])
             out["cache_hit"] = True
             return out
+        # ── Phase 0.4: in-flight coalescing — concurrent identical GETs
+        # join ONE wire flight (nuclei cluster-before-send, our shape).
+        # The inner re-entry flies the real request with _nocoalesce=True
+        # (no recursive join) and writes the cache itself via the shared
+        # helper — joiners and the flyer all hold the same response.
+        if not _nocoalesce:
+            key = cache_key
+            return _inflight_join(key, lambda: fetch(
+                url, method=method, headers=headers, body=body,
+                timeout=timeout, use_cache=False, retries=retries,
+                _redirects=_redirects, redirect_chain=redirect_chain,
+                _proxy_tried=_proxy_tried, deadline=deadline,
+                _nocoalesce=True, _coalesce_key=key))
+
+    # ── Phase 0.3: circuit breaker fast-skip — a quarantined (transport-
+    # dead) host gets ONE synthetic refusal instead of a martyr volley.
+    # Cache still serves (above); fresh wires are refused until cooldown.
+    # Stale quarantine (cooldown elapsed) is reaped here → probe re-arms.
+    _q = host_quarantined(host, refresh=True)
+    if _q:
+        try:
+            from core import skip_ledger as _sl
+            _sl.skip("quarantined", tool="transport",
+                     detail=f"host {host} dark ({_q['cause']})")
+        except Exception:
+            pass
+        return {"status": -3, "body": f"host quarantined (transport breaker): "
+                                      f"{_q['cause']}",
+                "headers": {}, "size": 0, "url": url, "final_url": url,
+                "redirect_chain": redirect_chain, "cache_hit": False,
+                "attempts": 0, "quarantine": _q}
 
     _roe_gate()  # ROE max_request_rate — global outbound discipline
 
@@ -740,7 +927,14 @@ def fetch(url, method="GET", headers=None, body=None, timeout=25,
                                 timeout=timeout, use_cache=use_cache,
                                 retries=retries, _redirects=_redirects + 1,
                                 redirect_chain=redirect_chain,
-                                _proxy_tried=_proxy_tried, deadline=deadline)
+                                _proxy_tried=_proxy_tried, deadline=deadline,
+                                _nocoalesce=True,
+                                _coalesce_key=_coalesce_key)
+                    # final-audit fix #6 (RZ07 on the curl_cffi lane): the
+                    # sub-call returns EARLY, bypassing the epilogue publish —
+                    # without threading the ORIGINAL coalesce key, the
+                    # redirected final response was never cached under it
+                    # (silent cache miss on every impersonated redirect).
                     res["redirect_status"] = r.status_code
                     return res
                 # 3xx sans Location (ou budget redirects épuisé) → rendu tel quel
@@ -791,7 +985,8 @@ def fetch(url, method="GET", headers=None, body=None, timeout=25,
                 res = fetch(nxt, method=m2, headers=rheaders, body=rbody,
                             timeout=timeout, use_cache=use_cache, retries=retries,
                             _redirects=_redirects + 1, redirect_chain=redirect_chain,
-                            _proxy_tried=_proxy_tried, deadline=deadline)
+                            _proxy_tried=_proxy_tried, deadline=deadline,
+                            _nocoalesce=True, _coalesce_key=_coalesce_key)
                 res["redirect_status"] = ex.code
                 return res
             raw = ""
@@ -873,7 +1068,8 @@ def fetch(url, method="GET", headers=None, body=None, timeout=25,
                 res = fetch(url, method=method, headers=headers, body=body,
                             timeout=timeout, use_cache=False, retries=retries,
                             _redirects=_redirects, redirect_chain=redirect_chain,
-                            _proxy_tried=_proxy_tried, deadline=deadline)
+                            _proxy_tried=_proxy_tried, deadline=deadline,
+                            _coalesce_key=_coalesce_key)
                 res["proxy_used"] = alt
                 res["rotated"] = True
                 _pool_mark(alt, res["status"] in (200, 301, 302))
@@ -884,7 +1080,8 @@ def fetch(url, method="GET", headers=None, body=None, timeout=25,
                 res = fetch(url, method=method, headers=headers, body=body,
                             timeout=timeout, use_cache=False, retries=retries,
                             _redirects=_redirects, redirect_chain=redirect_chain,
-                            _proxy_tried=_proxy_tried | {proxy_url}, deadline=deadline)
+                            _proxy_tried=_proxy_tried | {proxy_url}, deadline=deadline,
+                            _coalesce_key=_coalesce_key)
                 res["proxy_used"] = alt
                 res["rotated"] = True
                 _pool_mark(alt, res["status"] in (200, 301, 302))
@@ -893,18 +1090,16 @@ def fetch(url, method="GET", headers=None, body=None, timeout=25,
         _pool_mark(proxy_url, out["status"] in (200, 301, 302))
 
     if cache_key and out["status"] == 200:
-        with _lock:
-            # X1.3 (audit-3): the cache stored FULL bodies — 500 entries x
-            # 500KB = a 250MB bomb before eviction ever fired. The cached
-            # copy is compact (40KB head: enough for a cache-hit to serve
-            # recon and fingerprinting) and the cap drops to 300.
-            _compact = dict(out)
-            if len(_compact.get("body") or "") > 40_000:
-                _compact["body"] = _compact["body"][:40_000] + "…[cache-compacted]"
-                _compact["cache_compacted"] = True
-            _RESP_CACHE[cache_key] = (_compact, time.time())
-            _resp_cache_evict_locked()  # E-5: purge des expirées + cap
+        # X1.3 (audit-3) logic, factored into _cache_store_locked (Phase
+        # 0.4: the coalescer flyer uses the same helper — one compaction
+        # rule, one cap, one eviction, two entry points).
+        _cache_store_locked(cache_key, out)
     _mark_host_result(host, out["status"])
+    _tb_observe(host, out)   # Phase 0.3: transport breaker bookkeeping
+    if _coalesce_key and out["status"] == 200:
+        # Phase 0.4: the flyer reached the real epilogue — publish to the
+        # coalescer's cache key so joiners/later callers hit the cache.
+        _cache_store_locked(_coalesce_key, out)
     if 0 < out["size"] < 200_000:
         try:
             from core.blackboard import observe

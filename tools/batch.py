@@ -65,6 +65,13 @@ def batch_execute(calls):
 
     def run(i, name, args):
         if _allowed is not None and name not in _allowed:
+            # final-audit #10: categorize the batch-lane arsenal refusal
+            # (L4 — every skip must be ledgered for the autopsy)
+            try:
+                from core import skip_ledger as _sl
+                _sl.skip("scope_tool", tool=name, detail="batch inner")
+            except Exception:
+                pass
             return i, {"tool": name, "ok": False,
                        "result": "SKIPPED: '" + name + "' hors arsenal autorisé de "
                                  "l'agent appelant (plan-mode / rôle swarm)."}
@@ -75,6 +82,21 @@ def batch_execute(calls):
             res = _reg.execute(name, args or {}, on_event=inner_event)
         finally:
             _reg.allowed.names = _prev
+        # final-audit #4 (HIGH): Ω2 twin cap INSIDE the batch lane — the
+        # agent's outer trigger can't see batched results (JSON-escaped
+        # quotes), and blind_policy can't parse the batch envelope. Cap
+        # blind-class contradictions HERE, at the point of creation, so
+        # an unproven exploitable:true never rides into the archive.
+        try:
+            s_res = str(res)
+            if '"oob"' in s_res and ('"exploitable": true' in s_res
+                                    or '"exploitable":true' in s_res):
+                from core import twin as _twn
+                _bp = _twn.blind_policy(s_res)
+                if _bp[0] is not None and _bp[0] is not True:
+                    res = _bp[0]  # the capped verdict (partial, proof null)
+        except Exception:
+            pass
         return i, {"tool": name, "ok": not str(res).startswith("TOOL ERROR"),
                    "result": str(res)[:4000]}
 

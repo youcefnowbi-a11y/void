@@ -101,10 +101,18 @@ class Blackboard:
         key = f"{kind}:{value}"
         with self.lock:
             self._seq += 1
-            self.facts.append({"seq": self._seq, "ts": _now(), "op": "asset",
-                               "kind": kind, "key": key, "value": value,
-                               "confidence": confidence, "source": source_tool,
-                               "evidence": evidence[:300]})
+            _fact = {"seq": self._seq, "ts": _now(), "op": "asset",
+                     "kind": kind, "key": key, "value": value,
+                     "confidence": confidence, "source": source_tool,
+                     "evidence": evidence[:300]}
+            # Phase 3 (Ω3.1): provenance — every fact names its producing
+            # mission/step (best-effort; archived stamps are never overwritten)
+            try:
+                from core import dream as _dream
+                _dream.stamp_fact(_fact)
+            except Exception:
+                pass
+            self.facts.append(_fact)
             a = self.assets.get(key)
             if a:
                 # D-B2 : rejouer les observations BRUTES. L'ancienne forme

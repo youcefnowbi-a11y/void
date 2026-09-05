@@ -23,6 +23,18 @@ _DISCOVERED = False  # tracks that discovery RAN, separate from registry size �
                      # partial imports (e.g. `from tools.js_mine import ...`)
                      # must never block full discovery of the other modules.
 
+# ── Phase 0.6: the curated cascade map (param name → datastore key).
+# CLOSED: only params we understand auto-fill. Add keys when a tool
+# pattern proves itself; never guess credentials into blind params.
+_CASCADE_KEYS = {
+    "token": "auth_token",          # bearer/JWT for authed sweeps
+    "anon_key": "supabase_anon_key",
+    "api_key": "api_key",
+    "headers": "default_headers",   # sticky headers (UA, cookies)
+    "cookies": "cookies",
+    "proxy": "proxy_url",
+}
+
 # Schema-healing: the LLM's call accuracy is a direct function of parameter
 # descriptions. Any tool property registered without one gets a synthesized
 # doc here — every tool, present and future, ships LLM-ready schemas.
@@ -176,6 +188,38 @@ def _coerce_args(schema_props, args):
     return args
 
 
+def _coerce_one(schema_props, key, value):
+    """Coerce a single filled value per the tool's schema (the datastore
+    cascade fills AFTER _coerce_args — filled strings must land in the
+    type the tool expects, same rules as _coerce_args)."""
+    spec = (schema_props or {}).get(key) or {}
+    want = spec.get("type")
+    if want in ("object", "array") and isinstance(value, str):
+        s = value.strip()
+        if s[:1] in "{[":
+            try:
+                return json.loads(s)
+            except (ValueError, TypeError, json.JSONDecodeError):
+                return value
+    if want == "integer" and isinstance(value, str):
+        try:
+            return int(value.strip())
+        except (ValueError, TypeError):
+            return value
+    if want == "number" and isinstance(value, str):
+        try:
+            return float(value.strip())
+        except (ValueError, TypeError):
+            return value
+    if want == "boolean" and isinstance(value, str):
+        lv = value.strip().lower()
+        if lv in ("1", "true", "yes", "y", "on"):
+            return True
+        if lv in ("0", "false", "no", "n", "off"):
+            return False
+    return value
+
+
 def _load_roe():
     """Rules of engagement from config/engagement.yaml — previously read by
     report.py only. Now they actually gate execution."""
@@ -319,6 +363,12 @@ def execute(name, args, on_event=None):
         if on_event:
             on_event({"type": "tool_error", "tool": name, "error": err[:300],
                       "category": "UNKNOWN_TOOL", "duration": 0.0})
+        try:
+            from core import skip_ledger as _sl
+            _sl.skip("unknown_tool", tool=name,
+                     detail="closest: " + (", ".join(close) or "none"))
+        except Exception:
+            pass
         return err
     # ── wave3 Dark-Moon: restaurer les identités réelles AVANT les gates —
     # les args peuvent arriver tokenisés ([HOST-7]) depuis le LLM; le coffre
@@ -342,6 +392,12 @@ def execute(name, args, on_event=None):
         if on_event:
             on_event({"type": "tool_error", "tool": name, "error": err[:300],
                       "category": "SCOPE_TOOL", "duration": 0.0})
+        try:
+            from core import skip_ledger as _sl
+            _sl.skip("scope_tool", tool=name,
+                     detail=f"arsenal size {len(_allowed_here)}")
+        except Exception:
+            pass
         return err
 
     # ── Rules of Engagement, enforced for real (F10) ──
@@ -357,6 +413,12 @@ def execute(name, args, on_event=None):
         if on_event:
             on_event({"type": "tool_error", "tool": name, "error": err[:300],
                       "category": "ROE_BLOCKED", "duration": 0.0})
+        try:
+            from core import skip_ledger as _sl
+            _sl.skip("roe_blocked", tool=name,
+                     detail=f"danger={t.get('danger')}")
+        except Exception:
+            pass
         return err
     # ── G13: scope guard par argument (wave2) ──
     scope_err = _scope_check(args, scope=_load_scope_cached())
@@ -364,8 +426,61 @@ def execute(name, args, on_event=None):
         if on_event:
             on_event({"type": "tool_error", "tool": name, "error": scope_err[:300],
                       "category": "SCOPE_BLOCKED", "duration": 0.0})
+        try:
+            from core import skip_ledger as _sl
+            _sl.skip("scope_blocked", tool=name, detail=scope_err[:280])
+        except Exception:
+            pass
         return scope_err
     args = _coerce_args((t.get("params") or {}).get("properties"), args)
+    # ── Phase 0.6: datastore cascade (metasploit datastore, our shape).
+    # MISSING call params fill from mission globals before the tool runs;
+    # explicit args ALWAYS win — the cascade only fills holes. Mapping is
+    # CURATED (closed map): we auto-fill params we understand, never
+    # guess. batch_execute inherits through this same choke point.
+    try:
+        if args is None:
+            args = {}
+        from core import datastore as _ds
+        _props = (t.get("params") or {}).get("properties")
+        for _pk, _dk in _CASCADE_KEYS.items():
+            if _pk in args and (args.get(_pk) in (None, "", [], {})):
+                _v = _ds.get(_dk)
+                if _v is not None:
+                    # the datastore stores strings; the param may want an
+                    # object/array (headers dict) — re-coerce the filled
+                    # value so a JSON-string global lands as the real dict
+                    _cv = _coerce_one(_props, _pk, _v)
+                    args[_pk] = _cv
+                    if on_event:
+                        on_event({"type": "system", "text":
+                                  f"⚙ datastore: param '{_pk}' rempli depuis "
+                                  f"le mission-global '{_dk}'"})
+    except Exception:
+        pass
+    # ── Phase 1 (Ω1.1): prediction contract — extract `predict` from the
+    # call args BEFORE the tool sees them (the tool never receives it),
+    # freeze pre-run, measure the delta post-run. A prediction carrying
+    # unresolved {slots} DEFERS (fail-closed, law #1.4). Best-effort: a
+    # world-model failure must never kill a strike.
+    _wm_pred = None
+    try:
+        from core import world_model as _wm
+        _wm_pred, args = _wm.parse_prediction(args)
+        if isinstance(_wm_pred, dict) and _wm_pred.get("deferred"):
+            _wm_pred = None
+            try:
+                from core import skip_ledger as _sl
+                _sl.skip("prereq_missing", tool=name,
+                         detail="predict slot unresolved")
+            except Exception:
+                pass
+            return ("TOOL DEFERRED [Ω1]: la prédiction porte des {slots} "
+                    "non résolus — un coup half-rendered est pire que pas "
+                    "de coup. Remplis les slots depuis le recon puis relance.")
+    except Exception:
+        pass
+
     _root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     if _root not in sys.path:  # F-3/R3-33: dédup — plus de sys.path qui gonfle
         sys.path.insert(0, _root)  # à chaque appel d'outil
@@ -387,11 +502,31 @@ def execute(name, args, on_event=None):
         _start = _t.time()
         while attempts < 3:
             attempts += 1
+            # Ω1 heal-hygiene: attempt 2+ runs with HEALED args — the frozen
+            # prediction of attempt 1 must never be measured against attempt
+            # 2's output. final-audit fix B9: the old re-parse branch was
+            # dead code (predict is popped at the pre-gate; the healer only
+            # renames/copies original keys) with a booby-trap inside (a bare
+            # defer on any parse failure). Simplified to the honest form:
+            # healed args = a different call → unmeasured, period. If a
+            # future healer ever re-adds `predict`, it lands here as
+            # unmeasured too — no trap, no unmeasured defer.
+            if attempts > 1:
+                _wm_pred = None
             # R3-12: les args peuvent avoir été réécrits depuis le premier gate
             # (coercion, heal qui swappe un URL vers un path local) — re-valide
             # les DESTINATIONS avant CHAQUE exécution, jamais de run non-checké.
             scope_err = _scope_check(args, scope=_load_scope_cached())
             if scope_err:
+                # final-audit fix #8 (L4): the heal-path scope refusal must
+                # hit the skip ledger like the round-1 gate does — the autopsy
+                # needs every skip.
+                try:
+                    from core import skip_ledger as _sl
+                    _sl.skip("scope_blocked", tool=name,
+                             detail=str(scope_err)[:280])
+                except Exception:
+                    pass
                 if emitter:
                     emitter({"type": "tool_error", "tool": name, "error": scope_err[:300],
                              "category": "SCOPE_BLOCKED", "duration": 0.0})
@@ -408,6 +543,18 @@ def execute(name, args, on_event=None):
                     allowed.names = _prev_allowed
                 if not isinstance(out, str):
                     out = json.dumps(out, ensure_ascii=False, default=str)
+                # Ω1.1 post-run: measure the frozen prediction against the
+                # real output (deterministic; the note rides the tool
+                # result — the agent SEES where its model was wrong).
+                try:
+                    if _wm_pred is not None:
+                        from core import world_model as _wm
+                        _v = _wm.measure(name, args, _wm_pred, out)
+                        _n = _wm.prediction_note(_v)
+                        if _n and len(out) < 55000:
+                            out = out + _n
+                except Exception:
+                    pass
                 # archive-grade cap: 20KB coupait les JSON en plein milieu
                 # (batch_execute de 5 résultats, cartes d'arsenal) → le modèle
                 # recevait du JSON cassé. 60KB laisse l'archive vivre; le

@@ -91,13 +91,25 @@ def _payload_str(p):
               "headers": {"type": "object", "description": "base headers to send"},
               "max_requests": {"type": "integer", "default": 300},
               "target_param": {"type": "string", "description": "fuzz only this param"},
+              "method": {"type": "string", "description": "HTTP method: 'GET' (default) or 'POST'"},
               "wordlist": {"type": "string", "description": "data/wordlists name WITHOUT .txt, e.g. 'common' (the .txt is appended) — applied after the mutation corpus"},
-              "seeds": {"type": "object", "description": "learned param values to prepend (pass crash_triage_next's 'fuzz_seeds' here)"}},
+              "seeds": {"type": "object", "description": "learned param values to prepend (pass crash_triage_next's 'fuzz_seeds' here)"},
+              "budget_s": {"type": "number", "description": "wall-clock budget for THIS call in seconds (e.g. 120–300 for slow WAF-fronted targets); on expiry returns honest partial findings — never hangs a mission round"}},
               "required": ["url"]},
           danger="careful")
 def fuzz_attack_surface(url, params=None, headers=None, max_requests=300,
-                        target_param=None, seeds=None, wordlist=None):
+                        target_param=None, seeds=None, wordlist=None, method="GET",
+                        budget_s=0):
     max_requests = max(10, min(int(max_requests or 300), 3_000))  # ROE clamp
+    # calib-C fix: 250 requests × 9s WAF RTT = a 40-MINUTE tool call
+    # that zombified the mission round loop. budget_s (LLM-chosen, never
+    # hidden) wall-clocks the CALL: on expiry the fuzzer stops and
+    # returns its findings so far — honest partial, never a hang.
+    try:
+        budget_s = float(budget_s or 0)
+    except (TypeError, ValueError):
+        budget_s = 0.0
+    _deadline = (time.perf_counter() + budget_s) if budget_s > 0 else None
     # ── V1 munitions: SecLists-backed dictionary sweep after the mutation corpus ──
     _words = []
     if wordlist:
@@ -188,6 +200,8 @@ def fuzz_attack_surface(url, params=None, headers=None, max_requests=300,
         for mut in (list(MUTATIONS) + _words):
             if sent >= max_requests:
                 break
+            if _deadline is not None and time.perf_counter() > _deadline:
+                break
             pay = _payload_str(mut)
             req_url, req_headers, body = url_param_branch, dict(headers), None
             if pname is None:
@@ -197,15 +211,23 @@ def fuzz_attack_surface(url, params=None, headers=None, max_requests=300,
                 else:
                     continue
             else:
-                if req_url == url_param_branch and body is None:
-                    # GET: rebuild query string with the mutation swapped in
-                    data = dict(params)
-                    data[pname] = mut
-                    req_url = url_param_branch + ("?" + urlencode(data) if data else "")
+                # Ω1.2 (audit-6): Honor method parameter (POST vs GET) & encode dict mutations properly
+                is_post = (method or "GET").upper() == "POST"
+                data = dict(params)
+                data[pname] = mut
+                if is_post:
+                    # In POST mode, body can be JSON or form-encoded
+                    if any(k.lower() == "content-type" and "json" in str(v).lower() for k, v in req_headers.items()) or isinstance(mut, (dict, list)):
+                        body = json.dumps(data)
+                        if not any(k.lower() == "content-type" for k in req_headers):
+                            req_headers["Content-Type"] = "application/json"
+                    else:
+                        # Clean string conversion for urlencode
+                        flat = {k: (json.dumps(v) if isinstance(v, (dict, list)) else v) for k, v in data.items()}
+                        body = flat
                 else:
-                    data = dict(params)
-                    data[pname] = mut
-                    body = data
+                    flat = {k: (json.dumps(v) if isinstance(v, (dict, list)) else v) for k, v in data.items()}
+                    req_url = url_param_branch + ("?" + urlencode(flat) if flat else "")
             t0 = time.perf_counter()
             st, resp, dt = paced_send(req_url, method="POST" if body is not None else "GET",
                                       headers=req_headers, body=body, timeout=20)
@@ -255,6 +277,20 @@ def fuzz_attack_surface(url, params=None, headers=None, max_requests=300,
     _save_findings(findings)
     _save_seeds(findings)
     findings.sort(key=lambda f: -f["severity"])
+    _expired = (_deadline is not None and time.perf_counter() > _deadline
+                and sent < max_requests)
+    if _expired:
+        summary = (f"budget wall-clock atteint: {len(findings)} anomaly(ies) "
+                   f"over {sent}/{max_requests} requests — partial but honest; "
+                   f"re-fire with a higher budget_s or narrower target_param "
+                   f"to finish the sweep")
+        return verdict("fuzz_attack_surface", bool(findings), summary,
+                       evidence=[f"{f['param']}={f['payload'][:40]} -> "
+                                 f"{f['signals'][0]}"
+                                 for f in findings[:12]],
+                       findings=findings[:40], requests_sent=sent,
+                       triage_hint="run crash_triage_next to rank and map "
+                                   "to exploit modules")
     return verdict("fuzz_attack_surface", bool(findings),
                    (f"{len(findings)} anomaly(ies) over {sent} requests — highest severity "
                     f"{findings[0]['severity']} ({findings[0]['signals'][0]})" if findings else

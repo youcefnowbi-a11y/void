@@ -54,16 +54,49 @@ def _patch(body_obj, patches):
               "required": []})
 def replay_mutate(capture_file=None, url_filter="", url_replace=None,
                   body_patch=None, headers=None, max=10):
-    if not capture_file:
-        if not os.path.isdir(CAPTURES_DIR):
-            return json.dumps({"error": "no captures yet — run spa_crawl first"})
-        caps = sorted((f for f in os.listdir(CAPTURES_DIR) if f.endswith(".json")),
-                      key=lambda f: -os.path.getmtime(os.path.join(CAPTURES_DIR, f)))
-        if not caps:
-            return json.dumps({"error": "no capture files in data/captures"})
-        capture_file = os.path.join(CAPTURES_DIR, caps[0])
-    if not os.path.isabs(capture_file):
-        capture_file = os.path.join(CAPTURES_DIR, capture_file)
+    # Ω3.2 (audit-6): Resolve capture_file from mission workspace captures/ or data/captures/
+    resolved = None
+    if capture_file:
+        if os.path.isabs(capture_file) and os.path.exists(capture_file):
+            resolved = capture_file
+        else:
+            try:
+                from core.mission_workspace import get_active
+                ws = get_active()
+                if ws and os.path.exists(os.path.join(ws.dir, "captures", capture_file)):
+                    resolved = os.path.join(ws.dir, "captures", capture_file)
+                elif ws and os.path.exists(os.path.join(ws.dir, capture_file)):
+                    resolved = os.path.join(ws.dir, capture_file)
+            except Exception:
+                pass
+            if not resolved and os.path.exists(os.path.join(CAPTURES_DIR, capture_file)):
+                resolved = os.path.join(CAPTURES_DIR, capture_file)
+    else:
+        # Latest capture from workspace or data/captures
+        candidates = []
+        try:
+            from core.mission_workspace import get_active
+            ws = get_active()
+            cd = os.path.join(ws.dir, "captures") if ws else None
+            if cd and os.path.isdir(cd):
+                for f in os.listdir(cd):
+                    if f.endswith(".json"):
+                        p = os.path.join(cd, f)
+                        candidates.append((os.path.getmtime(p), p))
+        except Exception:
+            pass
+        if os.path.isdir(CAPTURES_DIR):
+            for f in os.listdir(CAPTURES_DIR):
+                if f.endswith(".json"):
+                    p = os.path.join(CAPTURES_DIR, f)
+                    candidates.append((os.path.getmtime(p), p))
+        if candidates:
+            candidates.sort(key=lambda x: -x[0])
+            resolved = candidates[0][1]
+
+    if not resolved or not os.path.exists(resolved):
+        return json.dumps({"error": f"capture file not found: {capture_file or 'latest'}"})
+    capture_file = resolved
 
     with open(capture_file, encoding="utf-8") as f:
         cap = json.load(f)

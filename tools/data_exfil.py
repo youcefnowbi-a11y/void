@@ -192,6 +192,10 @@ def _http(url, method="GET", headers=None, body=None, timeout=25,
                "plus response headers and Set-Cookie. "
                "Supports GET/POST, custom headers, POST body as JSON or form-urlencoded. "
                "Set content_type='form' for form endpoints (FastAPI Form fields, login pages). "
+               "422 READING RULE: a FastAPI 422 with 'input: null' means the endpoint expects a "
+               "NAMED body field — read the 'loc' array in the error detail (e.g. "
+               "loc=['body','input'] = wrap your payload as {\"input\": {...}}); it is NOT a "
+               "transport failure — the bytes arrive exactly as sent. "
                "use_jar=true replays this host's stored cookies (Set-Cookie captured every "
                "call) — login chains stay ALIVE across calls; jar_clear=true wipes them.",
           params={"type": "object", "properties": {

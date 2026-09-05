@@ -48,15 +48,16 @@ def _get_raw(url, headers=None, timeout=20, token=None):
         opener = get_opener()
         if opener:
             r = opener.open(rq, timeout=timeout)
-            return r.status, r.read().decode(errors="replace")[:120000]
+            # Ω3.3 (audit-6): Bound socket read directly
+            return r.status, r.read(120_000).decode(errors="replace")
     except (ImportError, Exception):
         pass
 
     try:
         r = urllib.request.urlopen(rq, timeout=timeout)
-        return r.status, r.read().decode(errors="replace")[:120000]
+        return r.status, r.read(120_000).decode(errors="replace")
     except urllib.error.HTTPError as ex:
-        return ex.code, ex.read().decode(errors="replace")[:8000]
+        return ex.code, ex.read(8000).decode(errors="replace")
     except Exception as ex:
         return -1, f"{type(ex).__name__}: {str(ex)[:80]}"
 
