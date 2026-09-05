@@ -40,7 +40,22 @@ def evidence_state(name, ok, out):
     never from the tool's self-reported success. Hard evidence beats `ok` in
     BOTH directions: ok sans preuve = detected (pas confirmed); preuve
     EXPLOITED même avec ok=False (l'outil a réussi puis crashé) = exploited."""
-    blob = (out or "")[:2000]
+def evidence_state(name, ok, out):
+    """G11 ground-truth lens: derive the honest state from the OUTPUT ITSELF —
+    never from the tool's self-reported success. Hard evidence beats `ok` in
+    BOTH directions: ok sans preuve = detected (pas confirmed); preuve
+    EXPLOITED même avec ok=False (l'outil a réussi puis crashé) = exploited.
+    wave-2-B fix: the marker regexes must not fire on text an untrusted
+    tool merely ECHOES (a PoC dumping its own command line). The verdict
+    markers count only in the TOOL's own structured fields — a JSON
+    verdict dict head or the explicit marker lines of our own arsenal
+    shape — never inside echoed payloads/args blocks."""
+    s = str(out or "")
+    # strip echoed-payload noise: anything inside an args/payload/command
+    # echo block is the tool parroting attacker text, not a verdict.
+    _clean = re.sub(r'(?is)"(?:args|payload|command|cmd|body|input|template)"\s*:\s*".{0,400}?"',
+                    "", s[:2000])
+    blob = _clean[:2000]
     if _EVIDENCE_EXPLOIT.search(blob):
         return "exploited"
     if _EVIDENCE_CONFIRM.search(blob):

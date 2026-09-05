@@ -5,7 +5,9 @@ import json, os, re, time, threading
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 FIXES_FILE = os.path.join(HERE, "learned_fixes.json")
-_FIXES_LOCK = threading.Lock()  # swarm threads share this file — no lost updates
+# wave-2-A deadlock fix: _rmw holds the lock across _save_fixes which
+# re-acquires it — Lock is non-reentrant, RLock is the contract.
+_FIXES_LOCK = threading.RLock()  # swarm threads share this file — no lost updates
 
 def _load_fixes():
     try:
@@ -17,9 +19,25 @@ def _load_fixes():
         return {"error_signatures": {}, "tool_flag_migrations": {}}
 
 def _save_fixes(data):
+    # final-audit fix #7: tmp + os.replace (atomic) — a crash mid-write
+    # left a corrupt file that _load_fixes swallowed as an EMPTY
+    # skeleton, so the next learn_* rewrote the file with ONLY the new
+    # entry (silent permanent wipe of every learned fix).
     with _FIXES_LOCK:
-        with open(FIXES_FILE, "w", encoding="utf-8") as f:
+        _tmp = FIXES_FILE + ".tmp"
+        with open(_tmp, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=1, ensure_ascii=False)
+        os.replace(_tmp, FIXES_FILE)
+
+def _rmw(fn):
+    """final-audit fix #7 (cont.): the whole read-modify-write under the
+    lock — learn_* read OUTSIDE it, so concurrent swarm threads lost
+    each other's updates."""
+    with _FIXES_LOCK:
+        data = _load_fixes()
+        out = fn(data)
+        _save_fixes(data)
+        return out
 
 def classify(error_text):
     """Returns (category, details)."""
@@ -50,20 +68,41 @@ def get_learned_fix(tool_name, category):
            (data.get("error_signatures") or {}).get(f"{tool_name}:{category}")
 
 def learn_flag_migration(tool_name, old_flag, new_flag):
-    data = _load_fixes()
-    data.setdefault("tool_flag_migrations", {})[tool_name] = {
-        "from": old_flag, "to": new_flag,
-        "learned_at": time.strftime("%Y-%m-%d %H:%M")}
-    _save_fixes(data)
+    def _apply(data):
+        data.setdefault("tool_flag_migrations", {})[tool_name] = {
+            "from": old_flag, "to": new_flag,
+            "learned_at": time.strftime("%Y-%m-%d %H:%M")}
+    _rmw(_apply)
 
 def learn_generic(tool_name, category, fix_description):
-    data = _load_fixes()
-    data.setdefault("error_signatures", {})[f"{tool_name}:{category}"] = {
-        "fix": fix_description, "learned_at": time.strftime("%Y-%m-%d %H:%M")}
-    _save_fixes(data)
+    # final-audit fix #8: write-only memory gated — only NOVEL
+    # signatures churn the file; a re-observed deterministic wound no
+    # longer re-timestamps its entry every mission.
+    def _apply(data):
+        sigs = data.setdefault("error_signatures", {})
+        key = f"{tool_name}:{category}"
+        if sigs.get(key, {}).get("fix") != fix_description:
+            sigs[key] = {
+                "fix": fix_description,
+                "learned_at": time.strftime("%Y-%m-%d %H:%M")}
+    _rmw(_apply)
 
 def heal_attempt(tool_name, category, details, original_args):
     """Returns patched args if a healing strategy exists, else None."""
+    # final-audit fix #8: consult the learned error_signatures FIRST —
+    # the store was write-only memory (nothing read it), so the "never
+    # blocks twice on the same wound" contract was unimplemented.
+    try:
+        sig = get_learned_fix(tool_name, category)[1]
+        if isinstance(sig, dict) and sig.get("fix"):
+            # a stored fix exists for this exact wound — surface it to
+            # the caller (the heal notes ride the tool result) even when
+            # no category strategy below applies
+            _sig_note = f"learned fix on record: {str(sig['fix'])[:200]}"
+        else:
+            _sig_note = None
+    except Exception:
+        _sig_note = None
     if category == "FLAG_RENAMED":
         # try learned migration first
         mig = (_load_fixes().get("tool_flag_migrations") or {}).get(tool_name)
@@ -74,6 +113,10 @@ def heal_attempt(tool_name, category, details, original_args):
                 kk = k
                 if k == mig.get("from","").lstrip("-"):
                     kk = mig.get("to","").lstrip("-"); fixed = True
+                # final-audit fix #10: a rename collision used to
+                # silently clobber a pre-existing arg of the same name.
+                if kk != k and kk in new_args:
+                    return None, f"rename collision: {kk} already present"
                 new_args[kk] = v
             if fixed:
                 return new_args, f"applied learned migration {mig['from']} -> {mig['to']}"
@@ -115,4 +158,4 @@ def heal_attempt(tool_name, category, details, original_args):
         return None, "no http(s) URL in args to fetch"
     if category == "BROWSER_MISSING":
         return None, "browser engine unavailable — advise agent to use request-based tool"
-    return None, ""
+    return None, (_sig_note or "")

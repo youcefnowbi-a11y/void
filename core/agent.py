@@ -1915,19 +1915,23 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                             status = _cov.honest_status(out)
                             if trid:
                                 mission_state.finish_tool_run(trid, out, dur, status)
-                            try:
-                                from core.mathcore import bandit_record
-                                bandit_record(tool_name, status == "ok", dur)
-                            except Exception:
-                                pass
-                            try:
-                                from core.trajectory import record as _traj, evidence_state as _evst
-                                _traj(mission_id, "unknown", tool_name,
-                                      status == "ok", dur, round_num=rnd + 1,
-                                      state=_evst(tool_name, status == "ok", out))
-                            except Exception:
-                                pass
-                            if ws is not None and not status == "error":
+                            # wave-2-B fix #1: deferred (never-executed) offline
+                            # steps bank nothing either.
+                            if status != "deferred":
+                                try:
+                                    from core.mathcore import bandit_record
+                                    bandit_record(tool_name, status == "ok", dur)
+                                except Exception:
+                                    pass
+                                try:
+                                    from core.trajectory import record as _traj, evidence_state as _evst
+                                    _traj(mission_id, "unknown", tool_name,
+                                          status == "ok", dur, round_num=rnd + 1,
+                                          args_digest=json.dumps(args or {}, default=str)[:200],
+                                          state=_evst(tool_name, status == "ok", out))
+                                except Exception:
+                                    pass
+                            if ws is not None and status == "ok":
                                 ws.log_run(tool_name, args, out, dur, status, rnd + 1)
                                 ws.save_extraction(tool_name, out)
                                 ws.save_finding(tool_name, out)
@@ -2086,7 +2090,13 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                 dur = round(time.time() - t0, 2)
                 state["outer"] = None
 
-                is_error = _cov.honest_status(out) == "error"
+                # wave-2-B fix #1 (HIGH): honest_status is now tri-state —
+                # "deferred" (an Ω1 slot-defer that never executed) must
+                # not be banked as a detection. is_error stays False for
+                # a defer (nothing failed), but the records skip it.
+                _hs = _cov.honest_status(out)
+                is_error = _hs == "error"
+                _is_defer = _hs == "deferred"
                 # final-audit fix #5 (MEDIUM): the bandit/trajectory/state
                 # records moved BELOW the Ω2 twin cap — they were reading the
                 # UNCAPPED out, so a blind claim later capped to "partial"
@@ -2163,21 +2173,27 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                 # final-audit fix #5: the mission-state / bandit / trajectory
                 # records live HERE (post-twin-cap) — see the moved comment
                 # above. `out` is now the honest version in every consumer.
+                # wave-2-B fix #1: a DEFER never executed — it banks nothing
+                # (no detection, no bandit reward, no trajectory event).
                 if trid:
                     mission_state.finish_tool_run(trid, out, dur,
-                                                  "error" if is_error else "ok")
-                try:
-                    from core.mathcore import bandit_record
-                    bandit_record(name, _cov.reward_signal(out), dur)
-                except Exception:
-                    pass
-                try:
-                    from core.trajectory import record as _traj, evidence_state as _evst
-                    _traj(mission_id, getattr(ws, "target", None) or "unknown",
-                          name, not is_error, dur, round_num=rnd + 1,
-                          state=_evst(name, not is_error, out))
-                except Exception:
-                    pass
+                                                  "error" if is_error
+                                                  else ("deferred" if _is_defer
+                                                        else "ok"))
+                if not _is_defer:
+                    try:
+                        from core.mathcore import bandit_record
+                        bandit_record(name, _cov.reward_signal(out), dur)
+                    except Exception:
+                        pass
+                    try:
+                        from core.trajectory import record as _traj, evidence_state as _evst
+                        _traj(mission_id, getattr(ws, "target", None) or "unknown",
+                              name, not is_error, dur, round_num=rnd + 1,
+                              args_digest=json.dumps(args or {}, default=str)[:200],
+                              state=_evst(name, not is_error, out))
+                    except Exception:
+                        pass
                 # Phase 3 (Ω3.1): provenance — one step per tool result;
                 # facts minted downstream carry mission/target/step.
                 try:

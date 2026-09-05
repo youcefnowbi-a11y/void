@@ -193,6 +193,13 @@ def blind_policy(tool_out):
         return None, None                       # not a blind-class output
     received = bool(oob.get("callback_received"))
     proof_obj = d.get("proof_object")
+    # final-audit fix #4 (HIGH): xxe_probe passes its receipt as
+    # oob={url, callback_received, proof} with NO top-level proof_object —
+    # genuine callbacks fell through to the contradiction path and were
+    # falsely capped at "partial" (systematic suppression of true xxe
+    # findings). Fall back to the oob-embedded proof dict.
+    if not isinstance(proof_obj, dict) and isinstance(oob.get("proof"), dict):
+        proof_obj = oob["proof"]
     if received and isinstance(proof_obj, dict):
         return True, (f"blind verdict CONFIRMED by OOB callback "
                       f"({proof_obj.get('protocol')}, token "

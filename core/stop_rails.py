@@ -34,8 +34,10 @@ _NOISE_TOOLS = re.compile(
     r"har_|wayback|cisa_kev|waf_detect|nvd_search)")
 
 # both spellings our fleet emits (transport "status", nuclei-style
-# "status_code")
-_STATUS_RE = re.compile(r'"status(?:_code)?"\s*:\s*(-?\d+)')
+# "status_code") — wave-2-B fix: batch_execute embeds inner results as
+# JSON-escaped strings (\"status\": 403), so the escaped form is
+# first-class now. Rails must see through the envelope.
+_STATUS_RE = re.compile(r'\\?"status(?:_code)?\\?"\s*:\s*(-?\d+)')
 
 _LOCK = threading.Lock()
 _WINDOW = collections.deque(maxlen=400)     # bounded response memory

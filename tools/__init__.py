@@ -497,6 +497,7 @@ def execute(name, args, on_event=None):
         _thread_state.current_event = on_event
     try:
         attempts = 0
+        _healed_by = None      # fix #11: the _healed_* marker lives HERE
         if emitter:
             emitter({"type": "tool_start", "tool": name, "args": args or {}})
         _start = _t.time()
@@ -583,6 +584,14 @@ def execute(name, args, on_event=None):
                 if emitter:
                     emitter({"type": "tool_result", "tool": name, "result": out[:2000],
                              "duration": dur, "status": "ok"})
+                # final-audit fix #11: healed calls carry the marker on
+                # their RESULT (stamping args would inject a stray kwarg
+                # into t["run"](**args) and kill the tool) — the archives
+                # and the transcript can now see a healed call for what
+                # it is.
+                if _healed_by and len(out) < 58000:
+                    out = (out.rstrip() +
+                           f"\n[_healed: {_healed_by}]")
                 return out
             except Exception:
                 err = traceback.format_exc()
@@ -604,6 +613,7 @@ def execute(name, args, on_event=None):
                     emitter({"type": "tool_heal", "tool": name, "category": category,
                              "note": note, "attempt": attempts})
                 args = healed_args
+                _healed_by = f"{category}: {note}"[:160]  # fix #11: rides the result
                 continue
             healer.learn_generic(name, category, f"unhealed {category}: {str(details)[:80]}")
             dur = round(_t.time() - _start, 2)

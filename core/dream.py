@@ -40,7 +40,11 @@ import time
 from collections import defaultdict
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
-_INTEL = os.path.join(_HERE, os.pardir, "intel")
+# final-audit fix #2 (HIGH): the replay lane read core/../intel but the
+# blackboard persists archives to ROOT/data/intel — no writer ever
+# existed for the old path, so _load_blackboard always returned None
+# and Ω3 replay was structurally dead in production. One source of truth.
+_INTEL = os.path.join(_HERE, os.pardir, "data", "intel")
 _TRAJ = os.path.join(_HERE, os.pardir, "missions", "_trajectories")
 
 _LOCK = threading.Lock()
@@ -284,14 +288,43 @@ def mint_doctrine_entry(play):
 
 
 def save_plays(plays):
-    """Persist the play ring (bounded, atomic write)."""
+    """Persist the play ring (bounded, atomic write).
+
+    final-audit fixes #3 + #9:
+    - #3: the old `[:cap]` front-slice kept the OLDEST plays and
+      deterministically discarded every NEW dream's plays once the ring
+      was full (new plays appended after the 256 loaded). Merge
+      NEW-first, dedup by (target, tool, on), sort newest-first.
+    - #9: tmp + os.replace — a crash mid-write left a corrupt file that
+      load_plays silently swallowed as [] (total silent loss of the
+      play ring)."""
     if not plays:
         return False
     try:
         os.makedirs(_INTEL, exist_ok=True)
         with _LOCK:
-            with open(_play_file(), "w", encoding="utf-8") as f:
-                json.dump(plays[:_PLAY_CAP], f, ensure_ascii=False, indent=1)
+            fresh = [p for p in (plays or []) if isinstance(p, dict)]
+            old = []
+            try:
+                with open(_play_file(), encoding="utf-8") as f:
+                    old = [p for p in (json.load(f) or [])
+                           if isinstance(p, dict)]
+            except Exception:
+                old = []
+
+            def _key(p):
+                a = p.get("action") or {}
+                return (str(p.get("target") or ""),
+                        str(a.get("tool") or ""),
+                        str(a.get("on") or ""))
+
+            merged = {(_key(p)): p for p in (fresh + old)}  # new wins
+            ring = sorted(merged.values(),
+                          key=lambda p: -float(p.get("minted_ts") or 0))
+            _tmp = _play_file() + ".tmp"
+            with open(_tmp, "w", encoding="utf-8") as f:
+                json.dump(ring[:_PLAY_CAP], f, ensure_ascii=False, indent=1)
+            os.replace(_tmp, _play_file())
         return True
     except Exception:
         return False

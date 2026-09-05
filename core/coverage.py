@@ -82,12 +82,18 @@ def reward_signal(out):
     """Bandit reward: a DISCOVERY or an explicit structured negative verdict.
     A bare successful fetch (token mint, plain 200 scrape) no longer earns
     credit — the bandit must learn that FINDING something (or honestly
-    closing a lane) is the game, not mere survival of the call."""
+    closing a lane) is the game, not mere survival of the call.
+    wave-2-B fix #6: refusal tails (TOOL ERROR) never earn either —
+    the old regex could match text INSIDE an error tail."""
     if not out:
+        return False
+    s = str(out)
+    if s.startswith(("TOOL ERROR", "TOOL DEFERRED")):
         return False
     if discovery_signal(out):
         return True
-    return bool(_HONEST_NEG_RX.search(str(out)))
+    tail = s[:400] if "[_healed:" not in s else s.split("[_healed:")[0][:400]
+    return bool(_HONEST_NEG_RX.search(tail))
 
 
 # ── F1: coverage accounting ─────────────────────────────────────────
@@ -156,10 +162,16 @@ def honest_status(out):
     failed' and the ledger recorded [ok]; forged_siwx_signer returned
     {'ok': false, 'errors': [missing modules]} — also [ok]. Both are
     failures. Honest NEGATIVES (an 'exploitable': false verdict) stay
-    'ok': closing a lane with evidence is work, not an error."""
+    'ok': closing a lane with evidence is work, not an error.
+    wave-2-B fix #1 (HIGH): 'TOOL DEFERRED' (an Ω1 slot-defer that never
+    EXECUTED) used to pass as 'ok' — never-executed defers were banked
+    as successful detections into tool_runs, the bandit, trajectory and
+    twin ranks. A defer is neither success nor failure: 'deferred'."""
     s = str(out or "")
     if s.startswith("TOOL ERROR"):
         return "error"
+    if s.startswith("TOOL DEFERRED"):
+        return "deferred"
     if _FAIL_EXIT_RX.search(s) and "[stderr]" in s:
         return "error"
     if _OK_FALSE_RX.search(s[:400]):

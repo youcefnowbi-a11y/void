@@ -167,12 +167,18 @@ class Workspace:
     # ── findings: every verdict that says exploitable ────────────────
     def save_finding(self, tool, out):
         try:
-            d = json.loads(out) if isinstance(out, str) and out.startswith("{") else None
+            # wave-2-B fix (Y2.3 class): leading whitespace (healed tails,
+            # pretty-printed results) made startswith("{") miss — the
+            # sibling log_run path already lstrip'd.
+            _s = out if isinstance(out, str) else ""
+            d = json.loads(_s) if _s.lstrip().startswith("{") else None
             if not (isinstance(d, dict) and "exploitable" in d):
                 return None
             exploitable = d.get("exploitable")
             if exploitable is False or exploitable is None:
                 return None
+            # wave-2-B fix: a healed result carries the marker tail —
+            # parse from the JSON head only, never the whole string.
             tag = "CONFIRMED" if exploitable is True else "PARTIAL"
             fname = f"{time.strftime('%H%M%S')}_{os.urandom(2).hex()}_{_slug(tool)}_{tag.lower()}.md"
             path = os.path.join(self.findings, fname)
@@ -189,9 +195,20 @@ class Workspace:
     # ── the POWER REPORT: where she is strong, where she is weak ────
     def write_power_report(self, transcript=None):
         rows = []
+        _bad_rows = 0
         try:
-            with open(self.ledger_path, encoding="utf-8") as f:
-                rows = [json.loads(ln) for ln in f if ln.strip()]
+            # wave-2-B fix: line-tolerant ledger read — one corrupt line
+            # (crash mid-append) must not zero the whole power report.
+            with open(self.ledger_path, encoding="utf-8",
+                      errors="replace") as f:
+                for ln in f:
+                    ln = ln.strip()
+                    if not ln:
+                        continue
+                    try:
+                        rows.append(json.loads(ln))
+                    except Exception:
+                        _bad_rows += 1
         except Exception:
             pass
         if not rows:
@@ -457,10 +474,21 @@ class Workspace:
             #    (étiqueté à la frappe), proof_section en repli ──
             L.append("## 5. Inventaire des preuves")
             idx_rows = []
+            _bad_idx = 0
             try:
+                # wave-2-B fix: one corrupt line (crash mid-append) must not
+                # zero the WHOLE inventory — parse line-by-line, keep the
+                # good rows.
                 with open(os.path.join(self.extractions, "index.jsonl"),
-                          encoding="utf-8") as f:
-                    idx_rows = [json.loads(ln) for ln in f if ln.strip()]
+                          encoding="utf-8", errors="replace") as f:
+                    for ln in f:
+                        ln = ln.strip()
+                        if not ln:
+                            continue
+                        try:
+                            idx_rows.append(json.loads(ln))
+                        except Exception:
+                            _bad_idx += 1
             except Exception:
                 pass
             if idx_rows:

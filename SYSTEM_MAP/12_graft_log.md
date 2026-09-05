@@ -206,14 +206,47 @@ owns server.py's working copy; expected failure, not ours).
     tail-keep + graveyard re-arm below the line; measure() full-string
     scan (60k keyhole); calibrated_verdict abs(); dead re-parse branch
     deleted; HTTP uppercase fix.
-- Wave 2 RELAUNCHED by LO (first two attempts died mid-read — the
-  platform was killing them; LO says just wait for the reports).
+- Wave 2 COMPLETE (both reports fixed, 382/382):
+  - 2-A dream/twin/healer: 11 findings — finding 1 (agent.py
+    "contamination") FALSE POSITIVE (PERSONA_BLOCK is dormant behind
+    persona_block:false, operator-owned design); dream intel-dir unification
+    (replay lane was reading a dir no writer writes — Ω3 structurally
+    dead in production); save_plays merge-new-first + dedup + atomic
+    (old front-slice discarded every NEW dream's plays at cap);
+    blind_policy xxe proof fallback (genuine OOB receipts falsely
+    capped); verdict() extra-keys-before-evidence + 600-char evidence
+    items (twin trigger keys severed past the 18k cut = unproven claims
+    rode); trajectory args_digest at both call sites (dream's
+    taken-branch exclusion was dead); healer atomic save + RMW under
+    RLock + error_signatures consulted + rename-collision guard (my
+    first RLock fix deadlocked the battery — Lock non-reentrant, caught
+    by the full run); _healed marker stamped on RESULTS (not args —
+    a stray kwarg would kill the tool run).
+  - 2-B periphery: 11 findings (1 HIGH, 6 MEDIUM, 4 LOW) —
+    honest_status tri-state ("TOOL DEFERRED" was banked as ok:
+    never-executed Ω1 defers fed tool_runs/bandit/trajectory/twin
+    ranks; now "deferred" banks NOTHING, both online and offline
+    paths); reward_signal refuses ERROR-tail matches; line-tolerant
+    JSONL readers (index.jsonl inventory + power report — one corrupt
+    line zeroed the whole deliverable); save_finding lstrip fix (Y2.3
+    whitespace class) + healed-tail JSON head parse; rails see through
+    batch JSON-escaped statuses; evidence_state strips echoed-payload
+    blocks (forgeable ^VERIFIED markers in attacker-controlled echo).
+    LOWs (rails reset / blackboard _active seams, truncation zombies)
+    documented in map — in-process swarm seams accepted as designed.
 
-## Calibration verdict (updated)
-5 completed missions, 11 real weaknesses found and fixed. The doctrine
+## Calibration verdict (final)
+6 completed missions, 13 real weaknesses found and fixed. The doctrine
 compounds visibly: openapi-first 0.898 (7/7), admin-header 0.955
 (21/21), forge-on-truncation 0.729 (2/2). LO's impact call (product
-exfil = the real proof) is mission D3's lane — in flight, no limits.
+exfil = the real proof): D3 sealed the unauthenticated plane (verify
+gate HELD on every tested vector — under PRIME LAW P0 that means
+"known vectors of the tested surface closed", never "system locked");
+the product lane's remaining key is operator-side (real /start
+dvf_CODE in @Veriyferbot → buy → deal → delivered content, grammar
+pre-mapped). FINAL AUDIT COMPLETE: 43 findings across 2 waves
+(2 CRITICAL, 11 HIGH, 21 MEDIUM, 9 LOW + 1 false positive refuted
+with the flag-state proof), ALL real ones fixed, 382/382 green.
 
 
 ## OPEN CALIBRATION TARGETS (next missions should exercise)
