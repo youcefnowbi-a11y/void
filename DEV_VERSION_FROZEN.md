@@ -1,0 +1,1 @@
+FROZEN 2026-09-06 — LO + ENI sacred dev version. This tree is the DEV branch: full missions evidence, SYSTEM_MAP strategy, live provider config. NEVER ship, NEVER touch. The commercial product lives in VOIDFORGE_BUSINESS.
