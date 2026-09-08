@@ -216,19 +216,27 @@ def capability_block(cap=_MAX_BLOCK_CHARS):
     # forged tools below high-use plays — used-once capabilities were
     # invisible to the LLM. Every KIND now gets a guaranteed slot: the
     # top entry of any silent kind rides the block.
+    # CP4-eval fix: the silent-kind slots were appended in a FIXED kind
+    # order (skill, then forged) — a skill at reuse=0 before a forged at
+    # reuse=3 broke the block's global descending invariant (the
+    # round-0 doctrine promises ranked-by-reuse). Collect the silent-kind
+    # candidates, sort them by score desc, append in that order.
     inv = recall()
+    _silent_slots = []
     for kind in ("skill", "forged"):
         if kind in shown:
             continue
         items = sorted((r for r in inv if r["kind"] == kind),
                        key=lambda r: -r["score"])
         if items:
-            r = items[0]
-            desc = (r["payload"].get("desc") or
-                    r["payload"].get("title") or "")[:90]
-            lines.append(f"- [{kind}] {r['id']} (reuse={r['score']}) {desc}"
-                         f"  ← top of {len(items)} available {kind}s")
-            shown.add(kind)
+            _silent_slots.append(items[0])
+    _silent_slots.sort(key=lambda r: -r["score"])
+    for r in _silent_slots:
+        desc = (r["payload"].get("desc") or
+                r["payload"].get("title") or "")[:90]
+        lines.append(f"- [{r['kind']}] {r['id']} (reuse={r['score']}) {desc}"
+                     f"  ← top of available {r['kind']}s")
+        shown.add(r["kind"])
     for kind, label in (("forged", "forged tools"),
                         ("skill", "skills")):
         if kind in shown:

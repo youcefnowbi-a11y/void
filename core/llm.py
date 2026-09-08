@@ -6,12 +6,37 @@ _RETRYABLE = {429, 500, 502, 503, 504}
 _BACKOFF_S = [2, 4, 8]  # short ladder — long sleeps here stack with the agent
                         # layer's retries and read as "the chat is frozen"
 
+# K5-FAILOVER (LO's directive 2026-09-06): a router Postgres can die
+# mid-campaign (b.ai died for ~40 min across missions H/I/K). The
+# client now carries a provider FLEET — the first endpoint that
+# answers wins; the last known-good is memoized and tried first on
+# the next call. Defined as a module constant so the config loader
+# (and only it) can rewrite the primary in flight.
+FAILOVER_PROVIDERS = [
+    # (base_url, api_key, model)
+    # K5 (LO's arsenal, 2026-09-06): tokenrouter as the standing
+    # second brain — proven FORGE-OK before mounting. The primary
+    # (api.b.ai glm-5.3-flash) flapped for ~40 min across missions
+    # H/I/K with its routing-DB outages; this one answered clean.
+    ("https://api.tokenrouter.com/v1",
+     "sk-Sjm2794mPacYSOie2UtKA4BWTawaRxyP90f8yIhaqla2Pwt2",
+     "z-ai/glm-5.3-free"),
+]
+
+
 class LLM:
     def __init__(self, base_url, api_key, model, temperature=0.3):
         self.base_url = base_url.rstrip("/")
         self.key = api_key
         self.model = model
         self.temperature = temperature
+        # K5: provider fleet — self first, then every failover entry.
+        # _active_idx memoizes the last endpoint that ANSWERED so a
+        # dying primary costs us exactly one probe, not one per round.
+        self._fleet = [(self.base_url, self.key, self.model)] + [
+            (u.rstrip("/"), k, m) for u, k, m in FAILOVER_PROVIDERS
+            if u.rstrip("/") != self.base_url]
+        self._active_idx = 0
 
     def chat_stream(self, messages, tools=None, max_tokens=None, on_delta=None):
         """Streaming variant: returns the SAME dict shape as chat(); fires
@@ -138,40 +163,76 @@ class LLM:
         req.add_header("Content-Type", "application/json")
         req.add_header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36")
         data = json.dumps(body).encode()
-        # patient loop: 429/5xx = the provider is drowning, not dead — retry
-        # with growing pauses instead of abandoning the turn
-        attempt = 0
-        while True:
-            try:
-                # X4.1 (audit-3): 180s here vs 300s in streaming — a response
-                # that would complete in 4 min via stream died here when
-                # falling back. Aligned at 300.
-                r = urllib.request.urlopen(req, data=data, timeout=300)
+        # K5-FAILOVER: patient loop per provider, then fleet rotation —
+        # a dead primary (Postgres/router outage) burns its retries,
+        # then the next endpoint takes the call without the agent
+        # layer ever seeing an outage longer than one short backoff.
+        resp = None  # audit #20 fix: a stale resp from a previous probe
+                     # could survive a mid-loop provider rotation (the
+                     # dir() sniff passed on the OLD provider's payload)
+                     # and be parsed as this provider's answer.
+        for _probe in range(len(self._fleet)):
+            fbase, fkey, fmodel = self._fleet[self._active_idx]
+            fbody = dict(body)
+            fbody["model"] = fmodel
+            fdata = json.dumps(fbody).encode()
+            endpoint = fbase
+            if not endpoint.endswith("/chat/completions"):
+                endpoint = endpoint + "/chat/completions"
+            req = urllib.request.Request(endpoint, method="POST")
+            req.add_header("Authorization", f"Bearer {fkey}")
+            req.add_header("Content-Type", "application/json")
+            req.add_header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36")
+            # patient loop: 429/5xx = the provider is drowning, not dead — retry
+            # with growing pauses instead of abandoning the turn
+            attempt = 0
+            while True:
                 try:
-                    # X4.3: a malformed provider echoing the full context
-                    # could return 100KB+ — cap the read, the payload we
-                    # need is a JSON envelope.
-                    resp = json.loads(r.read(2_000_000).decode())
-                finally:
+                    # X4.1 (audit-3): 180s here vs 300s in streaming — a response
+                    # that would complete in 4 min via stream died here when
+                    # falling back. Aligned at 300.
+                    r = urllib.request.urlopen(req, data=fdata, timeout=300)
                     try:
-                        r.close()
-                    except Exception:
-                        pass
+                        # X4.3: a malformed provider echoing the full context
+                        # could return 100KB+ — cap the read, the payload we
+                        # need is a JSON envelope.
+                        resp = json.loads(r.read(2_000_000).decode())
+                    finally:
+                        try:
+                            r.close()
+                        except Exception:
+                            pass
+                    break
+                except urllib.error.HTTPError as ex:
+                    # X4.2: 400 chars cut "context length exceeded — reduce to N
+                    # tokens" mid-sentence, losing the actionable part.
+                    body_txt = ex.read().decode(errors="replace")[:1600]
+                    if ex.code in _RETRYABLE and attempt < len(_BACKOFF_S):
+                        time.sleep(_BACKOFF_S[attempt])
+                        attempt += 1
+                        continue
+                    # K5: non-retryable HTTP error on THIS endpoint → try
+                    # the next provider before declaring the layer dead
+                    if _probe + 1 < len(self._fleet):
+                        self._active_idx = (self._active_idx + 1) % len(self._fleet)
+                        break
+                    return {"content": f"[LLM HTTP {ex.code}] {body_txt}", "tool_calls": []}
+                except Exception as ex:
+                    # réseau mort / timeout / DNS on THIS endpoint → next
+                    # provider; only if the WHOLE fleet is unreachable do we
+                    # hand back to the agent layer's own retry doctrine.
+                    if _probe + 1 < len(self._fleet):
+                        self._active_idx = (self._active_idx + 1) % len(self._fleet)
+                        break
+                    return {"content": f"[LLM UNREACHABLE] {type(ex).__name__}: {str(ex)[:200]}", "tool_calls": []}
+            else:
+                # inner while exhausted without break → unreachable in
+                # practice (backoff ladder ends in a return/continue),
+                # kept for structural safety
+                continue
+            if isinstance(resp, dict) and resp.get("choices"):
                 break
-            except urllib.error.HTTPError as ex:
-                # X4.2: 400 chars cut "context length exceeded — reduce to N
-                # tokens" mid-sentence, losing the actionable part.
-                body_txt = ex.read().decode(errors="replace")[:1600]
-                if ex.code in _RETRYABLE and attempt < len(_BACKOFF_S):
-                    time.sleep(_BACKOFF_S[attempt])
-                    attempt += 1
-                    continue
-                return {"content": f"[LLM HTTP {ex.code}] {body_txt}", "tool_calls": []}
-            except Exception as ex:
-                # réseau mort / timeout / DNS : on rend la main à l'agent au lieu de
-                # crasher toute la mission — il pourra retenter au round suivant.
-                return {"content": f"[LLM UNREACHABLE] {type(ex).__name__}: {str(ex)[:200]}", "tool_calls": []}
-        choices = resp.get("choices") or []
+        choices = (resp or {}).get("choices") or []
         if not choices:
             return {"content": f"[LLM MALFORMED] no choices in response: {str(resp)[:200]}", "tool_calls": []}
         msg = (choices[0] or {}).get("message") or {}

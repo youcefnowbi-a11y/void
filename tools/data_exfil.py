@@ -206,11 +206,19 @@ def _http(url, method="GET", headers=None, body=None, timeout=25,
               "content_type": {"type": "string", "description": "Body encoding: 'json' (default), 'form' (url-encoded), 'raw' (as-is)"},
               "truncate_at": {"type": "integer", "description": "Response body capture cap in bytes (default 60000 — W10: 15KB truncated checkout HTML mid-RSC-payload)"},
               "use_jar": {"type": "boolean", "description": "W12: replay stored cookies for this host — session chains survive across calls"},
-              "jar_clear": {"type": "boolean", "description": "W12: wipe this host's cookie jar BEFORE the call (fresh identity/logout)"}},
+              "jar_clear": {"type": "boolean", "description": "W12: wipe this host's cookie jar BEFORE the call (fresh identity/logout)"},
+              "tail_bytes": {"type": "integer", "description": "F2: ALSO return the LAST N bytes of large bodies (minified JS bundles carry API grammar in the tail; Range headers get stripped by CDNs — we slice locally). e.g. 40000"},
+              "offset_bytes": {"type": "integer", "description": "K2 fix: SLIDING WINDOW — return body[offset : offset+tail_bytes] instead of the tail. Use for the unreachable MIDDLE of big documents (e.g. a 458KB HTML whose app logic sits at bytes 60-208KB: offset_bytes=60000, tail_bytes=150000). Requires tail_bytes>0."}},
               "required": ["url"]})
 def data_extract(url, method="GET", headers=None, body=None, content_type=None,
-                 truncate_at=60000, use_jar=False, jar_clear=False):
-    truncate_at = max(2000, min(int(truncate_at or 60000), 200000))
+                 truncate_at=60000, use_jar=False, jar_clear=False,
+                 tail_bytes=0, offset_bytes=None):
+    """tail_bytes (F2 APP-STATE): when set, ALSO include the last N bytes
+    of the body — a 500KB JS bundle's API grammar lives in the TAIL and
+    the head-truncate alone hides it. Range-header tricks are stripped
+    by CDNs; we carry the full body ourselves and slice locally."""
+    truncate_at = max(2000, min(int(truncate_at or 60000), 600000))
+    tail_bytes = max(0, min(int(tail_bytes or 0), 500000))
     if jar_clear:
         _jar_clear(url)
     r = _http(url, method=method, headers=headers, body=body,
@@ -252,7 +260,23 @@ def data_extract(url, method="GET", headers=None, body=None, content_type=None,
         out["json"] = parsed if len(json.dumps(parsed)) < truncate_at else str(parsed)[:truncate_at]
         out["record_count"] = len(parsed) if isinstance(parsed, list) else 1
     else:
-        out["text"] = r["body"][:truncate_at]
+        # K2 APP-STATE fix (7 rounds of window gymnastics): the agent
+        # needed bytes 60-208KB of a 458KB document — neither head nor
+        # tail windows reach it. offset_bytes+tail_bytes = a sliding
+        # byte window ANYWHERE in the body: body[offset:offset+N].
+        # offset_bytes=None keeps legacy tail behavior (last N bytes).
+        if tail_bytes and len(r["body"]) > truncate_at:
+            _tail = min(int(tail_bytes), 500000)
+            if offset_bytes is None:
+                _head = max(500, min(int(truncate_at), max(1000, (int(truncate_at) + _tail) // 8)))
+                out["text"] = r["body"][:_head]
+                out["tail"] = r["body"][-_tail:]
+            else:
+                _off = max(0, min(int(offset_bytes), max(0, len(r["body"]) - 1)))
+                out["window"] = r["body"][_off:_off + _tail]
+                out["window_offset"] = _off
+        else:
+            out["text"] = r["body"][:truncate_at]
     return json.dumps(out, ensure_ascii=False, indent=1)
 
 

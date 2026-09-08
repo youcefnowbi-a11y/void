@@ -856,9 +856,19 @@ def fetch(url, method="GET", headers=None, body=None, timeout=25,
 
     data = None
     if body is not None:
-        data = json.dumps(body).encode() if isinstance(body, (dict, list)) else (
-            body.encode() if isinstance(body, str) else body)
-        h.setdefault("Content-Type", "application/json")
+        # Fleet-bug fix (mission-79 APP STATE #1, root-caused live): the
+        # data_exfil _http() lane PRE-COOKS the wire body (form-encoded
+        # bytes, raw bytes, JSON bytes — with Content-Type already set).
+        # Re-serializing here re-JSON-dumped a form string
+        # ("email=x" → "\"email=x\"") and target saw garbage → 422 on
+        # every body strike. Bytes pass through EXACTLY as cooked; a
+        # dict/list still gets JSON; a bare str is sent raw (the caller's
+        # Content-Type is the contract — never silently re-wrap it).
+        if isinstance(body, (dict, list)):
+            data = json.dumps(body).encode()
+            h.setdefault("Content-Type", "application/json")
+        else:
+            data = body.encode() if isinstance(body, str) else body
 
     # ── proxy selection (P1): direct first, pool on block-retry (P2) ──
     # sticky-per-host : sessions liées à l'IP de sortie, jamais de churn.

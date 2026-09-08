@@ -1,0 +1,8 @@
+Round-2 verdicts — more contradictions and one big unmade connection:
+
+- **The "80 anomalies" fuzz verdict is an oracle artifact**: `GET /api/v1/x402/balance/{addr}` → 402 "Authentication required" with a SIWX challenge that **echoes the wallet address back in `resource.url`**. Body size varies with address length — `body_delta(21 vs 989)` is the challenge reflecting the fuzzed input, not a vulnerability. The prior team's highest-severity verdict is noise.
+- **TRY #3 decoded**: `outerface.venice.ai/api/v1/x402/top-up` → 402 with `payTo: 0x2670b922ef37c7df47158725c0cc407b5382293f` — the blockscout address in the graph's TRY list is **Venice's own USDC receiver wallet**. The graph never paired them; "probe its transactions" is merchant-wallet OSINT, not an attack.
+- **www.pbqcken.com ↔ OBS bucket never linked**: the 403 XML leaks `obs:bucket:listbucket on resource: obs:::bucket:xbox-hawk-me-prod` plus the STS identity `sts::dcd7a7b5d4d941d1a9ce11ed37982dc7:assumed-agency:CDNAccessPrivateOBS%2Ftest`. pbqcken.com is a vhost fronting the **same bucket** the graph carries as a bare endpoint. Zero transcript evidence anyone enumerated the bucket.
+- **Twin claim partially corroborated**: qckenio.to and qckenacio.to both Spring Boot Whitelabel 405 — but the brief names `api.coaasljda.com` as the second twin while the graph carries `api.qckenio.to`. Three hosts, brief names two.
+
+Round 3 — verify the H5 POST grammar claims, the third twin, and the OBS bucket surface:

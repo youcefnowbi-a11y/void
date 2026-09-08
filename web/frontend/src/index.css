@@ -28,11 +28,11 @@
     --smoke: 178 178 178;
     --slate: 104 104 104;
     --mut: 142 142 153;
-    --faint: 92 92 102;
+    --faint: 140 140 152;    /* rehaussé pour contraste WCAG AA */
 
     /* hairlines & verres */
-    --line: rgba(255,255,255,0.09);
-    --line2: rgba(255,255,255,0.16);
+    --line: rgba(255,255,255,0.11);
+    --line2: rgba(255,255,255,0.18);
     --frost: rgba(212,212,212,0.08);
     --inset: rgba(255,255,255,0.04);
     --inset-strong: rgba(0,0,0,0.40);
@@ -91,10 +91,10 @@
     --smoke: 120 120 128;
     --slate: 104 104 104;    /* le slate de la référence survit tel quel */
     --mut: 110 110 120;
-    --faint: 154 154 164;
+    --faint: 90 90 102;      /* rehaussé pour contraste WCAG AA sur fond clair */
 
-    --line: rgba(0,0,0,0.10);
-    --line2: rgba(0,0,0,0.18);
+    --line: rgba(0,0,0,0.12);
+    --line2: rgba(0,0,0,0.20);
     --frost: rgba(22,22,22,0.05);
     --inset: rgba(0,0,0,0.04);
     --inset-strong: rgba(0,0,0,0.06);
@@ -285,7 +285,7 @@
     background: linear-gradient(90deg, #EDB36B, #4C5BD4);
   }
   .spotlight {
-    background: radial-gradient(circle at 50% 50%, rgba(107,98,242,0.565), rgba(255,255,255,0) 70%);
+    background: radial-gradient(circle at 50% 50%, rgba(107,98,242,0.45), transparent 70%);
   }
 
   /* ═══ TERMINAL — le mono ne parle qu'opératif, et suit le thème ═══ */

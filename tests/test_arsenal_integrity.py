@@ -47,7 +47,8 @@ MCTS_WHITELIST = {"batch_execute", "replay_mutate", "shell_exec", "otp_brute",
                   "arsenal_selftest",   # meta-tool: boot protocol, run by the agent herself
                   "skill_load", "skill_list",
                   "report_write", "operator_message", "workspace_status",
-                  "evidence_pack"}
+                  "evidence_pack", "mission_globals",   # Phase 0.6 — datastore cascade editor (agent-driven)
+                  "dream_rehearsal"}     # Phase 3 (Ω3) — between-mission rehearsal, operator/agent-driven
 
 
 def test_every_tool_schema_is_llm_ready():

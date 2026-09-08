@@ -1,22 +1,31 @@
 """COMPOSITE TOOLS: full doctrine chains as single-call missions."""
-import json, urllib.request, urllib.error, time, re
+import json, time, re
 from tools import register
+# AUDIT #13 FIX (HIGH): the naked urllib.request.urlopen calls violated
+# the forge's own WIRE LAW (F2 autopsy): no per-host pacing, no TLS
+# impersonation, no host-fail circuit breaker while _transport tracked
+# everything as healthy. All calls now route through tools._transport
+# .fetch — drop-in (same status/body shape), the ROE rate gate + host
+# breaker OWN the traffic from here.
+from tools import _transport as _T
+import urllib.parse  # quote() only — no network (AUDIT #13 keeps the WIRE)
 
-UA = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/151.0.0.0 Safari/537.36"}
+UA = {"User-Agent": "Mozilla/5.0 (Windows; Win64; x64) AppleWebKit/537.36 Chrome/151.0.0.0 Safari/537.36"}
 
 def _get(url, token=None, timeout=20):
     h = dict(UA)
     if token: h["Authorization"] = f"Bearer {token}"
-    rq = urllib.request.Request(url, headers=h)
     try:
-        r = urllib.request.urlopen(rq, timeout=timeout)
-        return r.status, r.read().decode(errors="replace")[:2500]
-    except urllib.error.HTTPError as ex:
-        return ex.code, ex.read().decode(errors="replace")[:300]
+        # AUDIT #13: transport-owned GET (pacing + breaker + impersonation)
+        r = _T.fetch(url, method="GET", headers=h, timeout=timeout)
+        body = str(r.get("body", ""))
+        st = int(r.get("status", -1))
+        if st >= 400:
+            return st, body[:300]
+        return st, body[:2500]
     except Exception as ex:
-        # hôte mort / DNS / timeout → jamais d'URLError non catchée au LLM
+        # hote mort / DNS / timeout - jamais d'URLError non catchee au LLM
         return -1, f"{type(ex).__name__}: {str(ex)[:200]}"
-
 @register(name="supabase_full_assault",
           desc="Complete Supabase siege chain per VOIDFORGE doctrine: signup openness -> anon probes -> endpoint existence oracle -> realtime table joins. One call, full first-strike report.",
           params={"type":"object","properties":{
@@ -29,17 +38,21 @@ def supabase_full_assault(rest_base, anon_key, tables_probe=None, token=None):
     rest_base = rest_base.rstrip("/")
     report = {"phases": []}
     def call(method, path, tok=None, body=None):
-        rq = urllib.request.Request(rest_base + path, method=method)
-        rq.add_header("apikey", anon_key); rq.add_header("User-Agent", UA["User-Agent"])
-        if tok: rq.add_header("Authorization", f"Bearer {tok}")
+        # AUDIT #13: same WIRE LAW migration — apikey + bearer headers
+        # preserved verbatim, transport owns pacing/breaker/impersonation.
+        h = {"apikey": anon_key, "User-Agent": UA["User-Agent"]}
+        if tok: h["Authorization"] = f"Bearer {tok}"
         data = None
         if body is not None:
-            data = json.dumps(body).encode(); rq.add_header("Content-Type", "application/json")
+            data = json.dumps(body).encode(); h["Content-Type"] = "application/json"
         try:
-            r = urllib.request.urlopen(rq, data=data, timeout=25)
-            return r.status, r.read().decode(errors="replace")[:400]
-        except urllib.error.HTTPError as ex:
-            return ex.code, ex.read().decode(errors="replace")[:300]
+            r = _T.fetch(rest_base + path, method=method, headers=h,
+                         data=data, timeout=25)
+            st = int(r.get("status", -1))
+            body_s = str(r.get("body", ""))
+            if st >= 400:
+                return st, body_s[:300]
+            return st, body_s[:400]
         except Exception as ex:
             # phase report partiel au lieu d'un URLError qui tue la chaîne
             return -1, f"{type(ex).__name__}: {str(ex)[:200]}"
@@ -92,9 +105,11 @@ def tg_market_scan(handles, brand_queries=None):
     for h in handles:
         h = h.lstrip("@")
         body = ""
-        rq = urllib.request.Request(f"https://t.me/{h}", headers=UA)
+        # AUDIT #13: transport-owned t.me probe (was naked urlopen)
         try:
-            body = urllib.request.urlopen(rq, timeout=15).read().decode(errors="replace")
+            _r = _T.fetch(f"https://t.me/{h}", method="GET",
+                          headers=dict(UA), timeout=15)
+            body = str(_r.get("body", ""))
         except Exception as ex:
             out["live_channels"].append({"handle": h, "err": str(ex)[:50]}); continue
         title = re.search(r'og:title" content="([^"]*)"', body)
@@ -112,7 +127,9 @@ def tg_market_scan(handles, brand_queries=None):
     for q in (brand_queries or [])[:6]:
         u = "https://html.duckduckgo.com/html/?q=" + urllib.parse.quote(q)
         try:
-            body = urllib.request.urlopen(urllib.request.Request(u, headers=UA), timeout=20).read().decode(errors="replace")
+            # AUDIT #13: transport-owned DDG fetch (was naked urlopen)
+            _r2 = _T.fetch(u, method="GET", headers=dict(UA), timeout=20)
+            body = str(_r2.get("body", ""))
             links = sorted(set(TME.findall(body)) - {"share", "telegram"})
             if links: out["search_tme_links"][q] = links[:12]
         except Exception as ex:

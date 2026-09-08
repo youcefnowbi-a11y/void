@@ -563,21 +563,22 @@ async def run_mission(req: MissionRequest):
         # fantôme suivi d'une mort silencieuse.
         if _RUN_STATE["running"]:
             raise HTTPException(status_code=409, detail="campagne déjà en cours — une seule à la fois")
-        _ACTIVE_MODE["mode"] = req.mode
+        req_mode = "IA" if (req.mode or "").upper() == "IA" else (req.mode or "").title()
+        _ACTIVE_MODE["mode"] = req_mode
         chat_context = ""
         # E3 fix: the operator's chat voice used to reach ONLY Plan-mode
         # launches — an IA-mode launch from the UI DROPPED the entire
         # war-room context (he talked to the strategist, launched from the
         # UI, and the strike agent never heard a word of it). Both modes
         # carry the commander's pre-mission voice now.
-        if req.mode in ("Plan", "IA") and _CHAT.get("session") is not None:
+        if req_mode in ("Plan", "IA") and _CHAT.get("session") is not None:
             chat_context = _CHAT["session"].get_context()
         loop = asyncio.get_running_loop()
         loop.create_task(_launch_mission(
-            req.mission, req.mode, None,
+            req.mission, req_mode, None,
             intel_mode=req.intel_mode, docs=req.docs, autonomy=req.autonomy,
             chat_context=chat_context))
-        return {"status": "accepted", "mission": req.mission, "mode": req.mode,
+        return {"status": "accepted", "mission": req.mission, "mode": req_mode,
                 "intel_mode": req.intel_mode, "docs": req.docs, "autonomy": req.autonomy,
                 "chat_context_injected": bool(chat_context)}
     except HTTPException:
@@ -1314,7 +1315,9 @@ async def _run_mission_streaming(mission: str, mode: str, ws: WebSocket,
             board = Blackboard(_target)
         set_active(board)
         _graph_board = board  # branché AVANT la mission — le théâtre vit en temps réel
-        if mode == "Offline":
+        # Ω2.2 (audit-6): Case-insensitive mode normalization (e.g. 'swarm' -> 'Swarm')
+        normalized_mode = "IA" if (mode or "").upper() == "IA" else (mode or "").title()
+        if normalized_mode == "Offline":
             from core.planner import plan
             steps = plan(mission)
             sync_emit({"type": "plan", "steps": [{"tool": s[0], "args": s[1]} for s in steps]})
@@ -1430,7 +1433,7 @@ async def _run_mission_streaming(mission: str, mode: str, ws: WebSocket,
                            "text": "💬 Ordres du commandant armés (chat pré-mission)"})
 
             # ── MODE PLAN — recon only, puis le plan d'attaque structuré ──
-            if mode == "Plan":
+            if normalized_mode == "Plan":
                 from core.agent import Agent
                 import queue as _queue
                 inbox = _queue.Queue()
@@ -1481,7 +1484,7 @@ async def _run_mission_streaming(mission: str, mode: str, ws: WebSocket,
                 sync_emit({"type": "system",
                            "text": "⚠ aucun plan structuré extrait — relance le mode Plan"})
 
-            elif mode == "Swarm":
+            elif normalized_mode == "Swarm":
                 sync_emit({"type": "system", "text": "🕸 MODE SWARM — spécialistes + vérificateur"})
                 if plan_doc:
                     from core.swarm import PlannedSwarm
@@ -1646,8 +1649,17 @@ async def ws_mission(websocket: WebSocket):
                         {"type": "system",
                          "text": "campagne déjà en cours — une seule à la fois"}))
                     continue
+                # Ω2.1 (audit-6): Forward chat_context, docs, autonomy, and intel_mode on WS start_mission
+                ws_mode = str(data.get("mode") or "IA")[:10]
+                ws_chat_ctx = ""
+                if ws_mode.title() in ("Plan", "Ia") and _CHAT.get("session") is not None:
+                    ws_chat_ctx = _CHAT["session"].get_context()
                 asyncio.create_task(_launch_mission(
-                    mission_txt, str(data.get("mode") or "IA")[:10], websocket))
+                    mission_txt, ws_mode, websocket,
+                    intel_mode=str(data.get("intel_mode") or "last"),
+                    docs=data.get("docs") or [],
+                    autonomy=bool(data.get("autonomy")),
+                    chat_context=ws_chat_ctx))
             elif isinstance(data, dict) and data.get("type") == "ping":
                 await websocket.send_text(json.dumps({"type": "pong"}))
     except WebSocketDisconnect:

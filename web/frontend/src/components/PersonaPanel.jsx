@@ -105,8 +105,8 @@ export default function PersonaPanel() {
     stealth: 'volume minimal, sources passives d\'abord',
   }[form.mission_focus] || '';
 
-  const inputCls = "w-full rounded-ui border border-line bg-inset px-3 py-2 text-[12.5px] text-ink focus:outline-none focus:border-volt/60 transition-colors placeholder:text-faint";
-  const labelCls = "text-[9.5px] uppercase tracking-[.16em] text-mut";
+  const inputCls = "w-full rounded-ui border border-line bg-inset px-3 py-2 text-[12px] text-ink focus:outline-none focus:border-volt/60 transition-colors placeholder:text-faint";
+  const labelCls = "text-[10px] uppercase tracking-[.14em] text-mut font-mono";
 
   return (
     <form onSubmit={save} className="space-y-3.5">
@@ -152,7 +152,7 @@ export default function PersonaPanel() {
         </div>
       ))}
       {focusHint && (
-        <p className="text-[10.5px] text-faint -mt-1 ml-[100px]">↳ {focusHint}</p>
+        <p className="text-[11px] text-faint -mt-1 ml-[100px]">↳ {focusHint}</p>
       )}
 
       {/* phrases signature */}
@@ -171,7 +171,7 @@ export default function PersonaPanel() {
           <textarea id="pe-extra" value={form.extra_directives} rows={16}
             onChange={(e) => set('extra_directives', e.target.value)}
             placeholder={'Doctrine libre — priorités, habitudes, rituels.\nex : Prioritize Supabase exposures. Always check GraphQL before REST.'}
-            className="w-full rounded-ui border border-line bg-inset px-3 py-2 text-[12.5px] leading-relaxed resize-y text-ink focus:outline-none focus:border-volt/60 transition-colors max-h-[340px] placeholder:text-faint" />
+            className="w-full rounded-ui border border-line bg-inset px-3 py-2 text-[12px] leading-relaxed resize-y text-ink focus:outline-none focus:border-volt/60 transition-colors max-h-[340px] placeholder:text-faint" />
           <p className="mt-1.5 text-[10px] text-faint">
             {form.extra_directives.length.toLocaleString()} caractères chargés — {form.extra_directives.length > 4000
               ? 'ta directive longue est bien là, intégralement (la fenêtre défile).'
@@ -182,7 +182,7 @@ export default function PersonaPanel() {
 
       {/* statut + actions */}
       <div className="flex items-center justify-between pt-1 gap-3">
-        <span className={`text-[10.5px] break-words flex-1 ${
+        <span className={`text-[11px] break-words flex-1 ${
           msg?.ok === true ? 'text-ok' :
           msg?.ok === false ? 'text-danger' :
           loaded ? 'text-mut' : 'text-warn animate-pulse'
@@ -191,11 +191,11 @@ export default function PersonaPanel() {
         </span>
         <div className="flex gap-2 shrink-0">
           <button type="button" onClick={reset} disabled={saving}
-            className="pill-ghost btn-strike px-3.5 py-1.5 text-[10.5px] uppercase tracking-[.1em]">
+            className="pill-ghost btn-strike px-3.5 py-1.5 text-[11px] uppercase tracking-[.1em]">
             défaut
           </button>
           <button type="submit" disabled={saving}
-            className="pill-cta btn-strike px-4 py-1.5 text-[10.5px] uppercase tracking-[.1em]">
+            className="pill-cta btn-strike px-4 py-1.5 text-[11px] uppercase tracking-[.1em]">
             {saving ? '...' : 'graver'}
           </button>
         </div>

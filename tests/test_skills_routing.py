@@ -71,6 +71,8 @@ def test_confidence_high_single_medium_multi():
 
 
 def test_arsenal_integrity_still_green():
-    from tests.test_arsenal_integrity import (  # noqa: F401
-        test_skills_parse_and_reference_real_tools)
+    try:
+        from tests.test_arsenal_integrity import test_skills_parse_and_reference_real_tools  # noqa: F401
+    except ModuleNotFoundError:
+        from test_arsenal_integrity import test_skills_parse_and_reference_real_tools  # noqa: F401
     test_skills_parse_and_reference_real_tools()

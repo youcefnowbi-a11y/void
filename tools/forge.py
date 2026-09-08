@@ -35,6 +35,13 @@ FORGE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODULE_HEADER = '''"""VOIDFORGE :: forged tool — @@NAME@@
 @@DESC@@
 Forged by the strategist on @@DATE@@. Edit freely; delete the file to disarm.
+
+WIRE LAW (F2 autopsy): never call urllib.request.urlopen naked — the
+transport fetch() carries the proxy pool, TLS impersonation and retry
+discipline. Import it:  from tools._transport import fetch
+A naked urlopen on a CDN-slow target (Cloudflare 500KB bundle) dies at
+its own timeout=40s and the healer has no knob to heal it — 3 identical
+retries, all dead (mission F2: forged_js_tail_grep ×3).
 """
 import json, re, time, urllib.request, urllib.error
 

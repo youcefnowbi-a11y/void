@@ -15,7 +15,8 @@ Writes lab/calib_<run_id>/*.json
 """
 import sys, os, time, json, yaml, shutil
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+# lab/ops/ nesting: three levels up to the true root (ops → lab → VOIDFORGE)
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, ROOT)
 OUT = None
 RUN_ID = sys.argv[1] if len(sys.argv) > 1 else "A"
@@ -107,7 +108,7 @@ dump = {
     "mission": MISSION,
     "wall_clock_s": round(_dt, 1),
     "events": EVENTS,
-    "rounds": len([1 for k, _ in transcript if k == "assistant"]),
+    "rounds": len([1 for k, _ in transcript if k == "agent"]),
     "tool_calls": len([1 for k, _ in transcript if k == "tool"]),
     "skip_summary": sk,
     "doctrine_pre_entries": _pre_entries,

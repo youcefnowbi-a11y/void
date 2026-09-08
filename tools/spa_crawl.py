@@ -15,14 +15,28 @@ CAPTURES_DIR = os.path.join(ROOT, "data", "captures")
 _HOOK = """
 (() => {
   window.__vf_captured = window.__vf_captured || [];
-  const rec = (method, url, reqBody, status, respBody) => {
+  const rec = (method, url, reqBody, status, respBody, reqHeaders) => {
     try { window.__vf_captured.push({
       method, url: String(url).slice(0, 500),
-      req_headers: null, req_body: reqBody ? String(reqBody).slice(0, 2000) : null,
+      // K2 fix: the app's OWN auth headers are the best oracle (what
+      // credential grammar does the legit client send?). Capture them,
+      // redacting long values to class+shape (Bearer xxxxx… 48 chars).
+      req_headers: reqHeaders || null,
+      req_body: reqBody ? String(reqBody).slice(0, 2000) : null,
       status: status || null,
       resp_body: respBody ? String(respBody).slice(0, 3000) : null,
       ts: Date.now()
     }); } catch (e) {}
+  };
+  const redactHeaders = (h) => {
+    if (!h) return null;
+    try {
+      const o = {};
+      if (h instanceof Headers) h.forEach((v, k) => { o[k] = v.length > 24 ? v.slice(0, 12) + '…(' + v.length + ' chars)' : v; });
+      else if (Array.isArray(h)) h.forEach(p => { if (p) o[p[0]] = String(p[1]).length > 24 ? String(p[1]).slice(0, 12) + '…(' + String(p[1]).length + ' chars)' : p[1]; });
+      else if (typeof h === 'object') Object.keys(h).forEach(k => { const v = String(h[k]); o[k] = v.length > 24 ? v.slice(0, 12) + '…(' + v.length + ' chars)' : v; });
+      return o;
+    } catch (e) { return null; }
   };
   if (!window.__vf_hooked) {
     window.__vf_hooked = true;
@@ -31,20 +45,26 @@ _HOOK = """
       const u = (typeof input === 'string') ? input : (input && input.url) || '';
       const m = (init && init.method) || (input && input.method) || 'GET';
       const rb = (init && init.body) || null;
+      const rh = redactHeaders((init && init.headers) || (input && input.headers));
       try {
         const res = await of.apply(this, arguments);
         const clone = res.clone();
-        clone.text().then(t => rec(m, u, rb, res.status, t)).catch(() => rec(m, u, rb, res.status, null));
+        clone.text().then(t => rec(m, u, rb, res.status, t, rh)).catch(() => rec(m, u, rb, res.status, null, rh));
         return res;
-      } catch (e) { rec(m, u, rb, 0, 'ERR:' + e); throw e; }
+      } catch (e) { rec(m, u, rb, 0, 'ERR:' + e, rh); throw e; }
     };
     const oo = XMLHttpRequest.prototype.open;
     const os = XMLHttpRequest.prototype.send;
+    const osh = XMLHttpRequest.prototype.setRequestHeader;
     XMLHttpRequest.prototype.open = function(m, u) {
-      this.__vf_m = m; this.__vf_u = u; return oo.apply(this, arguments);
+      this.__vf_m = m; this.__vf_u = u; this.__vf_hdrs = {}; return oo.apply(this, arguments);
+    };
+    XMLHttpRequest.prototype.setRequestHeader = function(k, v) {
+      try { if (this.__vf_hdrs) this.__vf_hdrs[k] = String(v).length > 24 ? String(v).slice(0, 12) + '…(' + String(v).length + ' chars)' : String(v); } catch (e) {}
+      return osh.apply(this, arguments);
     };
     XMLHttpRequest.prototype.send = function(b) {
-      this.addEventListener('load', () => rec(this.__vf_m, this.__vf_u, b, this.status, this.responseText));
+      this.addEventListener('load', () => rec(this.__vf_m, this.__vf_u, b, this.status, this.responseText, redactHeaders(this.__vf_hdrs)));
       return os.apply(this, arguments);
     };
   }
@@ -53,7 +73,7 @@ _HOOK = """
 
 
 @register(name="spa_crawl",
-          desc="Headless Chromium walks an SPA: hooks fetch/XHR so the app records its own requests (bodies+responses), extracts FORMS (action/method/inputs per page — each form is a strike target), captures localStorage/sessionStorage/cookies, network calls, console errors, DOM text. Saves a replay-ready capture file.",
+          desc="Headless Chromium walks an SPA: hooks fetch/XHR so the app records its own requests (bodies+responses), extracts FORMS (action/method/inputs per page — each form is a strike target), captures localStorage/sessionStorage/cookies, network calls, console errors, DOM text. Saves a replay-ready capture file. G-fix: heavy React/bundler pages need wait_s 20-30 (default 4 starves them — the app hasn't finished fetching when the crawl reads). A timeout is NOT 'route missing' — retry with wait_s=25 before concluding.",
           params={"type": "object", "properties": {
               "url": {"type": "string"},
               "wait_s": {"type": "integer"},

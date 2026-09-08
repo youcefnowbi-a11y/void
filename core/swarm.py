@@ -161,6 +161,17 @@ class SwarmCoordinator:
         self.target = self.target if self.target != "unknown" else _target_from_mission(mission)
         self.board = Blackboard(self.target)
 
+        # CP2 fleet fix: the campaign owns ONE workspace — every specialist
+        # and chain banks evidence in the same missions/<target>/ dir instead
+        # of untitled_<ts> orphans (evidence_pack/report_write live again).
+        self.ws = None
+        try:
+            from core.mission_workspace import workspace_for
+            self.ws = workspace_for(mission if "http" in mission
+                                    else f"target https://{self.target}")
+        except Exception:
+            self.ws = None
+
         def emit(t, text):
             if on_event:
                 on_event({"type": "system", "text": text})
@@ -193,7 +204,8 @@ class SwarmCoordinator:
                     ev = dict(ev)
                     ev["role"] = _role
                     on_event(ev)
-            return role, agent.run(sub_mission, on_event=_role_event)
+            return role, agent.run(sub_mission, on_event=_role_event,
+                                   inherit_ws=self.ws)
 
         with ThreadPoolExecutor(max_workers=len(SPECIALIST_ROLES)) as ex:
             futs = [ex.submit(run_specialist, role, spec)
@@ -231,7 +243,8 @@ class SwarmCoordinator:
             "\n".join(distill) +
             "\n\nProduce your verifier findings now (numbered, evidence-based).")
         try:
-            vt = verifier.run(verify_mission, on_event=on_event)
+            vt = verifier.run(verify_mission, on_event=on_event,
+                              inherit_ws=self.ws)
             self.transcripts["verifier"] = vt
             emit("swarm", "✓ Vérification terminée")
         except Exception as ex:
@@ -249,7 +262,8 @@ class SwarmCoordinator:
             "\n\nNow execute ONLY the highest-value remaining actions the verifier and graph "
             "surface (connections, locked-but-promising endpoints, data extraction). Then "
             "write the RAPPORT DE MISSION FINAL covering the WHOLE swarm engagement.")
-        final = coordinator.run(synth, on_event=on_event, mission_id=mission_id)
+        final = coordinator.run(synth, on_event=on_event, mission_id=mission_id,
+                                inherit_ws=self.ws)
         self.board.save()
         playbooks.learn(mission, self.transcripts, self.board)
 
@@ -325,7 +339,26 @@ class PlannedSwarm(SwarmCoordinator):
 
         emit("planned", f"🗺 PLANNED SWARM — {min(len(self.chains), self.max_subagents)} "
                         f"subagent(s) depuis le plan approuvé sur {self.target}")
+        # CP4 eval fix: PlannedSwarm.run overrides the coordinator's run and
+        # NEVER re-derived self.target from the mission text (that line lives
+        # in super().run) — the chains inherited the __init__ default
+        # "unknown" and the shared workspace was missions/unknown/. Re-derive
+        # here, same rule: only when the ctor default is still unknown.
+        if self.target == "unknown":
+            self.target = _target_from_mission(mission)
+            self.board = Blackboard(self.target)  # the board carries the
+            # real target too — cross-chain intel rows cite the right host
         board = self.board
+        # CP2 fleet fix: PlannedSwarm.run bypasses super().run (which owns
+        # ws creation in the classic lane) — self.ws was ALWAYS None here,
+        # so inherit_ws=None and every chain got an untitled_<ts> orphan.
+        self.ws = None
+        try:
+            from core.mission_workspace import workspace_for
+            self.ws = workspace_for(mission if "http" in mission
+                                    else f"target https://{self.target}")
+        except Exception:
+            self.ws = None
 
         def run_chain(i, chain):
             name = str(chain.get("name") or f"chain-{i+1}")[:40]
@@ -360,7 +393,8 @@ class PlannedSwarm(SwarmCoordinator):
                     ev = dict(ev)
                     ev["role"] = f"chain:{_name}"
                     on_event(ev)
-            return name, agent.run(sub_mission, on_event=_chain_event)
+            return name, agent.run(sub_mission, on_event=_chain_event,
+                                   inherit_ws=getattr(self, "ws", None))
 
         with ThreadPoolExecutor(max_workers=min(self.max_subagents, len(self.chains))) as ex:
             futs = [ex.submit(run_chain, i, c) for i, c in enumerate(self.chains[:self.max_subagents])]
@@ -380,16 +414,26 @@ class PlannedSwarm(SwarmCoordinator):
             tool_bits = [t for k, t in tr if k == "tool"][:12]
             distill.append(f"### {name.upper()} used: " + " | ".join(
                 b.split(":", 1)[0] for b in tool_bits))
-        verifier = Agent(self.cfg, tools_filter=["__no_tools__"],
+        # WD2 parity: the planned-swarm verifier had ["__no_tools__"] —
+        # a text critic with opinions instead of evidence. Same READ-ONLY
+        # probe lane as the classic swarm (CP2 verifier bug: it could not
+        # re-test a single claim).
+        _verify_tools = ["data_extract", "web_fingerprint", "endpoint_oracle",
+                         "file_grep", "secret_scan", "workspace_status"]
+        from tools import all_tools as _atl2
+        _known2 = {t["name"] for t in _atl2()}
+        _verify_tools = [t for t in _verify_tools if t in _known2]
+        verifier = Agent(self.cfg, tools_filter=_verify_tools or ["__no_tools__"],
                          extra_system=VERIFIER_PROMPT, blackboard=board)
-        verifier.max_rounds = 1
+        verifier.max_rounds = 3
         verify_mission = (
             f"Target: {self.target}\nIntel graph:\n{board.to_prompt(40)}\n\n"
             "Chains ran: " + ", ".join(self.transcripts.keys()) + "\n" +
             "\n".join(distill) +
             "\n\nProduce your verifier findings now (numbered, evidence-based).")
         try:
-            vt = verifier.run(verify_mission)
+            vt = verifier.run(verify_mission, on_event=on_event,
+                              inherit_ws=self.ws)
             self.transcripts["verifier"] = vt
             emit("planned", "✓ Vérification terminée")
         except Exception as ex2:
@@ -408,7 +452,8 @@ class PlannedSwarm(SwarmCoordinator):
             "\n\nExecute ONLY the highest-value remaining actions from the plan's chains "
             "(connections, locked-but-promising endpoints, data extraction), then write "
             "the RAPPORT DE MISSION FINAL covering the WHOLE planned engagement.")
-        final = coordinator.run(synth, on_event=on_event, mission_id=mission_id)
+        final = coordinator.run(synth, on_event=on_event, mission_id=mission_id,
+                                inherit_ws=getattr(self, "ws", None))
         board.save()
         playbooks.learn(mission, self.transcripts, board)
 

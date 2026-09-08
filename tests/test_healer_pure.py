@@ -21,10 +21,16 @@ assert a2["timeout_min"] == 20 and "doubled" in n2
 print(f"   doubled -> {a2['timeout_min']} ({n2})")
 
 print("== 4. TIMEOUT healing: tool SANS timeout_min (fix audit) ==")
+healer._save_fixes({})   # F2 fix: knobless timeout counters start clean
 a3, n3 = healer.heal_attempt("t2", "TIMEOUT", {}, {"url": "https://x.com"})
 assert a3 == {"url": "https://x.com"}, f"kwargs injectes a tort: {a3}"
-assert "plain retry" in n3
+assert "paced retry" in n3
 print(f"   args intacts ({n3})  <- regression #1 CORRIGEE")
+print("== 4b. F2 fix: knobless timeout ×2 = honest stop ==")
+_, n3b = healer.heal_attempt("t2", "TIMEOUT", {}, {"url": "https://x.com"})
+assert n3b is not None and "knobless timeout ×2" in n3b, n3b
+print(f"   diagnosis instead of 3rd corpse ({n3b[:50]}...)")
+healer._save_fixes({})   # leave the store clean for other tests
 
 print("== 5. AUTH_REQUIRED detection (fix audit) ==")
 cat5, _ = healer.classify('HTTPError: 401 Unauthorized for url ...')

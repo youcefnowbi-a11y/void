@@ -15,8 +15,9 @@ rows = db.execute(
     "AS head FROM tool_runs WHERE mission_id=? ORDER BY id DESC LIMIT 16",
     (mid["id"],)).fetchall()
 for r in reversed(rows):
+    head = (r['head'] or "")[:88]
     print(f"  r{r['round'] or '?'} {r['tool_name']} [{r['status']}] "
-          f"{r['duration'] or 0}s {r['head'][:88]}")
+          f"{r['duration'] or 0}s {head}")
 n = db.execute("SELECT COUNT(*) FROM tool_runs WHERE mission_id=?",
                (mid["id"],)).fetchone()[0]
 f = db.execute("SELECT COUNT(*) FROM findings WHERE mission_id=?",

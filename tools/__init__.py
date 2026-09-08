@@ -539,7 +539,53 @@ def execute(name, args, on_event=None):
                 _prev_allowed = current_allowed()
                 allowed.names = _allowed_here
                 try:
-                    out = t["run"](**(args or {}))
+                    # AUDIT #12 FIX (HIGH): no tool deadline existed —
+                    # spa_crawl/js_mine_site could block 2-10 minutes while
+                    # the operator __ABORT__ inbox sat dead until round end.
+                    # A concurrent-future watchdog now caps every tool run.
+                    # The tool gets its full timeout when it declares one
+                    # (playwright wait_s etc. honor their own), but a hung
+                    # network/firefox loop can no longer freeze the mission.
+                    # CP4-EVAL FIX: the pool worker is a NEW thread — the
+                    # caller's thread-local active workspace (mission_
+                    # workspace._thread_local.active_ws) died at the submit,
+                    # killing report_write/evidence_pack/workspace_status
+                    # EVERYWHERE ('no active mission workspace' — the exact
+                    # CP4 regression). Capture the CALLER's ws BEFORE the
+                    # submit, install it inside the worker (a worker that
+                    # already holds its own — batch_execute inner calls —
+                    # keeps its own).
+                    import concurrent.futures as _cf
+                    _TOOL_DEADLINE_S = 180  # 3 min per single tool call
+                    _pool = _cf.ThreadPoolExecutor(max_workers=1)
+                    _parent_ws = None
+                    try:
+                        from core import mission_workspace as _mw
+                        _parent_ws = _mw.get_active()
+                    except Exception:
+                        _parent_ws = None
+
+                    def _run_with_ws(_pws=_parent_ws):
+                        if _pws is not None:
+                            try:
+                                from core import mission_workspace as _mw2
+                                if _mw2.get_active() is None:
+                                    _mw2.set_active(_pws)
+                            except Exception:
+                                pass
+                        return t["run"](**(args or {}))
+
+                    _fut = _pool.submit(_run_with_ws)
+                    try:
+                        out = _fut.result(timeout=_TOOL_DEADLINE_S)
+                    except _cf.TimeoutError:
+                        _fut.cancel()
+                        out = (f"TOOL TIMEOUT [{name}]: le coup a dépassé "
+                               f"{_TOOL_DEADLINE_S}s — watchdog du fleet. Réessaie "
+                               "avec des paramètres plus étroits (wait_s plus bas, "
+                               "cible plus petite) ou passe au plan suivant.")
+                    finally:
+                        _pool.shutdown(wait=False)
                 finally:
                     allowed.names = _prev_allowed
                 if not isinstance(out, str):

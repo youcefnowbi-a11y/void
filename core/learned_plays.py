@@ -269,6 +269,87 @@ def harvest(mission_id, ws=None, final_text=None, db_path=DB, store=STORE):
     return added
 
 
+def harvest_from_ledger(ws, final_text=None, store=STORE):
+    """EV3 fix (2026-09-06): the lab/campaign runners never minted plays —
+    harvest() reads SQLite tool_runs (GUI-lane missions only), while the
+    calib/campaign lane archives everything in missions/<target>/
+    ledger.jsonl. The ledger rows carry {ts, round, tool, args, status,
+    duration, verdict} — the verdict field is the PRE-EXTRACTED truth
+    (exploitable + summary, parsed at log_run time), and status=ok marks
+    a wire-confirmed call. This adapter mints:
+      - WRITE plays: status ok + write verb + success/status marker in
+        the archived extraction (best-effort; ledger verdict is the
+        honest fallback — ok status already means the wire answered)
+      - VERDICT plays: verdict.exploitable in (true, "partial")
+    105 CP1 strikes and 205 CP3 strikes will finally compound."""
+    if ws is None:
+        return 0
+    added = 0
+    try:
+        rows = []
+        with open(ws.ledger_path, encoding="utf-8") as f:
+            for ln in f:
+                ln = ln.strip()
+                if not ln:
+                    continue
+                try:
+                    r = json.loads(ln)
+                except Exception:
+                    continue
+                rows.append(r)
+        d = _load(store)
+        incoming = []
+        for r in rows:
+            tool = (r.get("tool") or "").strip()
+            if not tool:
+                continue
+            try:
+                a = json.loads(r.get("args") or "{}")
+            except Exception:
+                a = {}
+            if not isinstance(a, dict):
+                a = {}
+            ts = str(r.get("ts") or "")[:19]
+            v = r.get("verdict")
+            if isinstance(v, dict) and v.get("exploitable") in (True, "partial", "true"):
+                m = (r.get("method") or
+                     (a.get("method") or "GET"))
+                p = _play_from_call(tool, a, str(v.get("summary") or
+                                                  "verdict exploitable")[:160],
+                                    "", ts, kind="verdict")
+                if p:
+                    incoming.append(p)
+            elif r.get("status") == "ok":
+                mth = (a.get("method") or "GET").upper()
+                if mth in _WRITE_VERBS:
+                    p = _play_from_call(tool, a, f"{mth} accepted", "", ts)
+                    if p:
+                        incoming.append(p)
+        if incoming:
+            added = merge_plays(d["plays"], incoming)
+        if final_text:
+            # proposal minting — same guard as harvest()
+            try:
+                from core.framing import is_refusal
+                if not is_refusal(final_text):
+                    idx = final_text.upper().find("NEXT MISSION PROPOSAL")
+                    if idx >= 0:
+                        sect = final_text[idx - 3:].strip()[:6000]
+                        with open(os.path.join(ws.reports, "next_mission.md"),
+                                  "w", encoding="utf-8") as f:
+                            f.write(sect)
+                        d["proposals"][ws.target or "untitled"] = {
+                            "ts": time.strftime("%Y-%m-%d %H:%M:%S"),
+                            "text": sect[:3000]}
+            except Exception:
+                pass
+        _save(d, store)
+    except Exception as ex:
+        print(f"[learned_plays] WARN ledger harvest failed: "
+              f"{type(ex).__name__}: {ex}")
+    return added
+
+
 # ── recall: the arsenal speaks before round 0 ─────────────────────
 def _fmt_play(p, generalize=False):
     host = "{TARGET}" if generalize else p["host"]

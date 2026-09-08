@@ -89,15 +89,15 @@ export default function FreshSessionPanel({ onPurge }) {
         </div>
       </div>
       <button onClick={purge} disabled={busy}
-        className="w-full pill-ghost btn-strike !border-danger/50 !text-danger hover:!border-danger hover:!bg-dangertint px-3 py-2 text-[10.5px] uppercase tracking-[.12em]">
+        className="w-full pill-ghost btn-strike !border-danger/50 !text-danger hover:!border-danger hover:!bg-dangertint px-3 py-2 text-[11px] uppercase tracking-[.12em]">
         {busy ? '···' : 'purger — session neuve'}
       </button>
       {msg && (
-        <p className={`text-[10.5px] leading-snug ${msg.ok ? 'text-ok' : 'text-danger'}`}>
+        <p className={`text-[11px] leading-snug ${msg.ok ? 'text-ok' : 'text-danger'}`}>
           {msg.text}
         </p>
       )}
-      <p className="text-[9.5px] text-faint leading-relaxed">
+      <p className="text-[10px] text-faint leading-relaxed">
         jamais touché : outils forgés, historique des missions (missions.db), rapports
       </p>
     </div>

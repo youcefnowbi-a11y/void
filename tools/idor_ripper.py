@@ -57,12 +57,18 @@ def idor_enum(url_template, start=1, stop=100, step=1, pad=None,
         own_body = own_body or ""
 
     hits, checked = [], 0
+    _net_dead = 0        # G fix: WinError 10060/timeouts ≠ "auth enforced" —
+                         # a network outage must never mint a false negative
     for i in range(start, stop + 1, max(1, step)):
         if own_id is not None and i == own_id:
             continue
         sid = str(i).zfill(pad) if pad else str(i)
         st, body, dt = paced_send(url_template.replace("{ID}", sid), headers=headers)
         checked += 1
+        if st in (-1, 0, -3, -2) or "getaddrinfo" in (body or "")[:200] \
+                or "timed out" in (body or "")[:200]:
+            _net_dead += 1
+            continue
         if st == 200 and body:
             differs = not own_body or _different(own_body, body)
             if differs:
@@ -75,12 +81,30 @@ def idor_enum(url_template, start=1, stop=100, step=1, pad=None,
         time.sleep(0.08)
 
     exploitable = bool(hits)
+    # F2 APP-STATE fix: exploit hits must archive like data_extract does —
+    # the 25-hit BOLA evidence lived only in the transcript because the
+    # paced_send lane bypasses the workspace. Full hits go to disk.
+    try:
+        from core.mission_workspace import get_active as _gws
+        _ws = _gws()
+        if _ws is not None and hits:
+            import json as _json
+            _ws.save_extraction("idor_enum", _json.dumps(
+                {"url_template": url_template, "checked": checked,
+                 "hit_count": len(hits), "hits": hits[:200]},
+                ensure_ascii=False, default=str))
+    except Exception:
+        pass
     return verdict("idor_enum", exploitable,
                    (f"CONFIRMED BOLA: {len(hits)} foreign record(s) readable "
                     f"(checked {checked} ids)" if exploitable else
-                    f"no foreign reads in {checked} ids — object auth likely enforced"),
+                    (f"INCONCLUSIVE — {_net_dead}/{checked} ids died at network "
+                     f"level (timeouts/DNS) — the negative is NOT evidence of "
+                     f"auth enforcement; re-run when the wire is stable"
+                     if _net_dead > max(3, checked * 0.3) else
+                     f"no foreign reads in {checked} ids — object auth likely enforced")),
                    evidence=[f"id={h['id']} size={h['size']}" for h in hits[:12]],
-                   hits=hits)
+                   hits=hits, net_dead=_net_dead)
 
 
 def _different(own, other):

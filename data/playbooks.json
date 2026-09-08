@@ -1,5 +1,84 @@
 [
  {
+  "ts": "2026-09-08 04:14",
+  "target": "madleets.me",
+  "stacks": [
+   "cloudflare",
+   "jwt_auth",
+   "spa",
+   "supabase"
+  ],
+  "sequence": [
+   "arsenal_selftest",
+   "data_extract",
+   "batch_execute",
+   "data_extract",
+   "batch_execute",
+   "arsenal_selftest",
+   "data_extract",
+   "batch_execute",
+   "arsenal_selftest",
+   "batch_execute",
+   "arsenal_selftest",
+   "data_extract",
+   "batch_execute",
+   "data_extract"
+  ],
+  "assets_found": 75
+ },
+ {
+  "ts": "2026-09-06 19:11",
+  "target": "unknown",
+  "stacks": [
+   "jwt_auth",
+   "spa",
+   "telegram"
+  ],
+  "sequence": [
+   "arsenal_selftest",
+   "data_extract",
+   "differential_sweep",
+   "batch_execute",
+   "differential_sweep",
+   "batch_execute",
+   "arsenal_selftest",
+   "data_extract",
+   "batch_execute",
+   "differential_sweep",
+   "data_extract",
+   "batch_execute",
+   "arsenal_selftest",
+   "data_extract"
+  ],
+  "assets_found": 304
+ },
+ {
+  "ts": "2026-09-06 11:26",
+  "target": "unknown",
+  "stacks": [
+   "jwt_auth",
+   "spa",
+   "telegram"
+  ],
+  "sequence": [
+   "arsenal_selftest",
+   "batch_execute",
+   "arsenal_selftest",
+   "batch_execute",
+   "h2_race_attack",
+   "race_smash",
+   "hypothesis_test",
+   "batch_execute",
+   "arsenal_selftest",
+   "batch_execute",
+   "deobfuscate_js",
+   "file_grep",
+   "crypto_hash",
+   "file_grep"
+  ],
+  "assets_found": 277
+ },
+ {
   "ts": "2026-08-30 05:10",
   "target": "forge-range.test",
   "stacks": [

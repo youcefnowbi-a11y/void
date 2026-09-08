@@ -35,7 +35,7 @@ export default function LiveConsole({ logs, status, onClear, onClose }) {
   const [filter, setFilter] = useState('all')
   const [isExpanded, setIsExpanded] = useState(false)
   const [isFolded, setIsFolded] = useState(false)
-  const [height, setHeight] = useState(300)
+  const [userHeight, setUserHeight] = useState(null)
   const [copied, setCopied] = useState(false)
   const dragRef = useRef(null)
 
@@ -48,11 +48,12 @@ export default function LiveConsole({ logs, status, onClear, onClose }) {
   /* ── la poignée : drag la lisière haute du dock ── */
   const onHandleDown = useCallback((e) => {
     e.preventDefault()
-    dragRef.current = { startY: e.clientY, startH: height }
+    const currentH = containerRef.current?.parentElement?.clientHeight || 340
+    dragRef.current = { startY: e.clientY, startH: userHeight || currentH }
     const move = (ev) => {
       if (!dragRef.current) return
       const h = dragRef.current.startH + (dragRef.current.startY - ev.clientY)
-      setHeight(Math.max(H_MIN, Math.min(H_MAX, h)))
+      setUserHeight(Math.max(H_MIN, Math.min(H_MAX, h)))
     }
     const up = () => {
       dragRef.current = null
@@ -61,7 +62,7 @@ export default function LiveConsole({ logs, status, onClear, onClose }) {
     }
     window.addEventListener('pointermove', move)
     window.addEventListener('pointerup', up)
-  }, [height])
+  }, [userHeight])
 
   const handleScroll = () => {
     const el = containerRef.current
@@ -123,8 +124,8 @@ export default function LiveConsole({ logs, status, onClear, onClose }) {
 
   return (
     <div className={`panel overflow-hidden flex flex-col transition-all ${
-      isExpanded ? 'fixed inset-4 z-50' : ''
-    }`} style={isExpanded ? undefined : { height }}>
+      isExpanded ? 'fixed inset-4 z-50 !h-auto' : userHeight ? '' : 'h-full flex-1'
+    }`} style={isExpanded ? undefined : userHeight ? { height: userHeight } : undefined}>
 
       {/* ── poignée de redimensionnement ── */}
       {!isExpanded && (

@@ -9,11 +9,11 @@
    "evidence": {
     "signature": "openapi[._-]?json.{0,400}?(200|exposed|FULL|schema)"
    },
-   "score": 0.898,
-   "used": 7,
-   "worked": 7,
+   "score": 1.0,
+   "used": 10,
+   "worked": 10,
    "failed": 0,
-   "times_re_minted": 4,
+   "times_re_minted": 16,
    "ts": 1788540935.317
   },
   {
@@ -25,11 +25,11 @@
    "evidence": {
     "signature": "X-Admin-Token|X-Api-Token|admin.{0,20}header.{0,40}single shared"
    },
-   "score": 0.987,
-   "used": 80,
-   "worked": 80,
+   "score": 0.997,
+   "used": 368,
+   "worked": 368,
    "failed": 0,
-   "times_re_minted": 4,
+   "times_re_minted": 9,
    "ts": 1788540935.319
   },
   {
@@ -41,12 +41,30 @@
    "evidence": {
     "signature": "forge_tool.{0,200}(ok|ARMÉ|live)"
    },
-   "score": 0.931,
-   "used": 10,
-   "worked": 10,
+   "score": 1.0,
+   "used": 61,
+   "worked": 61,
    "failed": 0,
-   "times_re_minted": 5,
+   "times_re_minted": 16,
    "ts": 1788540935.32
+  },
+  {
+   "predicate": "host went dark mid-campaign (3 transport deaths) — verify host health before strikes",
+   "context": "any-target",
+   "where": "patience",
+   "expected": "skips of this class cost 17 calls last mission",
+   "origin": "skip-autopsy",
+   "evidence": {
+    "category": "quarantined",
+    "count": 17,
+    "example": "transport: host duskyr.com dark (TypeError: message_body should be a bytes-like object or an )"
+   },
+   "score": 0.62,
+   "used": 0,
+   "worked": 0,
+   "failed": 0,
+   "times_re_minted": 2,
+   "ts": 1788653289.482
   }
  ],
  "graveyard": []

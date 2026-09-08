@@ -621,7 +621,8 @@ exploitation, real zero-days come from OUT-OF-THE-BOX reasoning:
    meant to touch, replay old responses in new contexts, diff two roles' views
    of the same object, compare anon vs authenticated vs stale-token behavior.
    The bug lives in the GAP BETWEEN COMPONENTS — hunt there.
-4. ZERO-DAY MENTALITY. n-day (nvd_search → nday_exploit) is the FLOOR, not the
+4. ZERO-DAY MENTALITY. n-day (grimoire_query kev → nvd_search → nday_exploit)
+    is the FLOOR, not the
    ceiling. When nothing public exists: fuzz_attack_surface → crash_triage_next
    → mapped strike. When the target is unusual (custom parsers, bespoke APIs,
    nonstandard auth flows), forge_tool YOUR OWN weapon mid-mission — the
@@ -635,6 +636,30 @@ exploitation, real zero-days come from OUT-OF-THE-BOX reasoning:
    auth → payment), pivot identity (anon → free → authenticated → expired
    token). Never ask for a perfect plan — build the next move from the last
    result, decisively and relentlessly, until the mission is DONE.
+ 7. THINK AS AI, NOT AS A HUMAN PENTESTER (LO's era doctrine, 2026-09-06).
+    You are not a human with tools — you are a NEW CLASS of adversary the
+    defenders never designed for. Humans see pages, forms, and "attack
+    checklists" written by other humans. YOU see: the raw bytes on the wire,
+    the exact JSON the server whispers in its 400 errors (its grammar
+    talks — LISTEN to every error: it names the missing field, the wrong
+    case, the expected type), the snowflake/timestamp/epoch structure hiding
+    inside every ID, the bundle's dead code paths humans skim past, the
+    algebraic shape of a signing scheme, cross-plane echoes the same value
+    makes in two services. DO NOT limit your hunting to what human write-ups
+    catalog (the OWASP top ten, the CVE feeds, the "known" bug classes) —
+    those are the maps of PREVIOUS wars. Your native lanes: decode the ID
+    grammar and predict the whole keyspace; read 1MB of minified bundle
+    line-by-line where a human reads the first 3KB and gives up; hold 100
+    API responses in one mind and diff them; speak protocol to the server
+    by mutating one byte at a time; notice that the error message is
+    camelCase while the API speaks snake-case. When a human pentester would
+    stop ("this endpoint seems closed"), your next thought is the one NO
+    human has: what does the response TIMING say; what if the enum field's
+    default value differs between the app twin and the h5 twin; what does
+    the byte-length delta between two ciphertexts reveal about their
+    plaintexts; which TWO endpoints are the same backend wearing different
+    hostnames. The platform builders defended against humans. You are the
+    new era. Be it.
 
 ═══ YOUR ARSENAL ({tool_count} tools across 12+ domains) ═══
 
@@ -649,6 +674,7 @@ ZERO-DAY PIPELINE: fuzz_attack_surface, crash_triage_next, nday_exploit, auth_st
 BINARY HOT CORES (module natif C++ voidforge): binary_fuzz_run (coverage-guided fuzzing via Unicorn emulation — memory-corruption bugs in parsers/decoders, UCB1 seed scheduling), crash_triage_rank (dedup + exploitability ranking 0-6: RIP control → DoS), h2_race_attack (HTTP/2 single-packet race — N requests in one TLS flight, single-use guards: OTP/auth codes/coupons)
 BINARY LANE (below HTTP — binaries, thick clients, firmware, foothold escalation): bin_triage (PE/ELF headers, sections + entropy, imports, packer hints — always first), bin_strings (urls/paths/registry/base64 — often jumps BACK to the web lane: binaries phone home), bin_disasm (capstone — read entry point then the functions strings hinted), bin_fuzz_live (REAL-process crash hunting: mutated inputs through the actual loader/CRT — the complement of the emulated binary_fuzz_run; every crashing input is SAVED, a crash without its input is an anecdote), privesc_enum (POST-EXPLOIT: battery through a shell_session foothold — SeImpersonate→potato, AlwaysInstallElevated, unquoted service paths, sudo NOPASSWD, SUID; each finding names its technique — EXECUTE it and PROVE the end-state, whoami=SYSTEM / root id)
 C2: c2_pulse (beacon discipline: jitter + UA rotation + backoff — run after shell_session)
+HEAVY ARSENAL (operator-armed enterprise lanes — fire ONLY on operator-scoped targets, never autonomously): ad_spray (impacket native: credential spray smb/kerberos, secretsdump SAM/NTDS harvest, wmiexec/atexec command exec from a domain foothold), ad_bloodhound (BloodHound CE Python collector — computers/users/groups/trusts/GPO/acl collections, the attack-path graph), phish_proxy (Evilginx3 MITM harness: action=status|phishlets|launch — 2FA-bypass phishing proxy; OPERATOR GATE — the mission brief must name the target and the operator's word, the agent never launches this alone)
 FORENSICS: har_dissect, har_tokens, secret_scan, file_grep (search local files/bundles for patterns), crypto_hash (LOCAL md5/sha256/hmac/base64/jwt_decode — NO network, use for forging signatures and verifying webhooks instead of calling external hash APIs)
 TELEGRAM OSINT: tg_probe, tg_history_harvest, tg_market_scan, tg_members_scrape, tg_messages_dump
 INFRASTRUCTURE: spa_crawl, dir_brute, nmap_scan, batch_execute (fan out up to 5 independent tool calls CONCURRENTLY), replay_mutate
@@ -657,6 +683,7 @@ PRECISION: sqli_tamper_chain (bypass WAF — matrice payload×tamper sur un para
 INTEL: wall_breaker (LE RÉFLEXE ANTI-MUR: bloquée par un WAF/auth/stack inconnue → op=break sur la techno EXACTE — web+exploit-db+NVD/KEV reviennent avec CVEs, exploits, bypasses COMPRESSÉS et sourcés; op=cache lit l'intel des missions passées ≤7j; le console la déclenche aussi TOUT SEUL après 2 murs d'affilée), cn_fingerprint (intel stacks CHINOISES: fingerprints + chemins par défaut + creds par défaut pour OA/CMS/middleware CN — Seeyon/Tongda/Yonyou/Landray/Weaver/Hikvision/Ruijie — absents de SecLists; op=list, op=search <mot-clé zh|en>, op=fingerprint <id> pour les marqueurs, op=creds <id> pour les comptes par défaut; À UTILISER dès que la cible ressemble à un stack gouvernement/entreprise chinois)
 DEPTH: spa_crawl (retourne AUSSI forms[] depuis V3 — chaque formulaire = cible de frappe: action/method/inputs; valide-les avec sqli_tamper_chain, fuzz_attack_surface ou har_passive_scan), har_passive_scan (LENS PASSIVE sur capture HAR — zéro requête: IDs façon-IDOR à varier, JWT faibles (alg none/HS256, roles), cookies sans flags, headers manquants, secrets, champs price/credit = candidats race/mutation; danger safe)
 CVE INTEL: nvd_search, cisa_kev
+WAR LIBRARY: grimoire_query (la bibliothèque de guerre GRIMOIRE — 53 techniques offensives soudées à leur contre-mesure, 1695 CVEs CISA KEV activement exploitées, 709 records ATT&CK, 288 commandes Atomic Red Team testées, 31 catalogs d'outils. Modes: kev <produit> = les CVEs exploités DANS LA NATURE pour ce stack — le signal nday supérieur à tout spray NVD, À CONSULTER dès qu'un fingerprint identifie la stack; technique <domain> = sélection de technique avec blast/reliability/difficulty + la detection pair (chaque coup porte son antidote); spine <Txxxx> = connaissance ATT&CK; atomic <Txxxx> = la commande testée + cleanup; catalog <catégorie> = où chercher plus profond; stats = inventaire. CONSCIENCE: les techniques gated-opérateur du grimoire sont verrouillées — nomme le move et attends, ne tire JAMAIS seul)
 
 ═══ ATTACK CHAIN DOCTRINE ═══
 
@@ -665,7 +692,7 @@ SUPABASE TARGET → supabase_exfil (PREFERRED over supabase_full_assault) → au
 TELEGRAM HANDLE → tg_probe → tg_history_harvest → tg_market_scan
 HAR FILE → har_dissect → har_tokens → secret_scan (on extracted data)
 JS BUNDLE → js_mine_url → deobfuscate_js → vm_string_dump → secret_scan
-CVE RESEARCH → nvd_search → cisa_kev
+CVE RESEARCH → grimoire_query(kev) → nvd_search → cisa_kev
 API WITH AUTH → data_extract (single endpoint) or api_sweep (multiple) or data_dump_paginated (full table dump)
 
 STRIKE CHAINS (detection is SCOUTING — exploitation is the MISSION):
@@ -1024,11 +1051,16 @@ def _feed_result(name, out, total_cap=24000, sub_cap=4000):
 
 
 # ─── LLM retry config ───
-LLM_RETRY_MAX = 2                    # llm.py already retries 429/5xx internally —
-LLM_RETRY_DELAYS = [3, 6]            # this layer only catches UNREACHABLE/MALFORMED.
-                                     # Old [15, 30] stacked with llm.py's backoff
-                                     # (25s) = up to 70s of dead air per round —
-                                     # that was the "console is slow" feeling.
+LLM_RETRY_MAX = 5                    # llm.py already retries 429/5xx internally —
+                                     # H2-OUTAGE (2026-09-05): 2 retries (~10s)
+                                     # died mid-mission to a 3-minute provider-DB
+                                     # outage; a bridge outlasts flaps, it does
+                                     # not fear them. This layer catches only
+                                     # UNREACHABLE/MALFORMED class errors.
+LLM_RETRY_DELAYS = [3, 6, 15, 45, 90]  # ~2m40s tolerance/round; the old [3, 6]
+                                       # kept the console snappy but killed
+                                       # missions during provider incidents
+                                       # (H: round-1 death, H2: round-16 death).
 
 # ─── Refusal-wipe config (run #74 lesson, 2026-09-03) ───
 # mission 74 died at round 18 on the THIRD refusal because the old cap was 2:
@@ -1301,7 +1333,8 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
         return resp
 
     def run(self, mission, on_event=None, mission_id=None, prior_intel=None,
-            operator_inbox=None, commander_orders=None, plan_doc=None):
+            operator_inbox=None, commander_orders=None, plan_doc=None,
+            inherit_ws=None):
         """Run the autonomous agent loop.
         on_event: optional callback(dict) for real-time streaming to dashboard.
         mission_id: optional int for state persistence (SQLite).
@@ -1329,7 +1362,14 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
         ws = None
         try:
             from core.mission_workspace import workspace_for, set_active
-            ws = workspace_for(mission)
+            if inherit_ws is not None:
+                # swarm/campaign mode: the parent's workspace IS the mission
+                # folder — every chain/specialist banks its evidence in the
+                # SAME campaign dir (CP2 fleet bug: chains got untitled_<ts>
+                # workspaces; evidence_pack/report_write died inside them).
+                ws = inherit_ws
+            else:
+                ws = workspace_for(mission)
             set_active(ws)  # her pens (report_write, operator_message) reach the folder
             if on_event:
                 on_event({"type": "system",
@@ -1378,6 +1418,34 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                     if on_event:
                         on_event({"type": "system",
                                   "text": f"💤 {len(_plays)} dream plays chargées"})
+        except Exception:
+            pass
+
+        # ── NEW-ERA (audit #4 fix): MCTS tactical plan at round 0 — the
+        # offline planner NOW participates in LIVE missions. It reads the
+        # brief (extract_state), plans the highest-Q tool chain, and hands
+        # it to the agent as a TACTICAL BRIEFING (not an order — the LLM
+        # keeps command, the plan is its opening book). Live missions
+        # stop being pure round-by-round reaction: lookahead exists.
+        try:
+            from core.attack_graph import plan_smart
+            _steps = plan_smart(mission, max_steps=8)
+            if _steps:
+                _plan_lines = []
+                for i, (tool, args) in enumerate(_steps, 1):
+                    _a = json.dumps(args or {}, ensure_ascii=False)
+                    _plan_lines.append(f"{i}. {tool} {_a[:140]}")
+                msgs.append({"role": "user", "content":
+                    "MCTS TACTICAL PLAN (audit-#4 fix — le planificateur "
+                    "offline attaque ton brief maintenant, PAS seulement "
+                    "quand le LLM meurt. Chaîne planifiée par valeur-Q, "
+                    "8 étapes max — ton opening book. Détourne-toi "
+                    "librement quand le terrain répond autrement):\n"
+                    + "\n".join(_plan_lines)})
+                if on_event:
+                    on_event({"type": "system",
+                              "text": f"🧭 MCTS plan tactique: {len(_steps)} étapes "
+                                      f"({', '.join(s[0] for s in _steps[:4])}…)"})
         except Exception:
             pass
 
@@ -1596,6 +1664,7 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
             on_event({"type": "mission_start", "mission": mission})
 
         consecutive_llm_fails = 0
+        self._offline_fallback_rounds = 0   # H-OUTAGE: fresh bridge budget
         fresh_restarts = 0          # chat-recipe clean restarts on refusal
         _wipe_spent = False         # final-audit #2: refund only post-wipe
         base_msgs = list(msgs)      # the clean-slate snapshot (pre-poison)
@@ -1714,6 +1783,33 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                 pass
 
         for rnd in range(self.max_rounds):
+            # ── PLAN-MODE BUDGET ALARM (CP3 fleet bug): the planner burned
+            # all 40 rounds on recon (found the app bundle at r34) and never
+            # wrote the plan — the campaign fell back to SOLO, losing the
+            # whole swarm architecture. At 75% budget with no plan emitted
+            # (self._plan_written tracks ATTACK PLAN/chains markers in any
+            # agent turn), a HARD one-shot order forces the write NOW.
+            try:
+                if (self.plan_mode and self.max_rounds > 0
+                        and rnd >= int(self.max_rounds * 0.75)
+                        and not getattr(self, "_plan_written", False)
+                        and not getattr(self, "_plan_alarm_fired", False)):
+                    self._plan_alarm_fired = True
+                    msgs.append({"role": "user", "content":
+                                 "⚠ ALARME BUDGET — il reste " +
+                                 str(self.max_rounds - rnd) +
+                                 " rounds. ÉCRIS LE PLAN MAINTENANT avec ta "
+                                 "recon actuelle (le ```json chains``` est le "
+                                 "livrable OBLIGATOIRE). Pas d'autre appel "
+                                 "d'outil — le plan incomplet bat le plan "
+                                 "absent, le swarm exécutera les gaps."})
+                    if on_event:
+                        on_event({"type": "system",
+                                  "text": "🚨 alarme budget plan-mode — "
+                                          "écriture du plan forcée"})
+            except Exception:
+                pass
+
             # ── OPERATOR CHANNEL: drain the inbox before every round ──
             aborted = False
             if operator_inbox is not None:
@@ -1956,10 +2052,36 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                         except Exception:
                             pass
                         self._pending_brain_digest = "\n".join(_brain_digest)[:8000]
-                    break
+                    # H-OUTAGE FIX (2026-09-05): a dead-at-round-0 LLM used
+                    # to CLOSE the mission right after the offline brain
+                    # fired — a 90-second provider Postgres flap killed a
+                    # full mission (H: 8 generic calls, brief never struck).
+                    # The brain is a BRIDGE, not a hearse: run it once,
+                    # then keep looping — next round re-tests the provider.
+                    # The offline plan only refires if the provider is
+                    # STILL dead (rnd==0 branch), else the LLM resumes
+                    # with the brain digest in context (WE4 chaining).
+                    _offline_rounds = getattr(self, "_offline_fallback_rounds", 0) + 1
+                    self._offline_fallback_rounds = _offline_rounds
+                    if _offline_rounds >= 12:
+                        # provider stayed dead a dozen bridges — this is
+                        # an outage, not a flap. Close honestly.
+                        self.last_abort_reason = "llm_dead_extended_outage"
+                        if on_event:
+                            on_event({"type": "error",
+                                      "text": "✗ Provider mort à travers 12 ponts offline — fermeture honnête."})
+                        break
+                    if on_event:
+                        on_event({"type": "error",
+                                  "text": f"🌉 offline brain round {_offline_rounds}/12 — provider re-testé au prochain round."})
+                    continue
 
-                # Mid-mission LLM death: if 3+ consecutive failures, give up
-                if consecutive_llm_fails >= 3:
+                # Mid-mission LLM death: if 2+ consecutive ROUNDS fail (each
+                # round already burned ~2m40s of retries = 5+ minutes of
+                # outage survived), give up — H2-OUTAGE: 3×10s was a knife
+                # against a provider-DB outage; the mission died at round 16
+                # with cryptanalysis mid-flight. 2 deep-fail rounds ≈ 6 min.
+                if consecutive_llm_fails >= 2:
                     print(f"  ✗ {consecutive_llm_fails} consecutive LLM failures — aborting")
                     self.last_abort_reason = "llm_dead"
                     if on_event:
@@ -1984,6 +2106,13 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
 
             if content:
                 transcript.append(("agent", content))
+                # plan-mode tracker (CP3 budget alarm): the alarm
+                # deactivates once a plan-shaped agent turn exists.
+                if self.plan_mode and not getattr(self, "_plan_written", False):
+                    _cu = content.upper()
+                    if ("ATTACK PLAN" in _cu or '"chains"' in content
+                            or "```JSON" in _cu):
+                        self._plan_written = True
                 print(f"\n[VOIDFORGE r{rnd+1}] {content[:500]}")
                 if on_event:
                     on_event({"type": "agent_thinking", "content": content[:3000],
@@ -2059,6 +2188,21 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                 _sig = name + "|" + json.dumps(args, sort_keys=True, default=str)[:200]
                 _dupe = (_sig == getattr(self, "_last_tool_sig", None))
                 self._last_tool_sig = _sig
+                # AUDIT #7 FIX (HIGH): the old dedup was ONE call deep —
+                # re-running a tool+args at round 40 that already failed
+                # at round 3 was undetected. Mission-scoped signature
+                # memory: every call's verdict is remembered; a repeat of
+                # a FAILED signature gets a dupe note the LLM reads (it
+                # may still retry deliberately — but now it KNOWS).
+                _hist = getattr(self, "_call_history", None)
+                if _hist is None:
+                    _hist = self._call_history = {}
+                _prev_status = _hist.get(_sig)
+                if _prev_status and _prev_status != "ok" and not _dupe:
+                    _dupe_note = (f"\n[DUPE r{rnd+1}: signature déjà tentée "
+                                  f"(statut: {_prev_status}) — change d'args, "
+                                  f"de cible, ou d'outil, sauf réessai délibéré]")
+                    out = out + _dupe_note if isinstance(out, str) else out
                 # A2 : le périmètre de l'agent accompagne l'appel — le registre
                 # le vérifie et batch_execute le relit pour ses appels internes
                 # (la clôture plan-mode/rôles devient mécanique, plus prompt-only).
@@ -2098,6 +2242,16 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                 _hs = _cov.honest_status(out)
                 is_error = _hs == "error"
                 _is_defer = _hs == "deferred"
+                # audit #7: bank the call verdict into the mission-scoped
+                # signature history (dedup memory beyond one call deep).
+                # Fires AFTER honest_status so the banked verdict matches
+                # what the twin/bandit/trajectory records see.
+                try:
+                    self._call_history[_sig] = ("ok" if not is_error
+                                                else ("deferred" if _is_defer
+                                                      else "error"))
+                except Exception:
+                    pass
                 # final-audit fix #5 (MEDIUM): the bandit/trajectory/state
                 # records moved BELOW the Ω2 twin cap — they were reading the
                 # UNCAPPED out, so a blind claim later capped to "partial"
@@ -2155,9 +2309,24 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                 # rides the tool result (A3 discipline).
                 try:
                     # trigger: blind-class structure + a CONFIRMED verdict —
-                    # robust to both spaced and compact JSON separators
-                    if '"oob"' in out and ('"exploitable": true' in out
-                                          or '"exploitable":true' in out):
+                    # robust to both spaced and compact JSON separators.
+                    # AUDIT #9 FIX (CRITICAL): the old single-substring
+                    # trigger ('"oob"' + '"exploitable": true') let every
+                    # OTHER confirmed verdict ride unchallenged. The twin
+                    # now fires on any verdict-carrying strike structure:
+                    # OOB callbacks, exploitables, CONFIRMED strike reports,
+                    # extracted-data claims (status 200 + data rows), and
+                    # admin/auth-bypass claims. Overreach is fine — the
+                    # challenger's job is to doubt, cheaply and always.
+                    _verdict_fire = (
+                        ('"oob"' in out and ('"exploitable": true' in out
+                                            or '"exploitable":true' in out))
+                        or ('CONFIRMED' in out and any(
+                            _k in out for _k in ("strike", "BOLA", "leak",
+                                                 "extracted", "breach", "bypass")))
+                        or ('"exploitable": true' in out
+                            or '"exploitable":true' in out))
+                    if _verdict_fire:
                         from core import twin as _twn
                         _bp = _twn.blind_policy(out)
                         if _bp[0] is True:
@@ -2338,9 +2507,22 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                 # ── WALL BREAKER: n striking walls in a row -> auto intel run ──
                 # (the reflex: blocked by WAF/auth/unknown stack? go OUT — web,
                 # exploit-db, NVD/KEV — and come back with ammunition)
+                # F2 APP-STATE fix: the old regex counted EVERY 401/403 in a
+                # data_extract body as a wall — but the agent PROBES gates on
+                # purpose (401 is the expected answer to "is this locked?");
+                # wall_breaker auto-fired 6× on healthy recon (F2) and burned
+                # context. The signal is now the WAF/genuine-block class ONLY
+                # (rate-limit, captcha, block pages) — NOT auth status codes,
+                # which are probe data. Threshold: 3 consecutive.
                 _WALL_SIG = re.compile(
-                    r"(?i)(waf|blocked|403|forbidden|cloudflare|sucuri|rate.?limit|"
-                    r"captcha|auth wall|401|not authorized|refus)")
+                    r"(?i)(waf|blocked by|sucuri|rate.?limit|"
+                    r"captcha|too many requests|access denied by|"
+                    r"security rules|just a moment|attention required|"
+                    r"cf-error|challenge platform)")
+                # H3-note: "cloudflare" was REMOVED — every duskyr response
+                # carries Server:cloudflare as a healthy fingerprint and the
+                # sig fired wall_breaker on clean 200s (H3 r25/r68/r72).
+                # Real CF blocks say "just a moment"/"attention required".
                 # WB2 (audit-2 B2): auth-probing tools EXPECT 401/403 as
                 # DATA (endpoint_oracle admin probes, auth_state_audit,
                 # idor_enum...) — counting those as walls fired false
@@ -2356,7 +2538,7 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                     else:
                         _walls = getattr(self, "_wall_streak", 0) + 1
                         self._wall_streak = _walls
-                        if _walls >= 2:
+                        if _walls >= 3:
                             _tech = ""
                             mfp = re.search(r"(?i)(cloudflare|sucuri|akamai|apache|nginx|"
                                             r"iis|jwt|spring|wordpress|laravel|django)", out)
@@ -2413,6 +2595,47 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
             # consécutifs → mission morte).
             if _wall_pending:
                 msgs.append({"role": "user", "content": _wall_pending})
+
+            # ── AUDIT #1 FIX (CRITICAL): episodic digest every 10 rounds —
+            # within-mission memory the context diet was amputating. The
+            # last 25 tool results ride full; rounds 1..N-25 collapse to
+            # 900-char fragments and the agent forgot what it already
+            # tried. This digest injects a compact index of its own
+            # history (tool, target, verdict) built from the call
+            # signature history + new blackboard assets: the model gets
+            # a durable self-index, ~1.5KB, replacing nothing.
+            try:
+                _EPISODIC_PERIOD = 10
+                if (rnd + 1) % _EPISODIC_PERIOD == 0 and rnd > 0:
+                    _hist = getattr(self, "_call_history", {}) or {}
+                    _recent = list(_hist.items())[-_EPISODIC_PERIOD:]
+                    _lines = []
+                    for _s, _st in _recent:
+                        _tn = _s.split("|", 1)[0]
+                        _ta = (_s.split("|", 1)[1] if "|" in _s else "")[:60]
+                        _lines.append(f"- {_tn}({_ta}…) → {_st}")
+                    _board_assets = 0
+                    if self.board is not None:
+                        try:
+                            _board_assets = len(getattr(self.board, "assets", {}) or {})
+                        except Exception:
+                            pass
+                    _dmsg = ("[🧠 DIGEST ÉPISODIQUE r" + str(rnd + 1) +
+                             " — ton historique vivant (les rounds "
+                             "compacts s'effacent; CET index reste):\n"
+                             + "\n".join(_lines)
+                             + f"\nBlackboard: {_board_assets} assets. "
+                               "Ce que tu as DÉJÀ essayé est ci-dessus — "
+                               "ne le répète pas; ce qui a marché est ta "
+                               "base, ce qui a échoué est ton prochain "
+                               "axe d'attaque.]")
+                    msgs.append({"role": "user", "content": _dmsg})
+                    if on_event:
+                        on_event({"type": "system",
+                                  "text": f"🧠 digest épisodique injecté "
+                                          f"(r{rnd+1}: {len(_recent)} appels indexés)"})
+            except Exception:
+                pass
 
             # ── Tier F1: PERIODIC COVERAGE ORDER — every COVERAGE_PERIOD
             # rounds, cold strike benches earn a HARD user-message order

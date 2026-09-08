@@ -64,14 +64,19 @@ def web_fingerprint(url):
     return json.dumps(out, ensure_ascii=False, indent=1)
 
 @register(name="endpoint_oracle",
-          desc="Probe endpoint paths against a base URL; classify status codes (401=exists-locked, 404=missing, 200=open). Great for API mapping.",
+          desc="Probe endpoint paths against a base URL; classify status codes (401=exists-locked, 404=missing, 200=open). Great for API mapping. headers param: full custom header dict (cookies, X-Admin-Token...) — merges over bearer.",
           params={"type":"object","properties":{
               "base":{"type":"string"},"paths":{"type":"array","items":{"type":"string"}},
-              "bearer":{"type":"string"}},
+              "bearer":{"type":"string"},
+              "headers":{"type":"object","description":"custom headers dict (e.g. {\"Cookie\": \"sid=1\"}) — overrides defaults"}},
               "required":["base","paths"]})
-def endpoint_oracle(base, paths, bearer=None):
+def endpoint_oracle(base, paths, bearer=None, headers=None):
     h = {"User-Agent": "Mozilla/5.0"}
     if bearer: h["Authorization"] = f"Bearer {bearer}"
+    # F2 APP-STATE fix: no headers param existed — the agent's cookie-
+    # bearing sweeps crashed with TypeError and had to fall back to
+    # api_sweep mid-mission. Custom headers are first-class now.
+    if headers and isinstance(headers, dict): h.update(headers)
     results = []
     for p in paths:
         target = base.rstrip("/") + "/" + p.lstrip("/")

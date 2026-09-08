@@ -130,7 +130,26 @@ def heal_attempt(tool_name, category, details, original_args):
         if "timeout_min" in a:
             a["timeout_min"] = int(a["timeout_min"]) * 2
             return a, "doubled timeout"
-        return dict(a), "plain retry (no timeout knob)"
+        # F2 autopsy: a knobless tool that times out on attempt 2 will
+        # time out identically on attempt 3 (same args, same wire) —
+        # the plain retry was the V16 sterile class dressed as a heal.
+        # Second identical death → stop burning rounds; the agent gets
+        # the diagnosis instead of a third corpse.
+        _st = _load_fixes().get("tool_flag_migrations") or {}
+        _key = f"__timeout_strikes:{tool_name}"
+        if _st.get(_key, 0) >= 1:
+            _rmw(lambda d: d.setdefault("tool_flag_migrations", {})
+                 .update({_key: 0}))
+            return None, ("knobless timeout ×2 — the wire itself is slow "
+                          "(CDN/large body); a third identical call will "
+                          "die the same death. Re-forge the tool on "
+                          "tools._transport.fetch (proxy pool + retry "
+                          "discipline) or reduce max_results.")
+        _rmw(lambda d: d.setdefault("tool_flag_migrations", {})
+             .update({_key: int(d.setdefault("tool_flag_migrations", {})
+                                .get(_key, 0)) + 1}))
+        time.sleep(2.0)      # one paced retry — transient blips get a shot
+        return dict(a), "paced retry (no timeout knob)"
     if category == "NETWORK":
         # WF1 (audit-2 F1): a 4s sleep froze the whole specialist thread
         # × 3 attempts = 12s dead per blip in swarm mode. 1.2s is still a

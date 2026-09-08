@@ -183,7 +183,7 @@ export default function DirectToolRunner({ onToolExecuted }) {
   const properties = currentTool.parameters?.properties || {};
   const requiredFields = currentTool.parameters?.required || [];
 
-  const inputCls = "w-full rounded-ui border border-line bg-inset px-3 py-2 text-[12.5px] font-mono text-ink focus:outline-none focus:border-volt/60 transition-colors placeholder:text-faint";
+  const inputCls = "w-full rounded-ui border border-line bg-inset px-3 py-2 text-[12px] font-mono text-ink focus:outline-none focus:border-volt/60 transition-colors placeholder:text-faint";
 
   return (
     <div className="space-y-4">
@@ -208,16 +208,16 @@ export default function DirectToolRunner({ onToolExecuted }) {
             placeholder="Filtrer..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-24 rounded-ui border border-line bg-inset px-2.5 py-2 text-[11.5px] font-mono text-ink focus:outline-none focus:border-volt/60 transition-colors placeholder:text-faint"
+            className="w-24 rounded-ui border border-line bg-inset px-2.5 py-2 text-[12px] font-mono text-ink focus:outline-none focus:border-volt/60 transition-colors placeholder:text-faint"
           />
         </div>
 
         {/* Description de l'outil sélectionné */}
         {currentTool.description && (
-          <div className="rounded-ui border border-line bg-hover px-3 py-2.5 text-[12px] text-ash leading-relaxed">
+          <div className="rounded-ui border border-line bg-wash/60 px-3 py-2.5 text-[12px] text-ash leading-relaxed">
             <div className="flex items-center gap-2 mb-1">
               <span className="font-mono font-medium text-cyan">{currentTool.name}</span>
-              <span className={`text-[9px] uppercase px-1.5 py-0.5 rounded-full border font-medium ${
+              <span className={`text-[10px] uppercase font-mono px-2 py-0.5 rounded-full border font-medium ${
                 currentTool.danger === 'destructive' ? 'border-danger/30 text-danger bg-dangertint' :
                 currentTool.danger === 'active' ? 'border-warn/30 text-warn bg-warntint' :
                 'border-ok/30 text-ok bg-oktint'
@@ -326,7 +326,7 @@ export default function DirectToolRunner({ onToolExecuted }) {
           type="button"
           onClick={runSelectedTool}
           disabled={executing || !selectedToolName}
-          className="pill-cta btn-strike px-5 py-2 text-[11.5px] uppercase tracking-[.1em]"
+          className="pill-cta btn-strike px-5 py-2 text-[12px] uppercase tracking-[.1em]"
         >
           {executing ? (
             <>
@@ -344,11 +344,11 @@ export default function DirectToolRunner({ onToolExecuted }) {
 
       {/* RÉSULTAT DU LANCEMENT DIRECT */}
       {result && (
-        <div className="rounded-2xl border border-line bg-hover p-3.5 space-y-2.5 animate-fadeIn">
+        <div className="rounded-card border border-line bg-wash/50 p-3.5 space-y-2.5 animate-fadeIn">
           <div className="flex items-center justify-between border-b border-line pb-2.5">
             <div className="flex items-center gap-2">
               <span className={`inline-block w-2 h-2 rounded-full ${result.success ? 'bg-ok' : 'bg-danger animate-pulse'}`} />
-              <span className="text-[10.5px] uppercase font-medium tracking-[.12em] text-ink">
+              <span className="text-[10px] uppercase font-mono font-medium tracking-[.14em] text-ink">
                 {result.success ? 'résultat obtenu' : 'échec / alerte'}
               </span>
               <span className="font-mono text-[10px] text-faint">({result.duration}s · {result.timestamp})</span>

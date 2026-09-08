@@ -59,11 +59,23 @@ def get_opener():
     if not pool.available:
         return None
     proxy_url = pool.next()
-    proxy_handler = urllib.request.ProxyHandler({
-        "http": proxy_url,
-        "https": proxy_url,
-    })
-    return urllib.request.build_opener(proxy_handler)
+    try:
+        # Ω3.4 (audit-6): Handle socks5 gracefully if socks module is present, else guard
+        if proxy_url.startswith("socks"):
+            try:
+                import socks
+                from sockshandler import SocksiPyHandler
+                # Optional PySocks support if installed
+                return urllib.request.build_opener(SocksiPyHandler)
+            except ImportError:
+                return None
+        proxy_handler = urllib.request.ProxyHandler({
+            "http": proxy_url,
+            "https": proxy_url,
+        })
+        return urllib.request.build_opener(proxy_handler)
+    except Exception:
+        return None
 
 
 def reload():

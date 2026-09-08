@@ -646,9 +646,59 @@ class Workspace:
             return None
 
     # ── final report saved into the workspace too ────────────────────
+    def verify_report_claims(self, content):
+        """AUDIT #10 (HIGH): deterministic claim-vs-evidence check — no LLM.
+        Parses the report's own cross-references (extraction filenames in
+        `backticks`, findings cards, extractions/... paths) and checks each
+        against the workspace archive. Claims naming artifacts that don't
+        exist are annotated IN the report before it is sealed — a
+        hallucinated finding with a plausible filename no longer rides
+        silently into the deliverable."""
+        try:
+            refs = set()
+            for m in re.finditer(r"`([^`:\s]{6,80})`", content or ""):
+                tok = m.group(1)
+                # extraction filenames (.json), finding/report cards (.md),
+                # and any explicit extractions/... path mention
+                if tok.endswith((".json", ".md")) or "/" in tok or "\\" in tok:
+                    refs.add(tok.split("/")[-1].split("\\")[-1])
+            missing = []
+            for ref in sorted(refs)[:40]:
+                ref_l = ref.lower()
+                found = False
+                for d in (self.extractions, self.findings, self.reports, self.dir):
+                    try:
+                        if any(ref_l == x.lower() or ref_l in x.lower()
+                               for x in os.listdir(d)):
+                            found = True
+                            break
+                    except Exception:
+                        continue
+                if not found:
+                    missing.append(ref)
+            if missing:
+                note = ("\n\n---\n## ⚠ VÉRIFICATION DÉTERMINISTE DES CLAIMS\n"
+                        "Le vérificateur mécanique a trouvé "
+                        f"{len(missing)} référence(s) d'artefact sans "
+                        "correspondance dans l'archive de la mission "
+                        f"(`missions/{self.target}/`):\n"
+                        + "\n".join(f"- `{r}` — AUCUN fichier correspondant" for r in missing)
+                        + "\n\n*(Ces claims sont marqués NON VÉRIFIÉS — "
+                          "le deliverable reste honnête même si le modèle "
+                          "a halluciné un nom plausible.)*")
+                return note, missing
+            return "", []
+        except Exception:
+            return "", []
+
     def save_final_report(self, content):
         fname = f"rapport_final_{time.strftime('%Y%m%d_%H%M%S')}.md"
         path = os.path.join(self.reports, fname)
+        # AUDIT #10: run the deterministic claim verifier BEFORE sealing —
+        # the annotation rides IN the deliverable, not after it.
+        note, _missing = self.verify_report_claims(content)
+        if note:
+            content = (content or "") + note
         try:
             with open(path, "w", encoding="utf-8") as f:
                 f.write(content or "")
@@ -658,7 +708,11 @@ class Workspace:
 
     # ── the agent's own pen: reports she writes mid-mission ─────────
     def write_report(self, title, content, kind="progress"):
-        """The model writes her own report into the workspace."""
+        """The model writes her own report into the workspace.
+        Mission-79 APP-STATE fix (#8): a strike report carrying a
+        CONFIRMED/PARTIAL verdict now MINTS a finding card — the
+        findings registry stayed empty while 4 confirmed exploits
+        lived in strike reports (evidence_pack saw 0)."""
         safe = _slug(title) or "note"
         fname = f"{kind}_{time.strftime('%H%M%S')}_{safe}.md"
         path = os.path.join(self.reports, fname)
@@ -666,9 +720,34 @@ class Workspace:
             with open(path, "w", encoding="utf-8") as f:
                 f.write(f"# {title}\n*[{kind} · {time.strftime('%Y-%m-%d %H:%M:%S')} · "
                         f"cible {self.target}]*\n\n{content}\n")
-            return path
         except Exception:
             return None
+        # strike-report verdicts feed the findings registry
+        if kind == "strike":
+            try:
+                body = str(content or "")
+                head = body[:3000]
+                # CONFIRMED wording, a severity table row, or an explicit
+                # exploitable verdict line — same evidence bar as save_finding
+                if re.search(r"(?i)\b(confirmed|confirmed exploit|critical|"
+                             r"high severity|exploitable['\"]?\s*:\s*true)",
+                             head):
+                    tag = "CONFIRMED" if re.search(
+                        r"(?i)\b(confirmed|critical|exploitable['\"]?\s*:\s*true)\b",
+                        head) else "PARTIAL"
+                    fpath = os.path.join(
+                        self.findings,
+                        f"{time.strftime('%H%M%S')}_{os.urandom(2).hex()}_"
+                        f"{safe}_{tag.lower()}.md")
+                    with open(fpath, "w", encoding="utf-8") as f:
+                        f.write(f"# [{tag}] {title}\n\n"
+                                f"- **when**: {time.strftime('%Y-%m-%d %H:%M:%S')}\n"
+                                f"- **source**: strike report `{fname}`\n\n"
+                                f"## verdict excerpt\n```\n{body[:1200]}\n```\n")
+                    self.stats["findings"] += 1
+            except Exception:
+                pass
+        return path
 
     def log_comm(self, text, kind="info"):
         """Operator comms — everything she says to the user is journaled."""

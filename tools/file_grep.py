@@ -61,6 +61,18 @@ def file_grep(path, pattern, is_regex=False, case_sensitive=False,
 
     # Compile pattern
     flags = 0 if case_sensitive else re.IGNORECASE
+    # H3-fleet fix: the agent lost 2+ rounds to literal-mode `|` patterns
+    # ("recover|refund" matched NOTHING as a literal). Auto-escalate
+    # regex-shaped literals: if the pattern reads like an alternation or
+    # class, treat it as regex even when is_regex wasn't set (escape() would
+    # have made it a dead literal anyway).
+    _regex_shaped = re.search(r"[|()\[\]{}*+?^$\\]", pattern or "")
+    if not is_regex and _regex_shaped:
+        is_regex = True
+        _auto_note = ("auto-regex: pattern carried regex metacharacters in literal "
+                      "mode — escalated (H3 fix: literal pipes matched nothing)")
+    else:
+        _auto_note = None
     try:
         if is_regex:
             rx = re.compile(pattern, flags)
@@ -143,7 +155,9 @@ def file_grep(path, pattern, is_regex=False, case_sensitive=False,
         "total_hits": total_hits,
         "matches": matches,
     }
-    if total_hits == 0:
+    if _auto_note:
+        out["note"] = _auto_note
+    if total_hits == 0 and not _auto_note:
         out["note"] = "no matches found — try a broader pattern or different path"
 
     result = json.dumps(out, ensure_ascii=False, indent=1)
