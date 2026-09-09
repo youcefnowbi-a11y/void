@@ -213,6 +213,15 @@ class Workspace:
                         f"- **verdict**: {d.get('summary', '')}\n\n"
                         f"## verdict JSON\n```json\n{json.dumps(d, ensure_ascii=False, indent=1)[:12000]}\n```\n")
             self.stats["findings"] += 1
+            # ── Vague 1: pocket notification — banked verdicts wake the
+            # operator's phone (config-gated, silent-fail, async thread) ──
+            try:
+                from core.notifier import notify
+                notify.critical_finding(
+                    self.target, d.get("summary") or tool,
+                    context=f"{tag} verdict via {tool}")
+            except Exception:
+                pass
             return path
         except Exception:
             return None

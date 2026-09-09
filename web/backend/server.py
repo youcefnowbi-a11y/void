@@ -1732,6 +1732,113 @@ async def get_mission_detail(mission_id: int):
     return m
 
 
+# ═══ WAR DASHBOARD: aggregation routes (no new state — pure reads
+# over the workspace's ground truth: ledger, findings, reports) ═══
+
+@app.get("/dashboard/timeline")
+async def dashboard_timeline(mission: str = ""):
+    """Timeline: every ledger execution (ts, tool, round, status,
+    verdict) + banked findings — the mission's story, one line each."""
+    import os as _os
+    from core.mission_workspace import extract_target, WORKSPACES
+    target = extract_target(mission or "")
+    if not target:
+        return {"target": None, "events": [], "findings": []}
+    wdir = _os.path.join(WORKSPACES, target)
+    if not _os.path.isdir(wdir):
+        return {"target": target, "exists": False, "events": [], "findings": []}
+    events = []
+    lp = _os.path.join(wdir, "ledger.jsonl")
+    if _os.path.exists(lp):
+        with open(lp, encoding="utf-8") as f:
+            for ln in f:
+                try:
+                    r = json.loads(ln)
+                    v = r.get("verdict")
+                    events.append({
+                        "ts": r.get("ts"), "round": r.get("round"),
+                        "tool": r.get("tool"), "status": r.get("status"),
+                        "duration": r.get("duration"),
+                        "exploitable": bool(v and v.get("exploitable")),
+                        "summary": (v or {}).get("summary") if v else None,
+                    })
+                except Exception:
+                    continue
+    finds = _dashboard_findings(wdir)
+    return {"target": target, "exists": True,
+            "events": events, "findings": finds}
+
+
+@app.get("/dashboard/summary")
+async def dashboard_summary(mission: str = ""):
+    """KPI snapshot: totals, severity mix, tool productivity, verdict
+    rate, wall hits, duration — all derived from the ledger."""
+    import os as _os
+    from core.mission_workspace import extract_target, WORKSPACES
+    target = extract_target(mission or "")
+    if not target:
+        return {"target": None}
+    wdir = _os.path.join(WORKSPACES, target)
+    if not _os.path.isdir(wdir):
+        return {"target": target, "exists": False}
+    events = []
+    lp = _os.path.join(wdir, "ledger.jsonl")
+    if _os.path.exists(lp):
+        with open(lp, encoding="utf-8") as f:
+            for ln in f:
+                try:
+                    events.append(json.loads(ln))
+                except Exception:
+                    continue
+    total = len(events)
+    fails = sum(1 for e in events if e.get("status") not in ("ok", None))
+    strikes = sum(1 for e in events if str(e.get("tool", "")).startswith("strike"))
+    exploitable = sum(1 for e in events
+                      if (e.get("verdict") or {}).get("exploitable"))
+    tools, tool_counts = {}, {}
+    for e in events:
+        t = e.get("tool") or "?"
+        tool_counts[t] = tool_counts.get(t, 0) + 1
+    top_tools = sorted(tool_counts.items(), key=lambda kv: -kv[1])[:12]
+    finds = _dashboard_findings(wdir)
+    sev_mix = {}
+    for f in finds:
+        sev_mix[f["severity"]] = sev_mix.get(f["severity"], 0) + 1
+    ts_list = [e.get("ts") for e in events if e.get("ts")]
+    return {"target": target, "exists": True,
+            "total_executions": total, "failures": fails,
+            "strikes": strikes, "exploitable_verdicts": exploitable,
+            "distinct_tools": len(tool_counts), "top_tools": top_tools,
+            "findings_count": len(finds), "severity_mix": sev_mix,
+            "first_ts": min(ts_list) if ts_list else None,
+            "last_ts": max(ts_list) if ts_list else None}
+
+
+def _dashboard_findings(wdir):
+    """Parse the findings bank: severity + title from each .md head."""
+    import os as _os
+    import re as _re
+    finds = []
+    fdir = _os.path.join(wdir, "findings")
+    if not _os.path.isdir(fdir):
+        return finds
+    for name in sorted(_os.listdir(fdir)):
+        if not name.endswith(".md") or name == "INDEX.md":
+            continue
+        try:
+            with open(_os.path.join(fdir, name), encoding="utf-8") as f:
+                head = f.read(800)
+            m = _re.search(r"#\s*\[(\w+)\][^\n]*?\b(CRITICAL|HIGH|MEDIUM|LOW)\b",
+                           head, _re.I)
+            sev = (m.group(2).upper() if m else "MEDIUM")
+            t = _re.search(r"#\s*\[.*?\]\s*(.{5,120})", head)
+            title = t.group(1).strip() if t else name
+            finds.append({"file": name, "severity": sev, "title": title[:120]})
+        except Exception:
+            continue
+    return finds
+
+
 # ═══ PRODUCTION UI: serve the built frontend when present (U11) ═══
 # dev: vite :5173 proxifie /api et /ws → ici. prod: ce backend sert dist/.
 try:

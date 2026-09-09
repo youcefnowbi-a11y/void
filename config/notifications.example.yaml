@@ -1,0 +1,26 @@
+# -*- coding: utf-8 -*-
+# notifications: absent/absent = notifier OFF. Copy to
+# config/notifications.yaml and set enabled: true to arm.
+#
+# dry_run: true  — capture payloads instead of sending (rehearsal).
+
+enabled: false
+dry_run: false
+
+# Telegram: talk to @BotFather, paste the token, get your chat id
+# from @userinfobot (or any message to the bot, see getUpdates).
+telegram:
+  bot_token: ""
+  chat_id: ""
+
+# Slack: incoming webhook URL from your workspace app config.
+slack:
+  webhook_url: ""
+
+# Discord: channel webhook URL (Server Settings -> Integrations).
+discord:
+  webhook_url: ""
+
+# Generic JSON webhook: receives {"event": "redacted", "text": ...}
+webhook:
+  url: ""

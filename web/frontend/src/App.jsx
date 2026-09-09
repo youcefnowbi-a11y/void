@@ -6,6 +6,7 @@ import FindingsLive from './components/FindingsLive.jsx';
 import SurfaceMap from './components/SurfaceMap.jsx';
 import AttackGraph from './components/AttackGraph.jsx';
 import FindingsVault from './components/FindingsVault.jsx';
+import Dashboard from './components/Dashboard.jsx';
 import SessionSidebar from './components/SessionSidebar.jsx';
 import DirectToolRunner from './components/DirectToolRunner.jsx';
 import PersonaPanel from './components/PersonaPanel.jsx';
@@ -404,6 +405,18 @@ function App() {
 
                 <button
                   type="button"
+                  onClick={() => setWorkbenchTab('dashboard')}
+                  className={`px-3 py-1 rounded-full text-[10.5px] uppercase font-mono tracking-wider transition-all ${
+                    workbenchTab === 'dashboard'
+                      ? 'pill-solid font-medium shadow-xs'
+                      : 'text-mut hover:text-ink hover:bg-hover'
+                  }`}
+                >
+                  <span>Tableau</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => setWorkbenchTab('findings')}
                   className={`px-3 py-1 rounded-full text-[10.5px] uppercase font-mono tracking-wider transition-all ${
                     workbenchTab === 'findings'
@@ -443,6 +456,9 @@ function App() {
               )}
               {workbenchTab === 'chain' && (
                 <AttackGraph graph={graph} findings={findings} />
+              )}
+              {workbenchTab === 'dashboard' && (
+                <Dashboard mission={missionText} />
               )}
               {workbenchTab === 'findings' && (
                 <FindingsVault findings={findings} />

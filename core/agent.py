@@ -2742,4 +2742,17 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
             on_event({"type": "mission_complete", "rounds": rnd + 1,
                       "tools_used": len([t for t in transcript if t[0] == "tool"]),
                       "abort_reason": self.last_abort_reason})
+        # ── Vague 1: pocket notification — the mission end buzzes the
+        # operator (config-gated, silent-fail, never blocks teardown) ──
+        try:
+            from core.notifier import notify
+            _nfind = 0
+            if ws is not None:
+                _nfind = int((ws.stats or {}).get("findings", 0))
+            notify.mission_complete(_tgt or "", rnd + 1,
+                                    len([t for t in transcript
+                                         if t[0] == "tool"]),
+                                    findings=_nfind)
+        except Exception:
+            pass
         return transcript

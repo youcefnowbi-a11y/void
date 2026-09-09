@@ -157,7 +157,9 @@ def _extract_findings(transcript):
                     sev = "MEDIUM"
                 seen.add(key)
                 cap = 400 if any(p in snippet for p in ("eyJ", "sk_", "AKIA")) else 120
-                findings.append({"severity": sev, "evidence": snippet[:cap], "context": line})
+                # rule_kind rides along: report_pro maps it to a CVSS class
+                findings.append({"severity": sev, "evidence": snippet[:cap],
+                                 "context": line, "rule_kind": rule_kind})
     order = {"CRITICAL": 0, "HIGH": 1, "MEDIUM": 2}
     findings.sort(key=lambda f: order.get(f["severity"], 3))
     # B-R4 : la troncature à 40 ne se fait plus en silence — write_report
@@ -286,4 +288,15 @@ def write_report(mission, transcript, folder, board=None):
         full = "\n".join(lines)
     with open(path, "w", encoding="utf-8") as f:
         f.write(full)
+    # ── pro deliverable: client-ready HTML sibling (best-effort — the
+    # markdown stays the system of record; a pro-render failure never
+    # kills the mission) ──
+    pro_path = None
+    try:
+        from core import report_pro
+        pro_path = report_pro.write_pro_report(
+            mission, findings, ledger, folder,
+            engagement={**eng, "generated": ts})
+    except Exception:
+        pro_path = None
     return path
