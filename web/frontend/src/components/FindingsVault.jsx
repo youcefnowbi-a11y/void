@@ -42,7 +42,7 @@ export default function FindingsVault({ findings = [] }) {
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
           </svg>
         </div>
-        <span className="eyebrow mb-1">registre des failles</span>
+        <span className="eyebrow mb-1">findings registry</span>
         <h3 className="text-[14px] font-medium text-ink mb-1">{_t('vault_empty_title')}</h3>
         <p className="text-[12px] text-ash max-w-sm leading-relaxed mb-4">
           As soon as a breach, API leak or access-control flaw is proven, it appears here with its evidence.</p>

@@ -115,7 +115,7 @@ export default function SurfaceMap({ graph = { nodes: [], links: [] }, onSelectN
               <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
             </svg>
           </div>
-          <span className="eyebrow mb-1">radar tactique</span>
+          <span className="eyebrow mb-1">tactical radar</span>
           <h3 className="text-[14px] font-medium text-ink mb-1">Surface d'Attaque Dormante</h3>
           <p className="text-[12px] text-ash max-w-sm leading-relaxed mb-4">
             Domains, API routes, ports and technologies discovered by the agent will order themselves here in real time.</p>
@@ -237,7 +237,7 @@ export default function SurfaceMap({ graph = { nodes: [], links: [] }, onSelectN
                   type="button"
                   onClick={() => handleCopy(n.v, nodeKey)}
                   className="px-2 py-0.5 rounded-full text-[9.5px] font-mono border border-line bg-paper text-ash hover:text-ink hover:border-line2 uppercase"
-                  title="Copier la valeur"
+                  title="Copy value"
                 >
                   {copiedKey === nodeKey ? _t('copied') : _t('copy')}
                 </button>

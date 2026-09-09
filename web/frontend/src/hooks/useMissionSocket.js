@@ -127,7 +127,7 @@ export function useMissionSocket() {
               break;
 
             case 'plan':
-              push({ type: 'plan', text: `Plan tactique : ${(ev.steps || []).map(s => s.tool).join(' → ')}`, ts: ev.timestamp });
+              push({ type: 'plan', text: `Tactical plan: ${(ev.steps || []).map(s => s.tool).join(' → ')}`, ts: ev.timestamp });
               break;
 
             case 'tool_start':
@@ -235,7 +235,7 @@ export function useMissionSocket() {
 
             case 'mission_error':
               setStatus('error');
-              push({ type: 'error', text: `✗ ${ev.error || 'Erreur de mission'}`, ts: ev.timestamp });
+              push({ type: 'error', text: `✗ ${ev.error || 'mission error'}`, ts: ev.timestamp });
               flushBatch();
               break;
 
@@ -341,7 +341,7 @@ export function useMissionSocket() {
       setChatStreaming('');
       // U6 : l'échec est VISIBLE dans la conversation, pas seulement en console
       setChatLog(p => [...p, { role: 'strategist', text: _t('feed_channel_fail', { d: detail }) }]);
-      push({ type: 'error', text: `✗ salle de guerre : ${detail}` });
+      push({ type: 'error', text: `✗ war room: ${detail}` });
       flushBatch();
       return { status: 'error', error: detail };
     } finally {

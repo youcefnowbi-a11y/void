@@ -81,7 +81,7 @@ export default function SessionSidebar({
           <span className="eyebrow">session active</span>
           <div className="flex items-center justify-between gap-2">
             <p className="text-[12px] font-mono text-ink truncate font-medium">
-              {missionText || 'Veille passive — aucune cible'}
+              {missionText || 'passive watch — no target'}
             </p>
             <span className={`w-2 h-2 rounded-full shrink-0 ${
               wsStatus === 'running' ? 'bg-volt animate-pulse' :
@@ -104,7 +104,7 @@ export default function SessionSidebar({
         {/* Liste des missions archivées */}
         <div className="flex-1 overflow-y-auto p-3 space-y-1.5">
           <span className="px-1 text-[10px] font-mono uppercase tracking-wider text-faint block mb-1">
-            archives de rapports ({filteredReports.length})
+            report archives ({filteredReports.length})
           </span>
 
           {filteredReports.length === 0 ? (

@@ -412,7 +412,7 @@ export default function AttackGraph({ graph = { nodes: [], links: [] }, findings
                                   handleCopy(node.v, node.id);
                                 }}
                                 className="text-faint hover:text-ink px-1 rounded transition-colors"
-                                title="Copier la valeur"
+                                title="Copy value"
                               >
                                 {copiedKey === node.id ? _t('copied') : _t('copy')}
                               </button>
@@ -506,7 +506,7 @@ export default function AttackGraph({ graph = { nodes: [], links: [] }, findings
             type="button"
             onClick={() => setSelectedNode(null)}
             className="absolute right-4 top-3 text-faint hover:text-ink text-[13px] font-mono"
-            title="Fermer le panneau"
+            title="Close the panel"
           >
             ✕
           </button>
@@ -517,7 +517,7 @@ export default function AttackGraph({ graph = { nodes: [], links: [] }, findings
                 {selectedNode.k}
               </span>
               <span className="text-[13px] font-medium text-ink">
-                Inspecteur de Nœud & Vecteur
+                Node & Vector Inspector
               </span>
               <span className="font-mono text-[10.5px] text-ash">
                 · Confiance : {Math.round(selectedNode.c * 100)}% ({selectedNode.s} source{selectedNode.s > 1 ? 's' : ''})

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+﻿import React, { useState } from 'react'
 import { t as _t } from '../i18n.js';
 import axios from 'axios'
 import { API_BASE } from '../api.js'
@@ -78,7 +78,7 @@ export default function FreshSessionPanel({ onPurge }) {
                 intel Living Graph
               </span>
               <span className="block text-[10px] text-faint leading-snug">
-                la carte vivante d'une cible (data/intel)
+                the living map of a target (data/intel)
               </span>
             </span>
           </label>
@@ -91,7 +91,7 @@ export default function FreshSessionPanel({ onPurge }) {
       </div>
       <button onClick={purge} disabled={busy}
         className="w-full pill-ghost btn-strike !border-danger/50 !text-danger hover:!border-danger hover:!bg-dangertint px-3 py-2 text-[11px] uppercase tracking-[.12em]">
-        {busy ? '···' : 'purger — session neuve'}
+        {busy ? '···' : 'purge — fresh session'}
       </button>
       {msg && (
         <p className={`text-[11px] leading-snug ${msg.ok ? 'text-ok' : 'text-danger'}`}>

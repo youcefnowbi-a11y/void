@@ -21,7 +21,7 @@ const fmt = ts => (ts || '').substring(5, 16) // MM-DD HH:MM
 function Donut({ counts }) {
   const entries = Object.entries(counts).filter(([, n]) => n > 0)
   const total = entries.reduce((a, [, n]) => a + n, 0)
-  if (!total) return <div className="text-mut text-[11px] font-mono">aucun verdict exploitable</div>
+  if (!total) return <div className="text-mut text-[11px] font-mono">_t('dash_none_exploitable')</div>
   const R = 44, C = 2 * Math.PI * R
   let off = 0
   const segs = entries.map(([sev, n]) => {

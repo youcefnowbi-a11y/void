@@ -38,33 +38,33 @@ const STARTERS = [
   {
     id: 'recon',
     tag: 'RECON',
-    title: 'Reconnaissance Furtive',
+    title: 'Stealth Reconnaissance',
     desc: _t('recon_desc'),
-    prompt: '/recon https://target.com cartographie l\'ensemble des sous-domaines et endpoints exposés'
+    prompt: '/recon https://target.com map all subdomains and exposed endpoints'
   },
   {
     id: 'auth',
     tag: 'AUTH/IDOR',
-    title: 'Audit de Session & Auth',
+    title: 'Session & Auth Audit',
     desc: _t('auth_desc'),
     prompt: '/auth analyze session tokens and check access-control flaws'
   },
   {
     id: 'smash',
     tag: 'RACE/STRIKE',
-    title: 'Choc de Concurrence',
+    title: 'Race Shock',
     desc: _t('smash_desc'),
     prompt: '/smash test race conditions on debit and grant endpoints'
   }
 ];
 
 const SLASH_COMMANDS = [
-  { cmd: '/recon', desc: 'Cartographie furtive & reconnaissance DNS/HTTP', example: '/recon https://target.com' },
+  { cmd: '/recon', desc: 'Stealth mapping & DNS/HTTP reconnaissance', example: '/recon https://target.com' },
   { cmd: '/auth', desc: 'Audit of Clerk auth flows & cookies', example: '/auth check sessions' },
   { cmd: '/smash', desc: 'Race condition & concurrent request testing', example: '/smash test concurrent coupons on /checkout' },
   { cmd: '/crawl', desc: 'SPA route & client-side secret extraction', example: '/crawl https://target.com find routes and secrets' },
   { cmd: '/report', desc: 'Immediate engagement report compilation', example: '/report' },
-  { cmd: '/clear', desc: 'Nettoyer la salle de guerre', example: '/clear' },
+  { cmd: '/clear', desc: 'Clear the war room', example: '/clear' },
 ];
 
 export default function WarRoom({
@@ -228,7 +228,7 @@ export default function WarRoom({
           {warMode && chatLog.length > 0 && onClear && (
             <button
               onClick={onClear}
-              title="Nettoyer la salle de guerre"
+              title="Clear the war room"
               className="absolute top-3 right-3 w-6 h-6 rounded-full flex items-center justify-center text-faint hover:text-danger hover:bg-dangertint/30 transition-colors z-10 text-[13px]"
             >
               ×
@@ -323,18 +323,18 @@ export default function WarRoom({
             <div className="w-14 h-14 rounded-full border border-line2 bg-wash/90 p-2.5 flex items-center justify-center shadow-lg transition-transform group-hover:scale-105 duration-300">
               <img src="/voidforge-white.png" alt="REDACTED Logo" className="w-full h-full object-contain drop-shadow-[0_0_16px_rgba(167,139,250,0.6)]" />
             </div>
-            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-volt border-2 border-paper animate-pulse" title="Système prêt à l'assaut" />
+            <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-volt border-2 border-paper animate-pulse" title="System ready for assault" />
           </div>
 
-          <p className="eyebrow mb-1.5 relative">salle de guerre</p>
+          <p className="eyebrow mb-1.5 relative">war room</p>
           <h2 className="display text-[24px] sm:text-[28px] text-ink mb-2 tracking-tight relative">
-            Un ordre, et la nuit se met au travail.
+            One order, and the night goes to work.
           </h2>
           <p className="text-[12.5px] leading-relaxed text-ash mb-5 relative max-w-lg">
             {warMode ? (
               <>Give context, the target, or select a tactical protocol below to launch the automated offensive.</>
             ) : (
-              <>L'agente est en campagne active. Tes ordres arrivent au prochain cycle.</>
+              <>The agent is on active campaign. Your orders arrive at the next cycle.</>
             )}
           </p>
 
@@ -372,7 +372,7 @@ export default function WarRoom({
                     {s.desc}
                   </p>
                   <span className="inline-flex items-center gap-1 text-[9.5px] font-mono text-cyan tracking-wider uppercase opacity-80 group-hover:opacity-100">
-                    amorcer <span>→</span>
+                    launch <span>→</span>
                   </span>
                 </button>
               ))}

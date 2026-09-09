@@ -277,7 +277,7 @@ export default function DirectToolRunner({ onToolExecuted }) {
               value={rawJsonText}
               onChange={(e) => handleRawJsonChange(e.target.value)}
               rows={5}
-              placeholder={'{\n  "param": "valeur"\n}'}
+              placeholder={'{\n  "param": "value"\n}'}
               className="w-full rounded-ui border border-line bg-inset text-ink font-mono text-[11px] p-2.5 resize-y focus:outline-none focus:border-volt/60 transition-colors placeholder:text-faint"
             />
             {jsonError && <p className="text-danger text-[10.5px] mt-1">{jsonError}</p>}
@@ -365,7 +365,7 @@ export default function DirectToolRunner({ onToolExecuted }) {
               <span>{_t('strike_running')}</span>
             </>
           ) : (
-            <span>lancer l'outil</span>
+            <span>launch tool</span>
           )}
         </button>
       </div>
