@@ -3,26 +3,26 @@
   <head>
     <meta charset="UTF-8" />
     <script>
-      /* le thème avant la première peinture — zéro flash */
+      /* Dark mode crépuscule permanent par défaut */
       try {
-        var t = localStorage.getItem('vf-theme');
-        document.documentElement.dataset.theme = t || 'crepuscule';
+        localStorage.setItem('vf-theme', 'crepuscule');
+        document.documentElement.dataset.theme = 'crepuscule';
       } catch (e) { document.documentElement.dataset.theme = 'crepuscule'; }
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0A0A0A" />
-    <meta name="description" content="VOIDFORGE — la console des campagnes autonomes. Un ordre, et la nuit se met au travail." />
+    <meta name="description" content="REDACTED — la console des campagnes autonomes. Un ordre, et la nuit se met au travail." />
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" type="image/png" href="/voidforge-icon.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="VOIDFORGE" />
+    <meta name="apple-mobile-web-app-title" content="REDACTED" />
     <meta name="mobile-web-app-capable" content="yes" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Geist:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <title>VOIDFORGE</title>
+    <title>REDACTED</title>
   </head>
   <body>
     <div id="root"></div>

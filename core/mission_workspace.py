@@ -14,6 +14,7 @@ and which returned dust. The power report is her self-audit, written from
 the ledger, so the operator sees exactly where to train her next.
 """
 import json, os, re, time
+from core.lang import L as _L
 from urllib.parse import urlsplit
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -297,15 +298,15 @@ class Workspace:
             balance.append(f"- {lbl:<26} {bar} {n}")
 
         md = [f"# RAPPORT DE PUISSANCE — {self.target or 'untitled'}",
-              f"*auto-généré du ledger — {time.strftime('%Y-%m-%d %H:%M:%S')} · "
-              f"{len(rows)} exécutions · {self.stats['findings']} finding(s) · "
+              f"*auto-generated from the ledger — {time.strftime('%Y-%m-%d %H:%M:%S')} · "
+              f"{len(rows)} executions · {self.stats['findings']} finding(s) · "
               f"{self.stats['extractions']} extraction(s)*",
               "",
               "## Où elle est FORTE",
-              *(strong or ["*aucune arme n'a confirmé d'exploit cette mission*"]),
+              *(strong or ["*no weapon confirmed an exploit this mission*"]),
               "",
               "## Où elle est FAIBLE",
-              *(weak or ["*aucune faiblesse détectée — mission propre*"]),
+              *(weak or ["*no weakness detected — clean mission*"]),
               ""]
         if intel:
             md += ["## Renseignement (outils sans verdict — ni fort ni faible)",
@@ -313,7 +314,7 @@ class Workspace:
         if dead:
             md += ["## Où elle a perdu son temps",
                    *(f"- `{ln.strip('- ')}`" for ln in dead), ""]
-        md += ["## Équilibre de la campagne (runs par domaine)",
+        md += ["## Campaign balance (runs per domain)",
                *balance, ""]
         if transcript:
             tool_calls = sum(1 for k, _ in transcript if k == "tool")
@@ -411,8 +412,8 @@ class Workspace:
 
             n_err = sum(1 for r in rows if r.get("status") == "error")
             L = [f"# DOSSIER DE FINDINGS — {self.target or 'untitled'}",
-                 f"*Miroir structuré généré du workspace — {time.strftime('%Y-%m-%d %H:%M:%S')} · "
-                 f"{len(rows)} exécutions d'outils ({n_err} échec(s)) · "
+                 f"*Structured workspace mirror — {time.strftime('%Y-%m-%d %H:%M:%S')} · "
+                 f"{len(rows)} tool executions ({n_err} failure(s)) · "
                  f"{len(confirmed)} confirmé(s) · {len(partial)} partiel(s)*",
                  "",
                  "> Lecture humaine de la campagne : chaque découverte porte sa preuve citée.",

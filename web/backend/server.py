@@ -410,6 +410,54 @@ async def mission_status():
             "mission_text": row.get("mission_text"),
             "mode": row.get("mode"), "elapsed": elapsed}
 
+def _graph_snapshot(board):
+    """Compact Living Graph snapshot for the tactical map."""
+    try:
+        nodes = [{"k": a["kind"], "v": a["value"][:90],
+                  "c": round(a.get("confidence", 0.5), 2),
+                  "s": len(a.get("sources", []))}
+                 for k, a in list(board.assets.items())[:180]]
+        links = []
+        for (src, rel, dst), e in list(board.edges.items())[:260]:
+            if src in board.assets and dst in board.assets:
+                links.append({"s": src, "r": rel, "d": dst,
+                              "c": round(e.get("confidence", 0.5), 2)})
+        return {"nodes": nodes, "links": links}
+    except Exception:
+        return {"nodes": [], "links": []}
+
+_ACTIVE_GRAPH_BOARD = None
+
+@app.get("/mission/graph")
+async def mission_graph(target: str = ""):
+    """Reload-safe: returns the current Living Graph snapshot for the tactical map."""
+    try:
+        global _ACTIVE_GRAPH_BOARD
+        if _ACTIVE_GRAPH_BOARD is not None:
+            return _graph_snapshot(_ACTIVE_GRAPH_BOARD)
+        tgt = (target or "").strip()
+        if not tgt:
+            row = mission_state.get_running_mission()
+            if row and row.get("mission_text"):
+                from core.swarm import _target_from_mission
+                tgt = _target_from_mission(row["mission_text"])
+        if not tgt and _PENDING_PLAN.get("target"):
+            tgt = _PENDING_PLAN.get("target")
+        if not tgt:
+            ipath = os.path.join(VOIDFORGE_ROOT, "data", "intel")
+            if os.path.isdir(ipath):
+                files = [f for f in os.listdir(ipath) if f.endswith(".json") and not f.endswith(".events.jsonl")]
+                if files:
+                    files.sort(key=lambda f: os.path.getmtime(os.path.join(ipath, f)), reverse=True)
+                    tgt = files[0][:-5]
+        if tgt:
+            from core.blackboard import Blackboard
+            board = Blackboard(_safe_target_dir(tgt))
+            return _graph_snapshot(board)
+        return {"nodes": [], "links": []}
+    except Exception:
+        return {"nodes": [], "links": []}
+
 @app.get("/tools")
 async def list_tools():
     """Retourne la liste complète des outils avec leurs métadonnées."""
@@ -1315,6 +1363,8 @@ async def _run_mission_streaming(mission: str, mode: str, ws: WebSocket,
             board = Blackboard(_target)
         set_active(board)
         _graph_board = board  # branché AVANT la mission — le théâtre vit en temps réel
+        global _ACTIVE_GRAPH_BOARD
+        _ACTIVE_GRAPH_BOARD = board
         # Ω2.2 (audit-6): Case-insensitive mode normalization (e.g. 'swarm' -> 'Swarm')
         normalized_mode = "IA" if (mode or "").upper() == "IA" else (mode or "").title()
         if normalized_mode == "Offline":
@@ -1610,6 +1660,7 @@ async def _run_mission_streaming(mission: str, mode: str, ws: WebSocket,
         # (exception path / mission terminée sans la consommer).
         _PENDING_ABORTS.pop(mid, None)
         _RUN_STATE["running"] = False
+        _ACTIVE_GRAPH_BOARD = None
 
 
 @app.websocket("/ws/mission")

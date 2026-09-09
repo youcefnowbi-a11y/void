@@ -1,4 +1,6 @@
 provider:
+  # Product language for notices + reports: en (default) | fr
+  language: en
   base_url: https://api.b.ai/v1
   api_key: sk-qcz3crmbsfa9r1bsnpj3266ffcz3lk96
   model: glm-5.3-flash

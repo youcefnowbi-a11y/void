@@ -6,7 +6,16 @@ sys.path.insert(0, ROOT)
 
 def load_cfg():
     with open(os.path.join(ROOT, "config", "provider.yaml"), encoding="utf-8") as f:
-        return yaml.safe_load(f)
+        cfg = yaml.safe_load(f)
+    # i18n: product language from config (en default, fr optional).
+    # Wired here so every entrypoint (mission, --tools, daemon callers)
+    # speaks the operator's chosen language before any L() call.
+    try:
+        from core.lang import set_language
+        set_language((cfg.get("provider") or {}).get("language", "en"))
+    except Exception:
+        pass
+    return cfg
 
 BANNER = r"""
 ██╗   ██╗ ██████╗ ██╗██████╗ ███████╗ ██████╗ ██████╗  ██████╗ ███████╗

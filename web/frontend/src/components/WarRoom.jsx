@@ -4,24 +4,31 @@ import PayloadMessage from './PayloadMessage.jsx';
 
 const STARTER_ICONS = {
   recon: (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-cyan">
-      <circle cx="12" cy="12" r="10"/>
-      <line x1="22" y1="12" x2="18" y2="12"/>
-      <line x1="6" y1="12" x2="2" y2="12"/>
-      <line x1="12" y1="6" x2="12" y2="2"/>
-      <line x1="12" y1="22" x2="12" y2="18"/>
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-cyan">
+      <circle cx="12" cy="12" r="10" strokeDasharray="3 3"/>
+      <circle cx="12" cy="12" r="6"/>
+      <circle cx="12" cy="12" r="2" fill="currentColor"/>
+      <line x1="12" y1="2" x2="12" y2="5"/>
+      <line x1="12" y1="19" x2="12" y2="22"/>
+      <line x1="2" y1="12" x2="5" y2="12"/>
+      <line x1="19" y1="12" x2="22" y2="12"/>
     </svg>
   ),
   auth: (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-volt">
-      <circle cx="7.5" cy="15.5" r="5.5"/>
-      <path d="m21 2-9.6 9.6"/>
-      <path d="m15.5 7.5 3 3"/>
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-volt">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      <circle cx="12" cy="11" r="2.5" strokeWidth="1.8"/>
+      <path d="M12 13.5v3.5"/>
+      <path d="M10.5 15.5h3"/>
     </svg>
   ),
   smash: (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-warn">
-      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-warn">
+      <path d="m18 2 4 4-9 9H9v-4l9-9Z"/>
+      <path d="m15 5 4 4"/>
+      <path d="m7 17-4 4"/>
+      <path d="m2 19 3 3"/>
+      <path d="M9 22h4"/>
     </svg>
   ),
 };
@@ -29,18 +36,21 @@ const STARTER_ICONS = {
 const STARTERS = [
   {
     id: 'recon',
+    tag: 'RECON',
     title: 'Reconnaissance Furtive',
     desc: 'Cartographie passive des sous-domaines, ports et technologies exposées.',
     prompt: '/recon https://target.com cartographie l\'ensemble des sous-domaines et endpoints exposés'
   },
   {
     id: 'auth',
+    tag: 'AUTH/IDOR',
     title: 'Audit de Session & Auth',
     desc: 'Analyse des flux Clerk/JWT, cookies de session et contrôle d\'accès (IDOR).',
     prompt: '/auth analyse les tokens de session et vérifie les failles de contrôle d\'accès'
   },
   {
     id: 'smash',
+    tag: 'RACE/STRIKE',
     title: 'Choc de Concurrence',
     desc: 'Tests de race condition sur les endpoints sensibles (coupons, double débit).',
     prompt: '/smash teste les race conditions sur les endpoints de débit et d\'attribution'
@@ -95,37 +105,48 @@ export default function WarRoom({
     }
   }, [chatLog.length, streaming, pinned]);
 
+  const ALLOWED_DOC_EXTS = useMemo(() => new Set([
+    '.md', '.txt', '.json', '.csv', '.log', '.yaml', '.yml',
+    '.js', '.ts', '.html', '.xml', '.ini', '.conf', '.sql', '.py', '.sh'
+  ]), []);
+
   // Pièces jointes sous forme de chips
   const attach = async (e) => {
     const f = e.target.files?.[0];
     e.target.value = '';
     if (!f) return;
+    const ext = '.' + (f.name.split('.').pop() || '').toLowerCase();
+    const kb = (f.size / 1024).toFixed(1);
+
+    if (f.size > 2 * 1024 * 1024) {
+      setNote(`⚠️ ${f.name} (${kb} Ko) dépasse le plafond de 2 Mo.`);
+      setTimeout(() => setNote(null), 4000);
+      return;
+    }
+
     try {
       const head = new Uint8Array(await f.slice(0, 1024).arrayBuffer());
-      const kb = (f.size / 1024).toFixed(1);
-      if (head.includes(0)) {
-        setAttachments(prev => [
-          ...prev,
-          { id: Date.now() + Math.random(), name: f.name, kb, isBinary: true, text: `[fichier binaire joint : ${f.name} — ${kb} Ko]` }
-        ]);
-        setNote(`${f.name} — binaire joint`);
-      } else if (f.size > 200 * 1024) {
-        setAttachments(prev => [
-          ...prev,
-          { id: Date.now() + Math.random(), name: f.name, kb, isBinary: true, text: `[fichier > 200 Ko joint : ${f.name} — ${kb} Ko]` }
-        ]);
-        setNote(`${f.name} — > 200 Ko joint`);
-      } else {
-        const text = await f.text();
-        setAttachments(prev => [
-          ...prev,
-          { id: Date.now() + Math.random(), name: f.name, kb, isBinary: false, text }
-        ]);
-        setNote(`${f.name} (${kb} Ko) prêt à l'envoi`);
+      if (head.includes(0) || (!ALLOWED_DOC_EXTS.has(ext) && !f.type.startsWith('text/'))) {
+        setNote(`⚠️ ${f.name} : seuls les formats texte (.txt, .md, .json, .log, .csv, .yaml, etc.) sont acceptés.`);
+        setTimeout(() => setNote(null), 4000);
+        return;
       }
+
+      let text = await f.text();
+      let isTruncated = false;
+      if (text.length > 60000) {
+        text = text.slice(0, 60000);
+        isTruncated = true;
+      }
+
+      setAttachments(prev => [
+        ...prev,
+        { id: Date.now() + Math.random(), name: f.name, kb, ext: ext.replace('.', ''), text, isTruncated }
+      ]);
+      setNote(`✓ ${f.name} (${kb} Ko${isTruncated ? ' — extrait 60k car.' : ''}) attaché`);
       setTimeout(() => setNote(null), 3500);
     } catch {
-      setNote(`${f.name} — lecture impossible`);
+      setNote(`⚠️ ${f.name} — lecture impossible`);
       setTimeout(() => setNote(null), 3500);
     }
   };
@@ -174,9 +195,7 @@ export default function WarRoom({
     let finalPayload = rawMsg;
     if (attachments.length > 0) {
       const filesBlocks = attachments.map(a =>
-        a.isBinary
-          ? a.text
-          : `[fichier : ${a.name}]\n\`\`\`\n${a.text.trim()}\n\`\`\``
+        `[document joint : ${a.name}]\n\`\`\`${a.ext || ''}\n${a.text.trim()}\n\`\`\``
       ).join('\n\n');
       finalPayload = finalPayload ? `${finalPayload}\n\n${filesBlocks}` : filesBlocks;
     }
@@ -300,9 +319,8 @@ export default function WarRoom({
             onClick={() => textareaRef.current?.focus()}
             title="Cliquer pour armer la saisie"
           >
-            <div className="w-14 h-14 rounded-full border border-line bg-wash/80 p-2.5 flex items-center justify-center shadow-lg transition-transform group-hover:scale-105 duration-300">
-              <img src="/voidforge-white.png" alt="VOIDFORGE Logo" className="w-full h-full object-contain dark:block hidden drop-shadow-[0_0_12px_rgba(167,139,250,0.4)]" />
-              <img src="/voidforge-dark.png" alt="VOIDFORGE Logo" className="w-full h-full object-contain dark:hidden block drop-shadow-[0_0_12px_rgba(167,139,250,0.4)]" />
+            <div className="w-14 h-14 rounded-full border border-line2 bg-wash/90 p-2.5 flex items-center justify-center shadow-lg transition-transform group-hover:scale-105 duration-300">
+              <img src="/voidforge-white.png" alt="REDACTED Logo" className="w-full h-full object-contain drop-shadow-[0_0_16px_rgba(167,139,250,0.6)]" />
             </div>
             <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-volt border-2 border-paper animate-pulse" title="Système prêt à l'assaut" />
           </div>
@@ -336,11 +354,18 @@ export default function WarRoom({
                   }}
                   className="rounded-card border border-line hover:border-volt/50 bg-wash/50 hover:bg-wash p-3 space-y-1.5 transition-all group text-left shadow-xs hover:shadow-md hover:-translate-y-0.5"
                 >
-                  <div className="flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-md bg-wash border border-line flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                      {STARTER_ICONS[s.id]}
-                    </span>
-                    <span className="text-[11.5px] font-medium text-ink tracking-tight">{s.title}</span>
+                  <div className="flex items-center justify-between gap-1">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className="w-6 h-6 rounded-md bg-wash border border-line flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                        {STARTER_ICONS[s.id]}
+                      </span>
+                      <span className="text-[11.5px] font-medium text-ink tracking-tight truncate">{s.title}</span>
+                    </div>
+                    {s.tag && (
+                      <span className="font-mono text-[8.5px] px-1.5 py-0.5 rounded bg-wash border border-line text-faint tracking-wider uppercase shrink-0">
+                        {s.tag}
+                      </span>
+                    )}
                   </div>
                   <p className="text-[10.5px] text-ash leading-relaxed line-clamp-2 font-sans">
                     {s.desc}
@@ -444,7 +469,7 @@ export default function WarRoom({
                 e.target.style.height = Math.min(e.target.scrollHeight, 160) + 'px';
               }}
               onKeyDown={(e) => {
-                // Navigation dans les commandes slash
+                // Navigation et sélection dans les commandes slash
                 if (isSlash && filteredCommands.length > 0) {
                   if (e.key === 'ArrowDown') {
                     e.preventDefault();
@@ -456,12 +481,17 @@ export default function WarRoom({
                     setSlashIdx(prev => (prev - 1 + filteredCommands.length) % filteredCommands.length);
                     return;
                   }
-                  if (e.key === 'Tab' || (e.key === 'Enter' && !e.shiftKey && filteredCommands[slashIdx])) {
-                    if (draft.trim() === filteredCommands[slashIdx].cmd) {
+                  if (e.key === 'Tab' || (e.key === 'Enter' && !e.shiftKey && !draft.includes(' '))) {
+                    if (filteredCommands[slashIdx]) {
                       e.preventDefault();
                       applySlashCommand(filteredCommands[slashIdx]);
                       return;
                     }
+                  }
+                  if (e.key === 'Escape') {
+                    e.preventDefault();
+                    setDraft(draft.replace(/^\//, ''));
+                    return;
                   }
                 }
 

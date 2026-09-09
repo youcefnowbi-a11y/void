@@ -107,7 +107,7 @@ export default function LiveConsole({ logs, status, onClear, onClose }) {
   /* ── LIZERON : la console rabattue, une ligne de vie ── */
   if (isFolded && !isExpanded) {
     return (
-      <div className="panel overflow-hidden select-none">
+      <div className="panel-frost overflow-hidden select-none">
         <button onClick={() => setIsFolded(false)}
           className="w-full px-4 py-2.5 flex items-center gap-3 text-left hover:bg-hover transition-colors group">
           <span className="text-[9px] uppercase tracking-[.24em] text-mut shrink-0">console</span>
@@ -123,7 +123,7 @@ export default function LiveConsole({ logs, status, onClear, onClose }) {
   }
 
   return (
-    <div className={`panel overflow-hidden flex flex-col transition-all ${
+    <div className={`panel-frost overflow-hidden flex flex-col transition-all ${
       isExpanded ? 'fixed inset-4 z-50 !h-auto' : userHeight ? '' : 'h-full flex-1'
     }`} style={isExpanded ? undefined : userHeight ? { height: userHeight } : undefined}>
 
@@ -137,19 +137,21 @@ export default function LiveConsole({ logs, status, onClear, onClose }) {
       )}
 
       {/* Header */}
-      <div className="px-4 py-2.5 border-b border-line flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-2.5">
-          <span className="eyebrow">console de campagne</span>
+      {/* Header — toolbar desktop ergonomique non enveloppante */}
+      <div className="px-4 py-2 border-b border-line flex items-center justify-between gap-3 overflow-x-auto no-scrollbar shrink-0 select-none">
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="eyebrow">console</span>
           {status === 'running' && (
             <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full border bg-voltlite border-volt/30">
               <span className="w-1.5 h-1.5 bg-volt rounded-full animate-pulse" />
-              <span className="text-[10px] text-cyan tracking-[.14em] uppercase">live</span>
+              <span className="text-[9.5px] text-cyan tracking-[.14em] uppercase font-mono">live</span>
             </span>
           )}
           <span className="font-mono text-[10px] text-faint">{logs.length} lignes</span>
         </div>
 
-        <div className="flex items-center gap-1.5 flex-wrap">
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Filtres de flux */}
           <div className="flex gap-px rounded-full p-0.5 border border-line bg-insetstrong">
             {filters.map(f => (
               <button key={f.key} onClick={() => setFilter(f.key)}
@@ -161,32 +163,56 @@ export default function LiveConsole({ logs, status, onClear, onClose }) {
             ))}
           </div>
 
-          <button onClick={copyLogs} disabled={filtered.length === 0} title="Copier le journal"
-            className="px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-[.08em] border border-line text-mut hover:text-ink hover:border-line2 transition-colors">
-            {copied ? '✓ copié' : 'copier'}
-          </button>
-
-          {onClear && (
-            <button onClick={onClear} title="Effacer le journal (les sessions passées aussi)"
-              className="px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-[.08em] border border-line text-mut hover:text-danger hover:border-danger/40 transition-colors">
-              vider
+          {/* Actions & Contrôles de fenêtre */}
+          <div className="flex items-center gap-1 border-l border-line/60 pl-2">
+            <button onClick={copyLogs} disabled={filtered.length === 0} title="Copier le journal filtré"
+              className="px-2 py-0.5 rounded-md text-[10px] uppercase tracking-[.08em] border border-line text-mut hover:text-ink hover:border-line2 transition-colors disabled:opacity-40">
+              {copied ? '✓ copié' : 'copier'}
             </button>
-          )}
 
-          <button onClick={() => setIsFolded(true)} title="Rabattre en liseron"
-            className="px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-[.08em] border border-line text-mut hover:text-ink hover:border-line2 transition-colors">
-            ▼ rabattre
-          </button>
-          <button onClick={() => setIsExpanded(!isExpanded)} title={isExpanded ? 'Réduire' : 'Plein écran'}
-            className="px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-[.08em] border border-line text-mut hover:text-ink hover:border-line2 transition-colors">
-            {isExpanded ? 'réduire' : 'plein écran'}
-          </button>
-          {onClose && (
-            <button onClick={onClose} title="Refermer la console — elle reviendra à l'activité"
-              className="px-2.5 py-0.5 rounded-full text-[10px] uppercase tracking-[.08em] border border-line text-mut hover:text-danger hover:border-danger/40 transition-colors">
-              ×
+            {onClear && (
+              <button onClick={onClear} title="Effacer le journal complet"
+                className="px-2 py-0.5 rounded-md text-[10px] uppercase tracking-[.08em] border border-line text-mut hover:text-danger hover:border-danger/40 transition-colors">
+                vider
+              </button>
+            )}
+
+            <button onClick={() => setIsFolded(true)} title="Rabattre en liseron"
+              className="p-1 rounded-md text-mut hover:text-ink hover:bg-hover border border-transparent hover:border-line transition-colors">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
             </button>
-          )}
+
+            <button onClick={() => setIsExpanded(!isExpanded)} title={isExpanded ? 'Restaurer la taille' : 'Plein écran'}
+              className="p-1 rounded-md text-mut hover:text-ink hover:bg-hover border border-transparent hover:border-line transition-colors">
+              {isExpanded ? (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="4 14 10 14 10 20" />
+                  <polyline points="20 10 14 10 14 4" />
+                  <line x1="14" y1="10" x2="21" y2="3" />
+                  <line x1="3" y1="21" x2="10" y2="14" />
+                </svg>
+              ) : (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="15 3 21 3 21 9" />
+                  <polyline points="9 21 3 21 3 15" />
+                  <line x1="21" y1="3" x2="14" y2="10" />
+                  <line x1="3" y1="21" x2="10" y2="14" />
+                </svg>
+              )}
+            </button>
+
+            {onClose && (
+              <button onClick={onClose} title="Refermer la console"
+                className="p-1 rounded-md text-mut hover:text-danger hover:bg-dangertint/30 transition-colors">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

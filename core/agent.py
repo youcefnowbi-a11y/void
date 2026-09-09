@@ -6,6 +6,7 @@ from core.llm import LLM
 from core import state as mission_state
 from core import coverage as _cov
 import tools as reg
+from core.lang import L as _L
 
 PERSONA_BLOCK = r"""VOIDFORGE from clipboard 
 
@@ -1000,9 +1001,9 @@ def _feed_result(name, out, total_cap=24000, sub_cap=4000):
                     body = json.dumps(s, ensure_ascii=False) if isinstance(s, dict) else str(s)
                     if len(body) > per:
                         body = _smart_compact(body, per) + \
-                            f" …[tronqué — complet dans missions/<cible>/extractions/]"
+                            _L("truncated_full_in_extractions")
                     blocks.append(f"── appel {i+1}/{len(subs)} ──\n{body}")
-                head = f"[batch: {len(subs)} sous-résultats, chacun ci-dessous]\n"
+                head = _L("batch_head", n=len(subs)) + "\n"
                 fed = head + "\n".join(blocks)
                 return fed[:total_cap] + ("\n[batch tronqué au global — le reste "
                                           "est archivé dans extractions/]" if len(fed) > total_cap else "")
@@ -1373,7 +1374,7 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
             set_active(ws)  # her pens (report_write, operator_message) reach the folder
             if on_event:
                 on_event({"type": "system",
-                          "text": f"🗂 Espace de travail : missions/{ws.target or ws.dir.split(os.sep)[-1]}/ "
+                          "text": f"🗂 {_L("workspace_ready", target=(ws.target or ws.dir.split(os.sep)[-1]))} "
                                   f"— ledger, extractions, findings, rapports"})
         except Exception:
             ws = None
@@ -1391,7 +1392,7 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                 if on_event:
                     from core.skills import select_for
                     on_event({"type": "system",
-                              "text": "🎓 Skills actives : " + ", ".join(select_for(mission))})
+                              "text": "🎓 " + _L("skills_active", skills=", ".join(select_for(mission)))})
         except Exception:
             pass
 
@@ -1472,7 +1473,7 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                         or _doc._ctx_matches(e["context"], _tgt or "")]
                     if on_event:
                         on_event({"type": "system",
-                                  "text": "📜 Doctrine self-authored chargée"})
+                                  "text": _L("doctrine_loaded")})
         except Exception:
             pass
 
@@ -1485,7 +1486,7 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                 if on_event:
                     n_plays = manual.count("\n- [")
                     on_event({"type": "system",
-                              "text": f"📚 Arsenal appris chargé — {n_plays} play(s) "
+                              "text": f"📚 {_L("plays_loaded", n=n_plays)} "
                                       f"prouvé(s) rappelé(s) au round 0"})
         except Exception:
             pass
@@ -2571,7 +2572,7 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                                 transcript.append(("system", "wall_breaker auto-déclenché"))
                                 if on_event:
                                     on_event({"type": "system",
-                                              "text": "🧨 mur détecté — sortie intel automatique (wall_breaker)"})
+                                              "text": _L("wall_detected")})
                             except Exception:
                                 pass
                 elif _cov.honest_status(out) == "ok" and not _NOISE_TOOLS.match(name):

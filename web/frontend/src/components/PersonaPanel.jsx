@@ -115,7 +115,7 @@ export default function PersonaPanel() {
         <label htmlFor="pe-name" className={labelCls}>nom</label>
         <input id="pe-name" value={form.name}
           onChange={(e) => set('name', e.target.value)}
-          placeholder="VOIDFORGE"
+          placeholder="REDACTED"
           className={inputCls} />
 
         <label htmlFor="pe-arch" className={labelCls}>archétype</label>
@@ -168,26 +168,40 @@ export default function PersonaPanel() {
       <div className="grid grid-cols-[88px_1fr] gap-x-3 items-start">
         <label htmlFor="pe-extra" className={`${labelCls} pt-2`}>directives</label>
         <div>
-          <textarea id="pe-extra" value={form.extra_directives} rows={16}
+          <textarea id="pe-extra" value={form.extra_directives} rows={6}
             onChange={(e) => set('extra_directives', e.target.value)}
             placeholder={'Doctrine libre — priorités, habitudes, rituels.\nex : Prioritize Supabase exposures. Always check GraphQL before REST.'}
-            className="w-full rounded-ui border border-line bg-inset px-3 py-2 text-[12px] leading-relaxed resize-y text-ink focus:outline-none focus:border-volt/60 transition-colors max-h-[340px] placeholder:text-faint" />
-          <p className="mt-1.5 text-[10px] text-faint">
-            {form.extra_directives.length.toLocaleString()} caractères chargés — {form.extra_directives.length > 4000
-              ? 'ta directive longue est bien là, intégralement (la fenêtre défile).'
-              : 'directive courte chargée.'}
-          </p>
+            className="w-full rounded-ui border border-line bg-inset px-3 py-2 text-[12px] leading-relaxed resize-y text-ink focus:outline-none focus:border-volt/60 transition-colors max-h-[220px] placeholder:text-faint" />
+          <div className="mt-1 flex items-center justify-between text-[10.5px]">
+            <span className={form.extra_directives.length > 2000 ? 'text-danger font-mono font-medium' : 'text-faint font-mono'}>
+              {form.extra_directives.length.toLocaleString()} / 2 000 caractères
+              {form.extra_directives.length > 2000 && ' (dépassement : sera tronqué à 2 000 par le backend)'}
+            </span>
+            <span className="text-[10px] text-faint italic">max 2 000 car.</span>
+          </div>
         </div>
       </div>
 
-      {/* statut + actions */}
-      <div className="flex items-center justify-between pt-1 gap-3">
+      {/* aperçu du prompt réellement injecté */}
+      {rendered && (
+        <details className="pt-1">
+          <summary className="text-[10px] uppercase tracking-[.14em] text-mut cursor-pointer hover:text-ink select-none transition-colors">
+            aperçu du prompt injecté
+          </summary>
+          <pre className="mt-2 max-h-48 overflow-y-auto terminal-bg rounded-ui border border-line p-2.5 whitespace-pre-wrap break-words font-mono text-[11px]">
+            {rendered}
+          </pre>
+        </details>
+      )}
+
+      {/* statut + actions (barre sticky en bas) */}
+      <div className="sticky bottom-0 -mx-2 px-3 py-2.5 bg-paper/95 backdrop-blur-md border-t border-line/60 flex items-center justify-between gap-3 z-20 shadow-xs">
         <span className={`text-[11px] break-words flex-1 ${
           msg?.ok === true ? 'text-ok' :
           msg?.ok === false ? 'text-danger' :
           loaded ? 'text-mut' : 'text-warn animate-pulse'
         }`}>
-          {msg ? msg.text : loaded ? 'masque actif — appliqué à la prochaine mission (CLI + dashboard)' : 'chargement du masque...'}
+          {msg ? msg.text : loaded ? 'masque actif — appliqué à la prochaine mission' : 'chargement du masque...'}
         </span>
         <div className="flex gap-2 shrink-0">
           <button type="button" onClick={reset} disabled={saving}
@@ -200,18 +214,6 @@ export default function PersonaPanel() {
           </button>
         </div>
       </div>
-
-      {/* aperçu du prompt réellement injecté */}
-      {rendered && (
-        <details className="pt-1">
-          <summary className="text-[10px] uppercase tracking-[.14em] text-mut cursor-pointer hover:text-ink select-none transition-colors">
-            aperçu du prompt injecté
-          </summary>
-          <pre className="mt-2 max-h-52 overflow-y-auto terminal-bg rounded-ui border border-line p-2.5 whitespace-pre-wrap break-words">
-            {rendered}
-          </pre>
-        </details>
-      )}
     </form>
   );
 }

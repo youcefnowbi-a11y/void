@@ -3,6 +3,7 @@ Transforms a raw agent transcript into a professional engagement deliverable:
 ROE/scope header (from config/engagement.yaml), tool ledger, severity-ranked
 findings, then the full transcript for evidence."""
 import json, os, re, datetime
+from core.lang import L as _L
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ENGAGEMENT_FILE = os.path.join(ROOT, "config", "engagement.yaml")
@@ -198,7 +199,7 @@ def write_report(mission, transcript, folder, board=None):
     scope_out = ", ".join(eng.get("scope", {}).get("out_of_scope", []) or []) or "none specified"
 
     lines = [
-        f"# VOIDFORGE :: ENGAGEMENT REPORT — {ts}",
+        f"# REDACTED :: ENGAGEMENT REPORT — {ts}",
         "",
         "## EXECUTIVE SUMMARY",
         f"- **Mission:** {_or(mission)[:200]}",

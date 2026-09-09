@@ -50,7 +50,7 @@ export default function DirectToolRunner({ onToolExecuted }) {
       } else if (props[key].default !== undefined) {
         initialArgs[key] = props[key].default;
       } else if (props[key].type === 'array') {
-        initialArgs[key] = [];
+        initialArgs[key] = Array.isArray(props[key].default) ? props[key].default.join(', ') : '';
       } else if (props[key].type === 'boolean') {
         initialArgs[key] = false;
       } else if (props[key].type === 'integer' || props[key].type === 'number') {
@@ -77,21 +77,16 @@ export default function DirectToolRunner({ onToolExecuted }) {
 
   const handleFieldChange = (key, value, type) => {
     let parsedValue = value;
-    if (type === 'integer') {
-      parsedValue = value === '' ? '' : parseInt(value, 10);
-    } else if (type === 'number') {
-      parsedValue = value === '' ? '' : parseFloat(value);
-    } else if (type === 'boolean') {
+    if (type === 'boolean') {
       parsedValue = Boolean(value);
-    } else if (type === 'array') {
-      if (typeof value === 'string') {
-        parsedValue = value.split(/[,\n]/).map(s => s.trim()).filter(Boolean);
-      }
     }
-
+    // Pour integer, number et array, on conserve la valeur saisie comme chaîne
+    // durant la frappe afin de ne pas casser le curseur ni supprimer virgules/espaces.
     const updated = { ...formArgs, [key]: parsedValue };
     setFormArgs(updated);
-    setRawJsonText(JSON.stringify(updated, null, 2));
+    try {
+      setRawJsonText(JSON.stringify(updated, null, 2));
+    } catch { /* ignore */ }
   };
 
   const handleRawJsonChange = (text) => {
@@ -109,6 +104,9 @@ export default function DirectToolRunner({ onToolExecuted }) {
     if (e) e.preventDefault();
     if (!selectedToolName || executing) return;
 
+    const selectedTool = tools.find(t => t.name === selectedToolName);
+    const props = selectedTool?.parameters?.properties || {};
+
     let finalArgs = formArgs;
     if (rawJsonMode) {
       try {
@@ -119,10 +117,39 @@ export default function DirectToolRunner({ onToolExecuted }) {
       }
     }
 
-    // Clean empty strings for optional numbers
+    // Normalisation stricte pour éviter les 422 Pydantic et gérer tableaux / nombres
     const cleanedArgs = {};
     for (const [k, v] of Object.entries(finalArgs)) {
-      if (v !== '' && v !== null && v !== undefined) {
+      if (v === '' || v === null || v === undefined) {
+        continue;
+      }
+      const schemaType = props[k]?.type;
+      if (schemaType === 'integer') {
+        const num = parseInt(v, 10);
+        if (!Number.isNaN(num)) cleanedArgs[k] = num;
+      } else if (schemaType === 'number') {
+        const num = parseFloat(v);
+        if (!Number.isNaN(num)) cleanedArgs[k] = num;
+      } else if (schemaType === 'boolean') {
+        cleanedArgs[k] = Boolean(v);
+      } else if (schemaType === 'array') {
+        if (Array.isArray(v)) {
+          cleanedArgs[k] = v;
+        } else if (typeof v === 'string') {
+          const trimmed = v.trim();
+          if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+            try {
+              cleanedArgs[k] = JSON.parse(trimmed);
+            } catch {
+              cleanedArgs[k] = trimmed.slice(1, -1).split(',').map(s => s.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
+            }
+          } else {
+            cleanedArgs[k] = trimmed ? trimmed.split(/[,\n]/).map(s => s.trim()).filter(Boolean) : [];
+          }
+        } else {
+          cleanedArgs[k] = [v];
+        }
+      } else {
         cleanedArgs[k] = v;
       }
     }
@@ -283,13 +310,13 @@ export default function DirectToolRunner({ onToolExecuted }) {
                     <div key={propName} className="space-y-1">
                       <label className="flex items-center justify-between text-[10.5px] font-mono uppercase tracking-[.08em]">
                         <span className="text-ash">{propName} {isRequired && <span className="text-danger">*</span>}</span>
-                        <span className="text-[9px] text-faint lowercase normal-case">{schema.description || 'séparer par des virgules'}</span>
+                        <span className="text-[9px] text-faint lowercase normal-case">{schema.description || 'séparer par virgules ou format [json]'}</span>
                       </label>
                       <input
                         type="text"
-                        value={Array.isArray(val) ? val.join(', ') : val}
-                        onChange={(e) => handleFieldChange(propName, e.target.value, 'array')}
-                        placeholder="ex : val1, val2, val3"
+                        value={Array.isArray(val) ? val.join(', ') : (val ?? '')}
+                        onChange={(e) => handleFieldChange(propName, e.target.value, 'text')}
+                        placeholder='ex : val1, val2 ou ["val1", "val2"]'
                         className={inputCls}
                       />
                     </div>

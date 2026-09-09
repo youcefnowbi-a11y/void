@@ -4,6 +4,7 @@ import LiveConsole from './components/LiveConsole.jsx';
 import WarRoom from './components/WarRoom.jsx';
 import FindingsLive from './components/FindingsLive.jsx';
 import SurfaceMap from './components/SurfaceMap.jsx';
+import AttackGraph from './components/AttackGraph.jsx';
 import FindingsVault from './components/FindingsVault.jsx';
 import SessionSidebar from './components/SessionSidebar.jsx';
 import DirectToolRunner from './components/DirectToolRunner.jsx';
@@ -99,16 +100,14 @@ function App() {
     return () => window.removeEventListener('keydown', handleKey);
   }, []);
 
-  /* ── thème — crépuscule par défaut, aurore au clic, mémorisé ── */
-  const [theme, setTheme] = useState(() => localStorage.getItem('vf-theme') || 'crepuscule');
+  /* ── thème — crépuscule (Dark Mode permanent par défaut) ── */
+  const theme = 'crepuscule';
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
-    localStorage.setItem('vf-theme', theme);
+    document.documentElement.dataset.theme = 'crepuscule';
+    localStorage.setItem('vf-theme', 'crepuscule');
     const metaTheme = document.querySelector('meta[name="theme-color"]');
-    if (metaTheme) {
-      metaTheme.setAttribute('content', theme === 'aurore' ? '#F4F3F0' : '#0A0A0A');
-    }
-  }, [theme]);
+    if (metaTheme) metaTheme.setAttribute('content', '#0A0A0A');
+  }, []);
 
   // le plan arrive → le textarea s'arme pour l'édition (Option B)
   useEffect(() => {
@@ -211,6 +210,24 @@ function App() {
   return (
     <div className="h-screen flex flex-col overflow-hidden relative">
       <div className={`heartbeat ${hbClass}`} aria-hidden />
+
+      {/* ── Fond immersif Matrix Cyber Corridor ── */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 z-0 bg-cover bg-center bg-no-repeat opacity-50 transition-opacity duration-700"
+        style={{
+          backgroundImage: "url('/matrix-bg.jpg')",
+          filter: "saturate(1.2) brightness(0.95)"
+        }}
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 z-0"
+        style={{
+          background: "radial-gradient(ellipse at center, rgba(10, 10, 10, 0.18) 0%, rgba(10, 10, 10, 0.78) 100%)"
+        }}
+      />
+
       {/* spotlight d'ambiance — le crépuscule entre par la fenêtre */}
       <div aria-hidden className="spotlight pointer-events-none fixed -top-28 left-1/2 -translate-x-1/2 w-[640px] h-[240px] opacity-[0.13] z-0" />
 
@@ -219,12 +236,12 @@ function App() {
         <header className="nav-float h-12 px-5 flex items-center gap-3.5">
           <div className="flex items-center gap-2.5 shrink-0">
             <img
-              src={theme === 'crepuscule' ? '/voidforge-white.png' : '/voidforge-dark.png'}
-              alt="VOIDFORGE Logo"
+              src="/voidforge-white.png"
+              alt="REDACTED Logo"
               className="w-7 h-7 object-contain transition-transform duration-300 hover:scale-110 drop-shadow-[0_0_8px_rgba(167,139,250,0.35)]"
             />
-            <h1 className="font-disp text-[15px] font-medium tracking-[-0.03em] shrink-0 relative">
-              <span className="text-ink">VOID</span><span className="text-ash">FORGE</span>
+            <h1 className="font-disp text-[15px] font-medium tracking-[.08em] shrink-0 relative">
+              <span className="text-ink font-bold">REDACTED</span>
               <span aria-hidden className="wash-violet absolute left-0 -bottom-[3px] h-[2px] w-full" />
             </h1>
           </div>
@@ -266,11 +283,6 @@ function App() {
             {!consoleOpen && hasActivity && (
               <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-volt" title="activité en cours" />
             )}
-          </button>
-          <button onClick={() => setTheme(t => t === 'crepuscule' ? 'aurore' : 'crepuscule')}
-            title={theme === 'crepuscule' ? 'passer à l\'aurore' : 'passer au crépuscule'}
-            className="rounded-full px-2.5 py-1.5 border bg-inset text-mut border-line hover:text-ink transition-colors shrink-0">
-            {theme === 'crepuscule' ? <Ic.sun /> : <Ic.moon />}
           </button>
           <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${connected ? 'bg-ok' : 'bg-danger animate-pulse'}`} title={connected ? 'flux live' : 'flux coupé'} />
         </header>
@@ -339,12 +351,10 @@ function App() {
             Sur mobile/tablette (<lg), dock/overlay fluide plein format sans écraser la salle de guerre. */}
         <aside
           aria-hidden={!consoleOpen}
-          className={`shrink-0 min-h-0 transition-all duration-500 ease-[cubic-bezier(.22,1,.36,1)] ${
+          className={`shrink-0 min-h-0 flex flex-col transition-all duration-300 ease-[cubic-bezier(.22,1,.36,1)] ${
             consoleOpen
-              ? 'w-full lg:w-[46%] xl:w-[42%] opacity-100 flex flex-col'
-              : 'w-0 opacity-0 overflow-hidden pointer-events-none hidden lg:block'
-          } ${
-            consoleOpen ? 'fixed inset-x-3 top-20 bottom-16 z-30 lg:static lg:inset-auto' : ''
+              ? 'w-[46%] xl:w-[42%] opacity-100'
+              : 'w-0 opacity-0 overflow-hidden pointer-events-none'
           }`}
         >
           <div className="h-full w-full flex flex-col gap-2.5 min-w-0">
@@ -375,6 +385,21 @@ function App() {
                 >
                   <span>Surface</span>
                   {graph.nodes.length > 0 && <span className="ml-1 opacity-75">({graph.nodes.length})</span>}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setWorkbenchTab('chain')}
+                  className={`px-3 py-1 rounded-full text-[10.5px] uppercase font-mono tracking-wider transition-all ${
+                    workbenchTab === 'chain'
+                      ? 'pill-solid font-medium shadow-xs'
+                      : 'text-mut hover:text-ink hover:bg-hover'
+                  }`}
+                >
+                  <span>Chaîne</span>
+                  {(graph.nodes.length > 0 || findings.length > 0) && (
+                    <span className="ml-1 opacity-75">({graph.nodes.length + findings.length})</span>
+                  )}
                 </button>
 
                 <button
@@ -416,6 +441,9 @@ function App() {
               {workbenchTab === 'surface' && (
                 <SurfaceMap graph={graph} />
               )}
+              {workbenchTab === 'chain' && (
+                <AttackGraph graph={graph} findings={findings} />
+              )}
               {workbenchTab === 'findings' && (
                 <FindingsVault findings={findings} />
               )}
@@ -450,7 +478,7 @@ function App() {
         onClose={() => setShowSidebar(false)}
         reports={reports}
         onSelectReport={(r) => {
-          fetchReport(r.name);
+          openReport(r.name);
         }}
         onNewSession={nouvelleSession}
         onOpenParams={() => setShowParams(true)}
@@ -654,7 +682,7 @@ function App() {
 
             {/* Footer du tiroir */}
             <div className="px-5 py-3 border-t border-line flex items-center justify-between text-[10px] text-faint uppercase tracking-[.14em] shrink-0 bg-paper/30 font-mono">
-              <span>VOIDFORGE · console</span>
+              <span>REDACTED · console</span>
               <span className="text-ok">système prêt</span>
             </div>
           </aside>

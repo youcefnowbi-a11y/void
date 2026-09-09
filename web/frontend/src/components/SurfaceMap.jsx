@@ -92,21 +92,37 @@ export default function SurfaceMap({ graph = { nodes: [], links: [] }, onSelectN
 
   if (nodes.length === 0) {
     return (
-      <div className="h-full flex flex-col items-center justify-center text-center p-6 panel select-none">
-        <div className="w-12 h-12 rounded-full border border-line bg-wash/80 flex items-center justify-center text-cyan mb-3 shadow-xs">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
-            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+      <div className="h-full flex flex-col items-center justify-center text-center p-6 panel select-none relative overflow-hidden">
+        {/* Grille radar tactique d'arrière-plan */}
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
+          <svg width="340" height="340" viewBox="0 0 340 340" fill="none" className="text-volt">
+            <circle cx="170" cy="170" r="160" stroke="currentColor" strokeWidth="1" strokeDasharray="4 4" />
+            <circle cx="170" cy="170" r="115" stroke="currentColor" strokeWidth="1" />
+            <circle cx="170" cy="170" r="70" stroke="currentColor" strokeWidth="1" strokeDasharray="2 2" />
+            <circle cx="170" cy="170" r="25" stroke="currentColor" strokeWidth="1" />
+            <line x1="170" y1="5" x2="170" y2="335" stroke="currentColor" strokeWidth="0.8" strokeDasharray="3 3" />
+            <line x1="5" y1="170" x2="335" y2="170" stroke="currentColor" strokeWidth="0.8" strokeDasharray="3 3" />
+            <rect x="165" y="165" width="10" height="10" stroke="currentColor" strokeWidth="1" fill="none" />
           </svg>
         </div>
-        <span className="eyebrow mb-1">cartographie d'assaut</span>
-        <h3 className="text-[14px] font-medium text-ink mb-1">Surface d'Attaque Vierge</h3>
-        <p className="text-[12px] text-ash max-w-sm leading-relaxed mb-4">
-          Les domaines, routes d'API, ports et technologies découverts par l'agente s'ordonneront ici en temps réel au fil de la campagne.
-        </p>
-        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-line bg-inset font-mono text-[10.5px] text-faint">
-          <span className="w-1.5 h-1.5 rounded-full bg-mut" />
-          <span>0 surface cartographiée</span>
+
+        <div className="relative z-10 flex flex-col items-center">
+          <div className="w-12 h-12 rounded-full border border-line2 bg-wash/90 flex items-center justify-center text-cyan mb-3 shadow-xs relative">
+            <span className="absolute inset-0 rounded-full bg-volt/10 animate-ping opacity-25" />
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+              <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+            </svg>
+          </div>
+          <span className="eyebrow mb-1">radar tactique</span>
+          <h3 className="text-[14px] font-medium text-ink mb-1">Surface d'Attaque Dormante</h3>
+          <p className="text-[12px] text-ash max-w-sm leading-relaxed mb-4">
+            Les domaines, routes d'API, ports et technologies découverts par l'agente s'ordonneront ici en temps réel au fil de la campagne.
+          </p>
+          <div className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-full border border-line bg-inset font-mono text-[10.5px] text-faint shadow-xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-volt/60 animate-pulse" />
+            <span>0 surface cartographiée · écoute active</span>
+          </div>
         </div>
       </div>
     );

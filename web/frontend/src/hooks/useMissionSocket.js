@@ -58,6 +58,38 @@ export function useMissionSocket() {
     setGraph({ nodes, links });
   }, []);
 
+  const resyncState = useCallback(async () => {
+    try {
+      // 1. Statut de mission (L3 fix : évite l'état zombie après reconnexion)
+      const stRes = await axios.get(`${API_BASE}/mission/status`).catch(() => null);
+      if (stRes?.data) {
+        const d = stRes.data;
+        if (d.running && d.mission_id) {
+          setStatus('running');
+          setMissionId(d.mission_id);
+          setMissionText(d.mission_text || '');
+          setStats(s => ({ ...s, startedAt: d.started_at || new Date().toISOString() }));
+        } else if (!d.running) {
+          setStatus(prev => (prev === 'running' ? 'complete' : prev));
+        }
+      }
+
+      // 2. Hydratation du Living Graph (L2 fix : restauration immédiate au reload)
+      const graphRes = await axios.get(`${API_BASE}/mission/graph`).catch(() => null);
+      if (graphRes?.data && Array.isArray(graphRes.data.nodes) && graphRes.data.nodes.length > 0) {
+        applyGraph(graphRes.data);
+      }
+
+      // 3. Hydratation du plan en attente d'approbation
+      const pendingRes = await axios.get(`${API_BASE}/mission/pending`).catch(() => null);
+      if (pendingRes?.data?.pending && pendingRes.data.plan) {
+        setPendingPlan({ missionId: null, plan: pendingRes.data.plan, target: pendingRes.data.target });
+      }
+    } catch {
+      /* échec silencieux de la synchronisation */
+    }
+  }, [applyGraph]);
+
   const connectWebSocket = useCallback(() => {
     if (wsRef.current && (wsRef.current.readyState === WebSocket.OPEN || wsRef.current.readyState === WebSocket.CONNECTING)) {
       return;
@@ -70,6 +102,7 @@ export function useMissionSocket() {
       ws.onopen = () => {
         setConnected(true);
         reconnectDelayRef.current = 1000;  // reconnexion réussie — backoff reset
+        resyncState(); // L2 + L3 : resynchronisation instantanée de l'état et du graphe
       };
 
       ws.onmessage = (event) => {
@@ -111,11 +144,16 @@ export function useMissionSocket() {
                   verdict = r.exploitable;
                   const sev = verdict === true ? 'CONFIRMED' : verdict === 'partial' ? 'PARTIAL' : 'NEGATIVE';
                   if (verdict !== false && verdict !== null) {
-                    setFindings(prev => [{
-                      tool: ev.tool, severity: sev,
-                      summary: r.summary || JSON.stringify(r).substring(0, 160),
-                      ts: ev.timestamp, raw: r,
-                    }, ...prev].slice(0, 80));
+                    const fp = `${ev.tool}|${sev}|${r.summary || ''}`;
+                    setFindings(prev => {
+                      if (prev.some(f => f._fp === fp)) return prev;
+                      return [{
+                        _fp: fp,
+                        tool: ev.tool, severity: sev,
+                        summary: r.summary || JSON.stringify(r).substring(0, 160),
+                        ts: ev.timestamp, raw: r,
+                      }, ...prev].slice(0, 80);
+                    });
                     setStats(s => ({ ...s, findings: s.findings + 1 }));
                     push({ type: 'finding', text: `◆ [${sev}] ${ev.tool} — ${r.summary || ''}`, ts: ev.timestamp });
                   } else {
@@ -233,18 +271,10 @@ export function useMissionSocket() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── resync au montage (U3) : si une campagne tourne, le HUD la retrouve ──
+  // ── resync au montage (U3 + L2 + L3) : rétablit statut, graph et plan ──
   useEffect(() => {
-    axios.get(`${API_BASE}/mission/status`).then(r => {
-      const d = r.data || {};
-      if (d.running && d.mission_id) {
-        setStatus('running');
-        setMissionId(d.mission_id);
-        setMissionText(d.mission_text || '');
-        setStats(s => ({ ...s, startedAt: d.started_at || new Date().toISOString() }));
-      }
-    }).catch(() => {});
-  }, []);
+    resyncState();
+  }, [resyncState]);
 
   const startMission = useCallback(async (mission, mode = 'Auto', extra = {}) => {
     const { intel_mode = 'last', docs = [], autonomy = false } = extra;
@@ -287,11 +317,6 @@ export function useMissionSocket() {
     axios.get(`${API_BASE}/chat/log`).then(r => {
       const log = r.data?.log;
       if (Array.isArray(log) && log.length) setChatLog(log);
-    }).catch(() => {});
-    axios.get(`${API_BASE}/mission/pending`).then(r => {
-      if (r.data?.pending && r.data.plan) {
-        setPendingPlan({ missionId: null, plan: r.data.plan, target: r.data.target });
-      }
     }).catch(() => {});
   }, []);
 

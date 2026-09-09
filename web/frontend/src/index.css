@@ -17,125 +17,65 @@
   [data-theme="crepuscule"] {
     color-scheme: dark;
 
-    /* surfaces (canaux RGB pour l'alpha Tailwind) */
-    --mist: 10 10 10;
-    --paper: 22 22 22;
-    --wash: 29 29 31;
+    /* surfaces translucides (canaux RGB pour alpha Tailwind) */
+    --mist: 8 10 12;
+    --paper: 16 18 24;
+    --wash: 24 28 36;
 
-    /* texte */
-    --ink: 237 237 237;      /* bone */
-    --ash: 194 194 194;
-    --smoke: 178 178 178;
-    --slate: 104 104 104;
-    --mut: 142 142 153;
-    --faint: 140 140 152;    /* rehaussé pour contraste WCAG AA */
+    /* texte lumineux haute lisibilité */
+    --ink: 242 242 242;      /* bone white */
+    --ash: 200 200 205;
+    --smoke: 180 180 188;
+    --slate: 130 130 142;
+    --mut: 155 155 168;
+    --faint: 145 145 158;    /* net et lisible */
 
-    /* hairlines & verres */
-    --line: rgba(255,255,255,0.11);
-    --line2: rgba(255,255,255,0.18);
-    --frost: rgba(212,212,212,0.08);
-    --inset: rgba(255,255,255,0.04);
-    --inset-strong: rgba(0,0,0,0.40);
-    --hover: rgba(255,255,255,0.03);
-    --navbg: rgba(22,22,22,0.82);
-    --raise1: rgba(255,255,255,0.06);
+    /* hairlines & verres dépolis */
+    --line: rgba(255,255,255,0.12);
+    --line2: rgba(255,255,255,0.20);
+    --frost: rgba(14, 16, 22, 0.62);
+    --inset: rgba(255,255,255,0.05);
+    --inset-strong: rgba(0,0,0,0.45);
+    --hover: rgba(255,255,255,0.05);
+    --navbg: rgba(14, 16, 22, 0.78);
+    --raise1: rgba(255,255,255,0.08);
     --raise2: rgba(255,255,255,0.03);
-    --scrollthumb: rgba(255,255,255,0.12);
+    --scrollthumb: rgba(255,255,255,0.18);
 
-    /* le violet — washes et lueurs, jamais de plein */
-    --volt: 107 98 242;
-    --volt-soft: rgba(107,98,242,0.55);
-    --voltlite: rgba(107,98,242,0.12);
+    /* le violet & cyan cybernétiques */
+    --volt: 139 92 246;
+    --volt-soft: rgba(139,92,246,0.55);
+    --voltlite: rgba(139,92,246,0.15);
     --cyan: 167 139 250;
-    --cyantint: rgba(167,139,250,0.10);
+    --cyantint: rgba(167,139,250,0.12);
 
     /* signaux opérationnels */
-    --ok: 61 214 140;   --oktint: rgba(61,214,140,0.10);
-    --warn: 251 191 36; --warntint: rgba(251,191,36,0.10);
-    --danger: 248 113 113; --dangertint: rgba(248,113,113,0.10);
-    --info: 129 140 248; --infotint: rgba(129,140,248,0.10);
-    --gold: 237 179 107; --goldtint: rgba(237,179,107,0.10);
+    --ok: 52 211 153;   --oktint: rgba(52,211,153,0.12);
+    --warn: 251 191 36; --warntint: rgba(251,191,36,0.12);
+    --danger: 248 113 113; --dangertint: rgba(248,113,113,0.12);
+    --info: 129 140 248; --infotint: rgba(129,140,248,0.12);
+    --gold: 237 179 107; --goldtint: rgba(237,179,107,0.12);
 
-    /* terminal — la nuit opérative */
-    --termbg: #0B0B0E;
+    /* terminal translucide & flouté comme le chat */
+    --termbg: rgba(12, 14, 20, 0.45);
     --term-ink: #EDEDED;
-    --term-mut: rgba(237,237,237,0.45);
+    --term-mut: rgba(237,237,237,0.55);
     --term-line: rgba(255,255,255,0.14);
     --term-tint: rgba(255,255,255,0.05);
     --log-system: #9CA8FF;
     --log-plan: #F5C97B;
     --log-tool: #C4B5FD;
     --log-ok: #6EE7B7;
-    --log-finding: #FCA5A5;  --log-finding-bg: rgba(248,113,113,0.08);
+    --log-finding: #FCA5A5;  --log-finding-bg: rgba(248,113,113,0.12);
     --log-think: #A5B4FC;
-    --log-error: #FCA5A5;    --log-error-bg: rgba(248,113,113,0.10);
+    --log-error: #FCA5A5;    --log-error-bg: rgba(248,113,113,0.15);
     --log-heal: #FCD34D;
 
-    /* la white pill — le seul plein (s'inverse en aurore) */
+    /* bouton d'action principal blanc */
     --cta-bg: #FFFFFF;
     --cta-fg: #0A0A0A;
 
-    /* l'élévation unique */
-    --shadow-nav: rgba(255,255,255,0.02) 0px 3px 4.5px, rgba(0,0,0,0.04) 0px 10px 8px, rgba(0,0,0,0.1) 0px 4px 3px;
-  }
-
-  [data-theme="aurore"] {
-    color-scheme: light;
-
-    --mist: 244 243 240;     /* canevas de l'aube — chaud */
-    --paper: 255 255 255;
-    --wash: 237 237 237;     /* bone en inset */
-
-    --ink: 22 22 22;         /* graphite en texte */
-    --ash: 74 74 80;
-    --smoke: 120 120 128;
-    --slate: 104 104 104;    /* le slate de la référence survit tel quel */
-    --mut: 110 110 120;
-    --faint: 90 90 102;      /* rehaussé pour contraste WCAG AA sur fond clair */
-
-    --line: rgba(0,0,0,0.12);
-    --line2: rgba(0,0,0,0.20);
-    --frost: rgba(22,22,22,0.05);
-    --inset: rgba(0,0,0,0.04);
-    --inset-strong: rgba(0,0,0,0.06);
-    --hover: rgba(0,0,0,0.03);
-    --navbg: rgba(255,255,255,0.78);
-    --raise1: rgba(255,255,255,0.9);
-    --raise2: rgba(255,255,255,0.4);
-    --scrollthumb: rgba(0,0,0,0.18);
-
-    --volt: 107 98 242;      /* le même violet — la signature ne change pas */
-    --volt-soft: rgba(107,98,242,0.55);
-    --voltlite: rgba(107,98,242,0.10);
-    --cyan: 124 108 232;
-    --cyantint: rgba(107,98,242,0.08);
-
-    --ok: 24 156 105;   --oktint: rgba(24,156,105,0.10);
-    --warn: 180 124 12; --warntint: rgba(180,124,12,0.10);
-    --danger: 214 69 69; --dangertint: rgba(214,69,69,0.08);
-    --info: 88 96 224;  --infotint: rgba(88,96,224,0.08);
-    --gold: 176 118 40; --goldtint: rgba(176,118,40,0.10);
-
-    /* le terminal suit le thème — papier de l'aube, encre graphite */
-    --termbg: #FAFAF9;
-    --term-ink: #161616;
-    --term-mut: rgba(22,22,22,0.45);
-    --term-line: rgba(22,22,22,0.16);
-    --term-tint: rgba(22,22,22,0.05);
-    --log-system: #4F46E5;
-    --log-plan: #92400E;
-    --log-tool: #6D28D9;
-    --log-ok: #047857;
-    --log-finding: #B91C1C;  --log-finding-bg: rgba(185,28,28,0.07);
-    --log-think: #4338CA;
-    --log-error: #B91C1C;    --log-error-bg: rgba(185,28,28,0.09);
-    --log-heal: #92400E;
-
-    /* la pill s'inverse — graphite plein, texte neige */
-    --cta-bg: #0A0A0A;
-    --cta-fg: #FFFFFF;
-
-    --shadow-nav: rgba(0,0,0,0.04) 0px 2px 4px, rgba(0,0,0,0.06) 0px 8px 20px;
+    --shadow-nav: rgba(0,0,0,0.3) 0px 8px 24px;
   }
 
   body {
@@ -210,22 +150,26 @@
     line-height: 1.05;
   }
 
-  /* ── surfaces ── */
+  /* ── surfaces — verre dépoli transparent et flouté ── */
   .panel {
-    background: rgb(var(--paper));
+    background: rgba(var(--paper), 0.72);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     border: 1px solid var(--line);
     border-radius: 24px;
   }
   .panel-raised {
-    background: linear-gradient(180deg, var(--raise1), var(--raise2)), rgb(var(--paper));
+    background: linear-gradient(180deg, var(--raise1), var(--raise2)), rgba(var(--paper), 0.75);
     border: 1px solid var(--line2);
     border-radius: 24px;
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
   }
-  /* verre dépoli — translucide + blur, zéro shadow (la profondeur EST la translucence) */
+  /* verre dépoli — translucide + blur, zéro shadow */
   .panel-frost {
     background: var(--frost);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
     border: 1px solid var(--line);
     border-radius: 24px;
   }
@@ -288,9 +232,9 @@
     background: radial-gradient(circle at 50% 50%, rgba(107,98,242,0.45), transparent 70%);
   }
 
-  /* ═══ TERMINAL — le mono ne parle qu'opératif, et suit le thème ═══ */
+  /* ═══ TERMINAL — translucide, flouté comme le chat ═══ */
   .terminal-bg {
-    background: var(--termbg);
+    background: transparent;
     color: var(--term-ink);
     font-family: "IBM Plex Mono", Consolas, "Liberation Mono", Menlo, Courier, monospace;
     font-size: 11.5px;
