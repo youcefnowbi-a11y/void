@@ -81,7 +81,8 @@ UPLOADS_DIR = os.path.join(VOIDFORGE_ROOT, "uploads")
 os.makedirs(UPLOADS_DIR, exist_ok=True)
 
 DOC_EXTS = {".md", ".txt", ".json", ".csv", ".log", ".yaml", ".yml",
-            ".js", ".ts", ".html", ".xml", ".ini", ".conf", ".sql"}
+            ".js", ".ts", ".html", ".xml", ".ini", ".conf", ".sql",
+            ".py", ".sh", ".har"}
 DOC_MAX_CHARS = 2_000_000          # ~2 Mo par document
 DOC_INTEL_CAP = 60_000             # troncature par doc dans le contexte agent
 DOC_MAX_COUNT = 5                  # docs injectés max par mission

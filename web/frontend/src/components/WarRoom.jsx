@@ -1,4 +1,6 @@
-﻿import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import axios from 'axios';
+import { API_BASE } from '../api.js';
 import { t as _t } from '../i18n.js';
 import MarkdownMessage from './MarkdownMessage.jsx';
 import PayloadMessage from './PayloadMessage.jsx';
@@ -32,6 +34,29 @@ const STARTER_ICONS = {
       <path d="M9 22h4"/>
     </svg>
   ),
+  sqli: (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-danger">
+      <ellipse cx="12" cy="5" rx="8" ry="3"/>
+      <path d="M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/>
+      <path d="M4 11v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/>
+    </svg>
+  ),
+  api: (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-gold">
+      <rect x="3" y="3" width="7" height="7" rx="1.5"/>
+      <rect x="14" y="3" width="7" height="7" rx="1.5"/>
+      <rect x="3" y="14" width="7" height="7" rx="1.5"/>
+      <path d="M14 17.5h7"/>
+      <path d="M17.5 14v7"/>
+    </svg>
+  ),
+  bundle: (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-volt">
+      <path d="M4 7c0-1.1 3.6-2.5 8-2.5s8 1.4 8 2.5"/>
+      <path d="M4 7v10c0 1.1 3.6 2.5 8 2.5s8-1.4 8-2.5V7"/>
+      <path d="M4 12c0 1.1 3.6 2.5 8 2.5s8-1.4 8-2.5"/>
+    </svg>
+  ),
 };
 
 const STARTERS = [
@@ -55,6 +80,27 @@ const STARTERS = [
     title: 'Race Shock',
     desc: _t('smash_desc'),
     prompt: '/smash test race conditions on debit and grant endpoints'
+  },
+  {
+    id: 'sqli',
+    tag: 'INJECTION',
+    title: 'SQL Injection Deep',
+    desc: 'Full SQLi audit: union, blind, error-based and time-based vectors.',
+    prompt: '/sqli https://target.com deep injection audit — union, blind, error-based, time-based'
+  },
+  {
+    id: 'api',
+    tag: 'API/FUZZ',
+    title: 'API Surface Sweep',
+    desc: 'GraphQL introspection, endpoint discovery and parameter fuzzing.',
+    prompt: '/api-sweep https://target.com GraphQL introspection, endpoint discovery, param fuzzing'
+  },
+  {
+    id: 'bundle',
+    tag: 'JS/SECRETS',
+    title: 'JS Bundle Hunt',
+    desc: 'Mine JavaScript bundles for API keys, endpoints and secrets.',
+    prompt: '/bundle-hunt https://target.com mine JS bundles for API keys, endpoints, secrets'
   }
 ];
 
@@ -76,12 +122,35 @@ export default function WarRoom({
   onSendOperator = null,
   onClear = null,
   streaming = '',
+  strikeMode = 'IA',
+  setStrikeMode = () => {},
 }) {
   const [draft, setDraft] = useState('');
   const [attachments, setAttachments] = useState([]);
   const [note, setNote] = useState(null);
   const [pinned, setPinned] = useState(true);
   const [copiedIndex, setCopiedIndex] = useState(null);
+  const [recentMissions, setRecentMissions] = useState([]);
+
+  // Missions récentes — le fil de bataille au mount (5 dernières,
+  // findings count via le détail, mission par mission)
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const res = await axios.get(`${API_BASE}/missions`).catch(() => null);
+        const list = (res?.data || []).slice(0, 5);
+        if (!alive || list.length === 0) return;
+        const detailed = await Promise.all(list.map(m =>
+          axios.get(`${API_BASE}/missions/${m.id}`)
+            .then(r => ({ ...m, findings: (r.data?.findings || []).length }))
+            .catch(() => m)
+        ));
+        if (alive) setRecentMissions(detailed);
+      } catch { /* silencieux — pas de fil si l'API dort */ }
+    })();
+    return () => { alive = false; };
+  }, []);
 
   const endRef = useRef(null);
   const chatContainerRef = useRef(null);
@@ -108,7 +177,8 @@ export default function WarRoom({
 
   const ALLOWED_DOC_EXTS = useMemo(() => new Set([
     '.md', '.txt', '.json', '.csv', '.log', '.yaml', '.yml',
-    '.js', '.ts', '.html', '.xml', '.ini', '.conf', '.sql', '.py', '.sh'
+    '.js', '.ts', '.html', '.xml', '.ini', '.conf', '.sql', '.py', '.sh',
+    '.har'
   ]), []);
 
   // Pièces jointes sous forme de chips
@@ -119,21 +189,22 @@ export default function WarRoom({
     const ext = '.' + (f.name.split('.').pop() || '').toLowerCase();
     const kb = (f.size / 1024).toFixed(1);
 
-    if (f.size > 2 * 1024 * 1024) {
-      setNote(_t('upload_too_big', { name: f.name, kb }));
-      setTimeout(() => setNote(null), 4000);
-      return;
-    }
+    // Format texte autorisé ? (sinon rejet immédiat)
+    const isAllowed = ALLOWED_DOC_EXTS.has(ext) || f.type.startsWith('text/');
 
     try {
       const head = new Uint8Array(await f.slice(0, 1024).arrayBuffer());
-      if (head.includes(0) || (!ALLOWED_DOC_EXTS.has(ext) && !f.type.startsWith('text/'))) {
+      if (head.includes(0) || !isAllowed) {
         setNote(_t('upload_text_only', { name: f.name }));
         setTimeout(() => setNote(null), 4000);
         return;
       }
 
-      let text = await f.text();
+      // BIG-FILE FIX (har & captures): read the FIRST 500KB via slice —
+      // a 20MB .har no longer hits the wall, we just capture its head.
+      // Small files read whole, as before.
+      const isBig = f.size > 2 * 1024 * 1024;
+      let text = isBig ? await f.slice(0, 500_000).text() : await f.text();
       let isTruncated = false;
       if (text.length > 60000) {
         text = text.slice(0, 60000);
@@ -147,7 +218,7 @@ export default function WarRoom({
       setNote(_t('upload_attached', { name: f.name, kb, trunc: isTruncated ? ' — excerpt 60k chars' : '' }));
       setTimeout(() => setNote(null), 3500);
     } catch {
-      setNote(`⚠️ ${f.name} — lecture impossible`);
+      setNote(`⚠️ ${f.name} — unreadable`);
       setTimeout(() => setNote(null), 3500);
     }
   };
@@ -338,9 +409,9 @@ export default function WarRoom({
             )}
           </p>
 
-          {/* Cartes d'Assaut Rapide (Starters) */}
+          {/* Cartes d'Assaut Rapide (Starters - 6 protocoles, 2x3) */}
           {warMode && (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 max-w-2xl w-full text-left mb-4 animate-fadeIn">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 max-w-3xl w-full text-left mb-4 animate-fadeIn">
               {STARTERS.map((s, idx) => (
                 <button
                   key={idx}
@@ -376,6 +447,51 @@ export default function WarRoom({
                   </span>
                 </button>
               ))}
+            </div>
+          )}
+
+          {/* Missions Récentes — le fil de bataille sous les protocoles */}
+          {warMode && recentMissions.length > 0 && (
+            <div className="max-w-3xl w-full mb-4 animate-fadeIn">
+              <p className="eyebrow mb-2 flex items-center gap-2">
+                <span className="w-1 h-1 rounded-full bg-cyan inline-block" />
+                recent missions — click to re-arm the target
+              </p>
+              <div className="flex gap-2 overflow-x-auto pb-1.5">
+                {recentMissions.map(m => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => {
+                      const tgt = (m.mission_text || '').split(/[\s—-]/).find(w => w.includes('.')) || m.mission_text || '';
+                      setDraft(`/recon ${tgt} map the surface and compare with last intel`);
+                      if (textareaRef.current) {
+                        textareaRef.current.focus();
+                        textareaRef.current.style.height = 'auto';
+                        textareaRef.current.style.height = '64px';
+                      }
+                    }}
+                    className="shrink-0 rounded-card border border-line bg-wash/40 hover:border-volt/50 hover:bg-wash px-3 py-2 text-left transition-all group"
+                  >
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
+                        m.status === 'running' ? 'bg-volt animate-pulse' :
+                        m.status === 'complete' ? 'bg-ok' :
+                        m.status === 'error' || m.status === 'interrupted' ? 'bg-danger' : 'bg-mut'}`} />
+                      <span className="text-[10.5px] font-mono text-ink truncate max-w-[130px]">
+                        {(m.mission_text || '').split(/[\s—-]/).find(w => w.includes('.')) || m.mission_text?.slice(0, 22) || '?'}
+                      </span>
+                      <span className="font-mono text-[8.5px] uppercase tracking-wider text-faint shrink-0">
+                        {m.status}
+                      </span>
+                    </div>
+                    <span className="text-[9px] font-mono text-faint">
+                      {(m.started_at || '').substring(0, 16)}
+                      {m.findings ? ` · ${m.findings} finding${m.findings > 1 ? 's' : ''}` : ''}
+                    </span>
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
@@ -448,19 +564,25 @@ export default function WarRoom({
             </div>
           )}
 
-          <div className="relative flex items-end rounded-[28px] border border-line2 bg-insetstrong backdrop-blur focus-within:border-volt/60 transition-colors shadow-sm">
+          <div className="relative flex items-center rounded-[28px] border border-line2 bg-insetstrong backdrop-blur focus-within:border-volt/60 transition-colors shadow-sm px-1.5 py-1">
             <input ref={fileRef} type="file" className="hidden" onChange={attach} />
             <button
               type="button"
               onClick={() => fileRef.current?.click()}
               title="Attach a file to the order"
-              className="shrink-0 my-[5px] ml-[5px] w-[42px] h-[42px] rounded-full flex items-center justify-center text-faint hover:text-cyan hover:bg-voltlite hover:border-volt/30 border border-transparent transition-colors"
+              className="shrink-0 w-9 h-9 rounded-full flex items-center justify-center text-faint hover:text-cyan hover:bg-voltlite hover:border-volt/30 border border-transparent transition-colors"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
                 <line x1="12" y1="5" x2="12" y2="19" />
                 <line x1="5" y1="12" x2="19" y2="12" />
               </svg>
             </button>
+
+            {/* NOTE: no mode pills at launch — the campaign flow is
+                plan-first by design (strategist forges the plan →
+                approval panel → operator picks IA/Swarm execution
+                THERE). One selector, where it matters. */}
+
             <textarea
               ref={textareaRef}
               value={draft}
@@ -508,12 +630,13 @@ export default function WarRoom({
                   ? 'your order to the strategist (type / for quick commands)…'
                   : "ordre pour l'agente…"
               }
-              className="flex-1 min-w-0 bg-transparent my-[5px] py-[11px] px-2 text-[13.5px] leading-relaxed text-ink placeholder:text-faint focus:outline-none resize-none max-h-[160px]"
+              className="flex-1 min-w-0 bg-transparent py-2 px-2 text-[13.5px] leading-relaxed text-ink placeholder:text-faint focus:outline-none resize-none max-h-[160px]"
             />
+
             <button
               type="submit"
               disabled={busy || (!draft.trim() && attachments.length === 0)}
-              className="pill-cta btn-strike shrink-0 my-[5px] mr-[5px] h-[42px] px-6 text-[12.5px] tracking-[.04em]"
+              className="pill-cta btn-strike shrink-0 h-[38px] px-5 text-[12px] tracking-[.04em]"
             >
               frapper
             </button>
