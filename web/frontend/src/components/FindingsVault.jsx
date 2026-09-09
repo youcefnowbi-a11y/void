@@ -1,10 +1,11 @@
-import React, { useState, useMemo } from 'react';
+﻿import React, { useState, useMemo } from 'react';
+import { t as _t } from '../i18n.js';
 
 const SEV_CONFIG = {
-  critical: { label: 'CRITIQUE', border: 'border-danger', dot: 'bg-danger', tint: 'bg-dangertint', text: 'text-danger' },
-  high:     { label: 'ÉLEVÉ',     border: 'border-warn',   dot: 'bg-warn',   tint: 'bg-warntint',   text: 'text-warn' },
-  medium:   { label: 'MOYEN',     border: 'border-warn/60',dot: 'bg-warn/70',tint: 'bg-hover',    text: 'text-warn' },
-  low:      { label: 'FAIBLE',    border: 'border-ok/50',  dot: 'bg-ok',     tint: 'bg-oktint',     text: 'text-ok' },
+  critical: { label: _t('sev_critical'), border: 'border-danger', dot: 'bg-danger', tint: 'bg-dangertint', text: 'text-danger' },
+  high:     { label: _t('sev_high'),     border: 'border-warn',   dot: 'bg-warn',   tint: 'bg-warntint',   text: 'text-warn' },
+  medium:   { label: _t('sev_medium'),     border: 'border-warn/60',dot: 'bg-warn/70',tint: 'bg-hover',    text: 'text-warn' },
+  low:      { label: _t('sev_low'),    border: 'border-ok/50',  dot: 'bg-ok',     tint: 'bg-oktint',     text: 'text-ok' },
   info:     { label: 'INFO',      border: 'border-line2',  dot: 'bg-mut',    tint: 'bg-hover',      text: 'text-mut' },
 };
 
@@ -42,13 +43,12 @@ export default function FindingsVault({ findings = [] }) {
           </svg>
         </div>
         <span className="eyebrow mb-1">registre des failles</span>
-        <h3 className="text-[14px] font-medium text-ink mb-1">Aucune Vulnérabilité Active</h3>
+        <h3 className="text-[14px] font-medium text-ink mb-1">{_t('vault_empty_title')}</h3>
         <p className="text-[12px] text-ash max-w-sm leading-relaxed mb-4">
-          Dès qu'une brèche, une fuite d'API ou une faille de contrôle d'accès est prouvée par la forge, elle apparaîtra ici avec son PoC exploitable.
-        </p>
+          As soon as a breach, API leak or access-control flaw is proven, it appears here with its evidence.</p>
         <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-line bg-inset font-mono text-[10.5px] text-faint">
           <span className="w-1.5 h-1.5 rounded-full bg-ok" />
-          <span>périmètre sain ou audit en attente</span>
+          <span>{_t('vault_empty_sub')}</span>
         </div>
       </div>
     );
@@ -64,7 +64,7 @@ export default function FindingsVault({ findings = [] }) {
               <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
               <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
             </svg>
-            <span className="text-[12px] font-medium text-ink tracking-tight">Failles Confirmées & Preuves</span>
+            <span className="text-[12px] font-medium text-ink tracking-tight">{_t('vault_title')}</span>
           </div>
           <span className="font-mono text-[10px] text-faint uppercase tracking-wider">
             {filteredFindings.length} / {findings.length} constat{findings.length > 1 ? 's' : ''}
@@ -76,7 +76,7 @@ export default function FindingsVault({ findings = [] }) {
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Filtrer par faille, outil ou paramètre..."
+            placeholder={_t('vault_filter')}
             className="w-full rounded-ui border border-line bg-inset px-2.5 py-1.5 text-[11.5px] font-mono text-ink placeholder:text-faint focus:outline-none focus:border-volt/60 transition-colors"
           />
         </div>
@@ -128,13 +128,13 @@ export default function FindingsVault({ findings = [] }) {
                     onClick={() => handleCopy(f.poc, cardId)}
                     className="px-2 py-0.5 rounded-full text-[9.5px] font-mono border border-line bg-paper text-ash hover:text-ink uppercase tracking-wider"
                   >
-                    {copiedId === cardId ? 'poc copié ✓' : 'copier poc'}
+                    {copiedId === cardId ? _t('vault_poc_copied') : _t('vault_copy_poc')}
                   </button>
                 )}
               </div>
 
               <p className="text-[12.5px] leading-relaxed text-ink font-medium">
-                {f.title || f.summary || f.detail || 'Vulnérabilité identifiée'}
+                {f.title || f.summary || f.detail || _t('vault_unnamed')}
               </p>
 
               {f.detail && f.title && (

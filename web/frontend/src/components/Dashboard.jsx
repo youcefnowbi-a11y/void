@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { t as _t } from '../i18n.js';
 import axios from 'axios'
 import { API_BASE } from '../api.js'
 
@@ -9,10 +10,10 @@ import { API_BASE } from '../api.js'
    SVG inline qui imprime et qui vit. */
 
 const SEV = {
-  CRITICAL: { color: '#e5484d', label: 'CRITIQUE' },
-  HIGH: { color: '#f76b15', label: 'ÉLEVÉ' },
-  MEDIUM: { color: '#ffb224', label: 'MOYEN' },
-  LOW: { color: '#46a758', label: 'FAIBLE' },
+  CRITICAL: { color: '#e5484d', label: _t('sev_critical') },
+  HIGH: { color: '#f76b15', label: _t('sev_high') },
+  MEDIUM: { color: '#ffb224', label: _t('sev_medium') },
+  LOW: { color: '#46a758', label: _t('sev_low') },
 }
 
 const fmt = ts => (ts || '').substring(5, 16) // MM-DD HH:MM
@@ -69,7 +70,7 @@ function Timeline({ events }) {
   const cells = shown.map((e, i) => {
     const x = (i % cols) * 9
     const y = Math.floor(i / cols) * 9
-    const fill = e.status === 'ok' || e.status == null
+    const fill = e.status === _t('dash_legend_ok') || e.status == null
       ? (e.exploitable ? '#f76b15' : '#2f4f46')
       : '#5b2430'
     return <rect key={i} x={x} y={y} width="6" height="6" rx="1" fill={fill}>
@@ -123,25 +124,25 @@ export default function Dashboard({ mission }) {
   if (err && !tl) {
     return (
       <div className="h-full flex items-center justify-center text-mut font-mono text-[11px]">
-        dashboard indisponible — backend injoignable
+        dashboard unavailable — backend unreachable
       </div>
     )
   }
   if (!tl || !sum) {
     return (
       <div className="h-full flex items-center justify-center text-mut font-mono text-[11px]">
-        lecture du ledger…
+        reading the ledger…
       </div>
     )
   }
 
   const kpis = [
-    { n: sum.total_executions ?? 0, label: 'exécutions' },
-    { n: sum.distinct_tools ?? 0, label: 'outils distincts' },
-    { n: sum.strikes ?? 0, label: 'frappes' },
-    { n: sum.exploitable_verdicts ?? 0, label: 'verdicts exploitables' },
-    { n: sum.findings_count ?? 0, label: 'constats consignés' },
-    { n: sum.failures ?? 0, label: 'échecs' },
+    { n: sum.total_executions ?? 0, label: _t('dash_executions') },
+    { n: sum.distinct_tools ?? 0, label: _t('dash_tools') },
+    { n: sum.strikes ?? 0, label: _t('dash_strikes') },
+    { n: sum.exploitable_verdicts ?? 0, label: _t('dash_exploitable') },
+    { n: sum.findings_count ?? 0, label: _t('dash_banked') },
+    { n: sum.failures ?? 0, label: _t('dash_failures') },
   ]
 
   return (
@@ -163,14 +164,14 @@ export default function Dashboard({ mission }) {
         <div className="flex gap-3 mt-2 text-[9px] font-mono text-mut uppercase tracking-wider">
           <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm" style={{ background: '#2f4f46' }} /> ok</span>
           <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm" style={{ background: '#f76b15' }} /> exploitable</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm" style={{ background: '#5b2430' }} /> échec</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm" style={{ background: '#5b2430' }} /> failure</span>
         </div>
       </div>
 
       {/* Sévérité + productivité */}
       <div className="grid grid-cols-2 gap-2">
         <div className="panel px-3 py-2.5">
-          <div className="eyebrow mb-2">sévérité des constats</div>
+          <div className="eyebrow mb-2">{_t('dash_sev_title')}</div>
           <Donut counts={sum.severity_mix || {}} />
         </div>
         <div className="panel px-3 py-2.5">

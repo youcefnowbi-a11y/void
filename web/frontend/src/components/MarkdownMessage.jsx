@@ -136,7 +136,7 @@ export default function MarkdownMessage({ content = '', isStreaming = false }) {
     const decoded = decodeURIComponent(rawCode);
     navigator.clipboard.writeText(decoded).then(() => {
       const originalText = btn.textContent;
-      btn.textContent = 'copié ✓';
+      btn.textContent = 'copied ✓';
       btn.classList.add('text-ok', 'border-ok/40');
       setTimeout(() => {
         btn.textContent = originalText;

@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import axios from 'axios';
 import { API_BASE } from '../api.js';
+import { t as _t } from '../i18n.js';
 
 /**
  * Mission stream — WebSocket with auto-reconnect + HTTP fallback.
@@ -121,7 +122,7 @@ export function useMissionSocket() {
               setStats({ rounds: 0, toolsFired: 0, findings: 0, startedAt: ev.timestamp });
               setGraph({ nodes: [], links: [] });
               graphRef.current = { nodes: [], links: [] };
-              push({ type: 'system', text: `▶ Ordre engagé — mode ${ev.mode || 'Auto'}`, ts: ev.timestamp });
+              push({ type: 'system', text: _t('feed_engaged', { mode: ev.mode || 'Auto' }), ts: ev.timestamp });
               flushBatch();
               break;
 
@@ -157,13 +158,13 @@ export function useMissionSocket() {
                     setStats(s => ({ ...s, findings: s.findings + 1 }));
                     push({ type: 'finding', text: `◆ [${sev}] ${ev.tool} — ${r.summary || ''}`, ts: ev.timestamp });
                   } else {
-                    push({ type: 'ok', text: `○ ${ev.tool} — négatif (${ev.duration}s)`, ts: ev.timestamp });
+                    push({ type: 'ok', text: _t('feed_negative', { tool: ev.tool, d: ev.duration }), ts: ev.timestamp });
                   }
                 } else {
-                  push({ type: 'ok', text: `✓ ${ev.tool} — terminé (${ev.duration}s)`, ts: ev.timestamp });
+                  push({ type: 'ok', text: _t('feed_done', { tool: ev.tool, d: ev.duration }), ts: ev.timestamp });
                 }
               } catch {
-                push({ type: 'ok', text: `✓ ${ev.tool} — terminé (${ev.duration}s)`, ts: ev.timestamp });
+                push({ type: 'ok', text: _t('feed_done', { tool: ev.tool, d: ev.duration }), ts: ev.timestamp });
               }
               setTools(prev => ({ ...prev, [ev.tool]: { status: 'done', duration: ev.duration, verdict } }));
               break;
@@ -171,7 +172,7 @@ export function useMissionSocket() {
 
             case 'tool_error':
               setTools(prev => ({ ...prev, [ev.tool]: { status: 'error' } }));
-              push({ type: 'error', tool: ev.tool, text: `✗ ${ev.tool} — ${ev.error || 'échec'}`, ts: ev.timestamp });
+              push({ type: 'error', tool: ev.tool, text: _t('feed_tool_error', { tool: ev.tool, err: ev.error || _t('feed_fail_short') }), ts: ev.timestamp });
               break;
 
             case 'tool_heal':
@@ -205,14 +206,14 @@ export function useMissionSocket() {
 
             case 'plan_ready':
               setPendingPlan({ missionId: ev.mission_id || null, plan: ev.plan || '' });
-              push({ type: 'plan', text: '■ PLAN D\'ATTAQUE PRÊT — approbation de l\'opérateur requise', ts: ev.timestamp });
+              push({ type: 'plan', text: _t('feed_plan_ready'), ts: ev.timestamp });
               flushBatch();
               break;
 
             case 'round':
               push({
                 type: 'round',
-                text: `ROUND ${ev.round}/${ev.total}${(ev.tools || []).length ? ' · ' + ev.tools.join(', ') : ' · réflexion…'}`,
+                text: _t('feed_round', { r: ev.round, t: ev.total }) + `${(ev.tools || []).length ? ' · ' + ev.tools.join(', ') : ' · ' + _t('feed_thinking')}`,
                 ts: ev.timestamp,
               });
               break;
@@ -228,7 +229,7 @@ export function useMissionSocket() {
 
             case 'mission_complete':
               setStatus('complete');
-              push({ type: 'system', text: `✦ Mission terminée — ${ev.rounds || '?'} rounds · ${ev.tools_used || '?'} frappes`, ts: ev.timestamp });
+              push({ type: 'system', text: _t('feed_complete', { r: ev.rounds || '?', t: ev.tools_used || '?' }), ts: ev.timestamp });
               flushBatch();
               break;
 
@@ -291,12 +292,12 @@ export function useMissionSocket() {
       const res = await axios.post(`${API_BASE}/mission`, { mission, mode, intel_mode, docs, autonomy });
       if (res.data.status !== 'accepted') {
         setStatus('error');
-        push({ type: 'error', text: `Refusé : ${res.data.output || 'échec'}` });
+        push({ type: 'error', text: _t('feed_rejected', { out: res.data.output || 'failed' }) });
         flushBatch();
       }
     } catch (err) {
       setStatus('error');
-      push({ type: 'error', text: `Échec de transmission : ${err.response?.data?.detail || err.message}` });
+      push({ type: 'error', text: _t('feed_send_fail', { err: err.response?.data?.detail || err.message }) });
       flushBatch();
     }
   }, [flushBatch, push]);
@@ -323,7 +324,7 @@ export function useMissionSocket() {
   // ── salle de guerre : la seule ligne de conversation (bulles à gauche) ──
   const sendChatMessage = useCallback(async (message) => {
     const msg = (message || '').trim();
-    if (!msg || chatBusy) return { status: 'error', error: 'chat occupé ou vide' };
+    if (!msg || chatBusy) return { status: 'error', error: _t('feed_chat_busy') };
     setChatLog(p => [...p, { role: 'user', text: msg }]);
     streamRef.current = '';
     setChatStreaming('');
@@ -339,7 +340,7 @@ export function useMissionSocket() {
       streamRef.current = '';
       setChatStreaming('');
       // U6 : l'échec est VISIBLE dans la conversation, pas seulement en console
-      setChatLog(p => [...p, { role: 'strategist', text: `⚠ échec du canal : ${detail}` }]);
+      setChatLog(p => [...p, { role: 'strategist', text: _t('feed_channel_fail', { d: detail }) }]);
       push({ type: 'error', text: `✗ salle de guerre : ${detail}` });
       flushBatch();
       return { status: 'error', error: detail };
@@ -389,7 +390,7 @@ export function useMissionSocket() {
 
   const abortMission = useCallback(async (id) => {
     if (!id) return { status: 'error', error: 'aucune mission vivante' };
-    push({ type: 'system', text: '⏹ rupture demandée — transmission du signal…' });
+    push({ type: 'system', text: '⏹ abort requested — signal transmitting…' });
     flushBatch();
     try {
       const res = await axios.post(`${API_BASE}/mission/abort`, { mission_id: id, message: '__ABORT__' });

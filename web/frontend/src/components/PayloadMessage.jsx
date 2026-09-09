@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { t as _t } from '../i18n.js';
 import MarkdownMessage from './MarkdownMessage';
 
 function isHeavyPayload(text) {
@@ -68,7 +69,7 @@ export default function PayloadMessage({ text }) {
                 <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
               </svg>
             </span>
-            <span className="font-medium text-ink tracking-tight">Données de Session / Payload</span>
+            <span className="font-medium text-ink tracking-tight">{_t('payload_title')}</span>
             <span className="text-[9.5px] px-2 py-0.5 rounded-full bg-inset border border-line text-faint">
               {byteLength} octets
             </span>
@@ -83,9 +84,9 @@ export default function PayloadMessage({ text }) {
                   ? 'border-volt/60 bg-voltlite text-cyan'
                   : 'border-line hover:border-line2 bg-paper text-ash hover:text-ink'
               }`}
-              title="Décoder le payload URL ou JSON"
+              title={_t('payload_decode')}
             >
-              {showDecoded ? 'format brut' : 'décoder url'}
+              {showDecoded ? _t('payload_raw') : _t('payload_decode_url')}
             </button>
 
             <button
@@ -94,7 +95,7 @@ export default function PayloadMessage({ text }) {
               className="px-2 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider border border-line hover:border-line2 bg-paper text-ash hover:text-ink transition-colors"
               title="Copier le payload"
             >
-              {copied ? 'copié ✓' : 'copier'}
+              {copied ? _t('copied') : _t('copy')}
             </button>
 
             <button
@@ -102,7 +103,7 @@ export default function PayloadMessage({ text }) {
               onClick={() => setExpanded(!expanded)}
               className="px-2 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider border border-line hover:border-line2 bg-paper text-ash hover:text-ink transition-colors flex items-center gap-1"
             >
-              <span>{expanded ? 'replier' : 'déplier'}</span>
+              <span>{expanded ? _t('payload_collapse') : _t('payload_expand')}</span>
               <span className="text-[9px]">{expanded ? '↑' : '↓'}</span>
             </button>
           </div>
@@ -119,7 +120,7 @@ export default function PayloadMessage({ text }) {
 
         {!expanded && (
           <p className="text-[9.5px] font-mono text-faint text-right pr-1">
-            Payload compressé pour garder la salle claire · clique sur déplier pour inspecter
+            Payload compressed to keep the room clear · click expand to inspect
           </p>
         )}
       </div>

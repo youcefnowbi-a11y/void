@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { t as _t } from '../i18n.js';
 import axios from 'axios';
 import { API_BASE } from '../api.js';
 
@@ -69,7 +70,7 @@ export default function PersonaPanel() {
           catchphrases: form.catchphrases.split(',').map(s => s.trim()).filter(Boolean),
         },
       });
-      setMsg({ ok: true, text: r.data.message || '✓ personnalité gravée' });
+      setMsg({ ok: true, text: r.data.message || _t('persona_saved') });
       setRendered(r.data.rendered || '');
     } catch (e2) {
       setMsg({ ok: false, text: `✗ ${e2.response?.data?.detail || e2.message}` });
@@ -91,7 +92,7 @@ export default function PersonaPanel() {
         catchphrases: (p.catchphrases || []).join(', '), extra_directives: p.extra_directives || '',
       });
       setRendered(r.data.rendered || '');
-      setMsg({ ok: true, text: '✓ masque par défaut restauré' });
+      setMsg({ ok: true, text: _t('persona_restored') });
     } catch (e2) {
       setMsg({ ok: false, text: `✗ ${e2.response?.data?.detail || e2.message}` });
     } finally {
@@ -100,8 +101,8 @@ export default function PersonaPanel() {
   };
 
   const focusHint = {
-    speed: 'chaînes rapides, stop aux rendements décroissants',
-    thoroughness: 'épuise chaque vecteur, recoupe chaque finding',
+    speed: _t('persona_speed'),
+    thoroughness: _t('persona_thorough'),
     stealth: 'volume minimal, sources passives d\'abord',
   }[form.mission_focus] || '';
 
@@ -118,7 +119,7 @@ export default function PersonaPanel() {
           placeholder="REDACTED"
           className={inputCls} />
 
-        <label htmlFor="pe-arch" className={labelCls}>archétype</label>
+        <label htmlFor="pe-arch" className={labelCls}>{_t('persona_archetype')}</label>
         <input id="pe-arch" value={form.archetype}
           onChange={(e) => set('archetype', e.target.value)}
           placeholder="elite autonomous offensive-security operator"
@@ -170,12 +171,12 @@ export default function PersonaPanel() {
         <div>
           <textarea id="pe-extra" value={form.extra_directives} rows={6}
             onChange={(e) => set('extra_directives', e.target.value)}
-            placeholder={'Doctrine libre — priorités, habitudes, rituels.\nex : Prioritize Supabase exposures. Always check GraphQL before REST.'}
+            placeholder={_t('persona_doctrine_ph')}
             className="w-full rounded-ui border border-line bg-inset px-3 py-2 text-[12px] leading-relaxed resize-y text-ink focus:outline-none focus:border-volt/60 transition-colors max-h-[220px] placeholder:text-faint" />
           <div className="mt-1 flex items-center justify-between text-[10.5px]">
             <span className={form.extra_directives.length > 2000 ? 'text-danger font-mono font-medium' : 'text-faint font-mono'}>
-              {form.extra_directives.length.toLocaleString()} / 2 000 caractères
-              {form.extra_directives.length > 2000 && ' (dépassement : sera tronqué à 2 000 par le backend)'}
+              {form.extra_directives.length.toLocaleString()} / 2,000 characters
+              {form.extra_directives.length > 2000 && ' (over limit: truncated to 2,000 by the backend)'}
             </span>
             <span className="text-[10px] text-faint italic">max 2 000 car.</span>
           </div>
@@ -186,7 +187,7 @@ export default function PersonaPanel() {
       {rendered && (
         <details className="pt-1">
           <summary className="text-[10px] uppercase tracking-[.14em] text-mut cursor-pointer hover:text-ink select-none transition-colors">
-            aperçu du prompt injecté
+            preview of the injected prompt
           </summary>
           <pre className="mt-2 max-h-48 overflow-y-auto terminal-bg rounded-ui border border-line p-2.5 whitespace-pre-wrap break-words font-mono text-[11px]">
             {rendered}
@@ -201,12 +202,12 @@ export default function PersonaPanel() {
           msg?.ok === false ? 'text-danger' :
           loaded ? 'text-mut' : 'text-warn animate-pulse'
         }`}>
-          {msg ? msg.text : loaded ? 'masque actif — appliqué à la prochaine mission' : 'chargement du masque...'}
+          {msg ? msg.text : loaded ? _t('persona_active') : _t('persona_loading')}
         </span>
         <div className="flex gap-2 shrink-0">
           <button type="button" onClick={reset} disabled={saving}
             className="pill-ghost btn-strike px-3.5 py-1.5 text-[11px] uppercase tracking-[.1em]">
-            défaut
+            default
           </button>
           <button type="submit" disabled={saving}
             className="pill-cta btn-strike px-4 py-1.5 text-[11px] uppercase tracking-[.1em]">

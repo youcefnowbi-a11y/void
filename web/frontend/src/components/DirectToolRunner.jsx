@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { t as _t } from '../i18n.js';
 import axios from 'axios';
 import { API_BASE } from '../api.js';
 
@@ -112,7 +113,7 @@ export default function DirectToolRunner({ onToolExecuted }) {
       try {
         finalArgs = JSON.parse(rawJsonText);
       } catch (err) {
-        setJsonError("Erreur JSON : impossible d'exécuter");
+        setJsonError(_t('strike_json_error'));
         return;
       }
     }
@@ -177,7 +178,7 @@ export default function DirectToolRunner({ onToolExecuted }) {
       setResult({
         success: false,
         duration: 0,
-        data: err.response?.data?.detail || err.message || "Erreur d'exécution de l'outil",
+        data: err.response?.data?.detail || err.message || _t('strike_exec_error'),
         timestamp: new Date().toLocaleTimeString(),
       });
     } finally {
@@ -260,7 +261,7 @@ export default function DirectToolRunner({ onToolExecuted }) {
       {/* Paramètres de l'outil */}
       <div className="pt-1">
         <div className="flex items-center justify-between mb-2">
-          <span className="eyebrow">paramètres de frappe</span>
+          <span className="eyebrow">{_t('strike_params')}</span>
           <button
             type="button"
             onClick={() => setRawJsonMode(!rawJsonMode)}
@@ -284,7 +285,7 @@ export default function DirectToolRunner({ onToolExecuted }) {
         ) : (
           <div className="space-y-2.5 max-h-56 overflow-y-auto pr-1">
             {Object.keys(properties).length === 0 ? (
-              <p className="text-[12px] text-mut italic py-1">Cet outil ne requiert aucun paramètre.</p>
+              <p className="text-[12px] text-mut italic py-1">This tool requires no parameters.</p>
             ) : (
               Object.entries(properties).map(([propName, schema]) => {
                 const isRequired = requiredFields.includes(propName);
@@ -310,7 +311,7 @@ export default function DirectToolRunner({ onToolExecuted }) {
                     <div key={propName} className="space-y-1">
                       <label className="flex items-center justify-between text-[10.5px] font-mono uppercase tracking-[.08em]">
                         <span className="text-ash">{propName} {isRequired && <span className="text-danger">*</span>}</span>
-                        <span className="text-[9px] text-faint lowercase normal-case">{schema.description || 'séparer par virgules ou format [json]'}</span>
+                        <span className="text-[9px] text-faint lowercase normal-case">{schema.description || 'comma-separated or [json] format'}</span>
                       </label>
                       <input
                         type="text"
@@ -347,7 +348,7 @@ export default function DirectToolRunner({ onToolExecuted }) {
       {/* BOUTON D'EXÉCUTION DIRECTE */}
       <div className="pt-3 border-t border-line flex items-center justify-between gap-3">
         <span className="text-[11px] text-mut">
-          {executing ? 'Traitement en cours...' : 'Prêt pour frappe ciblée'}
+          {executing ? _t('strike_processing') : _t('strike_ready')}
         </span>
         <button
           type="button"
@@ -361,7 +362,7 @@ export default function DirectToolRunner({ onToolExecuted }) {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
               </svg>
-              <span>exécution...</span>
+              <span>{_t('strike_running')}</span>
             </>
           ) : (
             <span>lancer l'outil</span>
@@ -376,7 +377,7 @@ export default function DirectToolRunner({ onToolExecuted }) {
             <div className="flex items-center gap-2">
               <span className={`inline-block w-2 h-2 rounded-full ${result.success ? 'bg-ok' : 'bg-danger animate-pulse'}`} />
               <span className="text-[10px] uppercase font-mono font-medium tracking-[.14em] text-ink">
-                {result.success ? 'résultat obtenu' : 'échec / alerte'}
+                {result.success ? _t('strike_result_ok') : _t('strike_result_fail')}
               </span>
               <span className="font-mono text-[10px] text-faint">({result.duration}s · {result.timestamp})</span>
             </div>
@@ -386,7 +387,7 @@ export default function DirectToolRunner({ onToolExecuted }) {
                 onClick={copyResult}
                 className="text-[10px] text-mut hover:text-ink uppercase tracking-[.1em] font-medium transition-colors"
               >
-                {copied ? '✓ copié' : 'copier'}
+                {copied ? _t('copied') : _t('copy')}
               </button>
               <button
                 type="button"

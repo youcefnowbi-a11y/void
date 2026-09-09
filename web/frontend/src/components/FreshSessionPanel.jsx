@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import { t as _t } from '../i18n.js';
 import axios from 'axios'
 import { API_BASE } from '../api.js'
 
@@ -14,10 +15,10 @@ import { API_BASE } from '../api.js'
    ═══════════════════════════════════════════════════════════════════ */
 
 const STORES = [
-  { id: 'chat', label: 'conversation war room', hint: 'la ligne sécurisée repart de zéro' },
-  { id: 'pending', label: 'plan en attente', hint: 'verdict annulé, panel vidé' },
-  { id: 'bandit', label: 'fiabilité apprise (bandit)', hint: 'elle réapprendra de zéro' },
-  { id: 'healer', label: 'fixes appris (healer)', hint: 'les réparations apprises sont oubliées' },
+  { id: 'chat', label: _t('fresh_chat'), hint: _t('fresh_chat_hint') },
+  { id: 'pending', label: _t('fresh_pending'), hint: _t('fresh_pending_hint') },
+  { id: 'bandit', label: _t('fresh_bandit'), hint: _t('fresh_bandit_hint') },
+  { id: 'healer', label: _t('fresh_healer'), hint: _t('fresh_healer_hint') },
 ]
 
 export default function FreshSessionPanel({ onPurge }) {
@@ -35,14 +36,14 @@ export default function FreshSessionPanel({ onPurge }) {
       ...what.map(w => STORES.find(s => s.id === w)?.label),
       ...(sel.intel ? [`intel ${target || 'toutes cibles'}`] : []),
     ].join(' · ')
-    if (!window.confirm(`SESSION NEUVE — purge définitive :\n${label}\n\nContinuer ?`)) return
+    if (!window.confirm(_t('fresh_confirm', { label }))) return
     setBusy(true); setMsg(null)
     try {
       const r = await axios.post(`${API_BASE}/admin/fresh`, {
         chat: !!sel.chat, pending: !!sel.pending, bandit: !!sel.bandit,
         healer: !!sel.healer, intel: !!sel.intel, target: (target || '').trim(),
       })
-      setMsg({ ok: true, text: `✓ purgé : ${r.data.cleared.join(' · ') || 'rien sélectionné'}` })
+      setMsg({ ok: true, text: _t('fresh_purged', { list: r.data.cleared.join(' · ') || _t('fresh_nothing') }) })
       onPurge && onPurge()
     } catch (err) {
       setMsg({ ok: false, text: `✗ ${err.response?.data?.detail || err.message}` })

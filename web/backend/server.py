@@ -196,6 +196,7 @@ async def get_provider():
             "max_tokens": p.get("max_tokens", 2600),
             "api_key_set": bool(key),
             "api_key_masked": ("…" + key[-4:]) if len(key) > 8 else "•••",
+            "language": p.get("language", "en"),
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

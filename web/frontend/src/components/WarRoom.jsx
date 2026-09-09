@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+﻿import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { t as _t } from '../i18n.js';
 import MarkdownMessage from './MarkdownMessage.jsx';
 import PayloadMessage from './PayloadMessage.jsx';
 
@@ -38,31 +39,31 @@ const STARTERS = [
     id: 'recon',
     tag: 'RECON',
     title: 'Reconnaissance Furtive',
-    desc: 'Cartographie passive des sous-domaines, ports et technologies exposées.',
+    desc: _t('recon_desc'),
     prompt: '/recon https://target.com cartographie l\'ensemble des sous-domaines et endpoints exposés'
   },
   {
     id: 'auth',
     tag: 'AUTH/IDOR',
     title: 'Audit de Session & Auth',
-    desc: 'Analyse des flux Clerk/JWT, cookies de session et contrôle d\'accès (IDOR).',
-    prompt: '/auth analyse les tokens de session et vérifie les failles de contrôle d\'accès'
+    desc: _t('auth_desc'),
+    prompt: '/auth analyze session tokens and check access-control flaws'
   },
   {
     id: 'smash',
     tag: 'RACE/STRIKE',
     title: 'Choc de Concurrence',
-    desc: 'Tests de race condition sur les endpoints sensibles (coupons, double débit).',
-    prompt: '/smash teste les race conditions sur les endpoints de débit et d\'attribution'
+    desc: _t('smash_desc'),
+    prompt: '/smash test race conditions on debit and grant endpoints'
   }
 ];
 
 const SLASH_COMMANDS = [
   { cmd: '/recon', desc: 'Cartographie furtive & reconnaissance DNS/HTTP', example: '/recon https://target.com' },
-  { cmd: '/auth', desc: 'Audit des flux d\'authentification Clerk & cookies', example: '/auth vérifie les sessions' },
-  { cmd: '/smash', desc: 'Test de race condition & requêtes concurrentes', example: '/smash test coupons simultanés' },
-  { cmd: '/crawl', desc: 'Extraction des routes SPA & secrets côté client', example: '/crawl https://target.com' },
-  { cmd: '/report', desc: 'Compilation immédiate du rapport d\'engagement', example: '/report' },
+  { cmd: '/auth', desc: 'Audit of Clerk auth flows & cookies', example: '/auth check sessions' },
+  { cmd: '/smash', desc: 'Race condition & concurrent request testing', example: '/smash test concurrent coupons on /checkout' },
+  { cmd: '/crawl', desc: 'SPA route & client-side secret extraction', example: '/crawl https://target.com find routes and secrets' },
+  { cmd: '/report', desc: 'Immediate engagement report compilation', example: '/report' },
   { cmd: '/clear', desc: 'Nettoyer la salle de guerre', example: '/clear' },
 ];
 
@@ -119,7 +120,7 @@ export default function WarRoom({
     const kb = (f.size / 1024).toFixed(1);
 
     if (f.size > 2 * 1024 * 1024) {
-      setNote(`⚠️ ${f.name} (${kb} Ko) dépasse le plafond de 2 Mo.`);
+      setNote(_t('upload_too_big', { name: f.name, kb }));
       setTimeout(() => setNote(null), 4000);
       return;
     }
@@ -127,7 +128,7 @@ export default function WarRoom({
     try {
       const head = new Uint8Array(await f.slice(0, 1024).arrayBuffer());
       if (head.includes(0) || (!ALLOWED_DOC_EXTS.has(ext) && !f.type.startsWith('text/'))) {
-        setNote(`⚠️ ${f.name} : seuls les formats texte (.txt, .md, .json, .log, .csv, .yaml, etc.) sont acceptés.`);
+        setNote(_t('upload_text_only', { name: f.name }));
         setTimeout(() => setNote(null), 4000);
         return;
       }
@@ -143,7 +144,7 @@ export default function WarRoom({
         ...prev,
         { id: Date.now() + Math.random(), name: f.name, kb, ext: ext.replace('.', ''), text, isTruncated }
       ]);
-      setNote(`✓ ${f.name} (${kb} Ko${isTruncated ? ' — extrait 60k car.' : ''}) attaché`);
+      setNote(_t('upload_attached', { name: f.name, kb, trunc: isTruncated ? ' — excerpt 60k chars' : '' }));
       setTimeout(() => setNote(null), 3500);
     } catch {
       setNote(`⚠️ ${f.name} — lecture impossible`);
@@ -251,7 +252,7 @@ export default function WarRoom({
                         isUser ? 'text-cyan' : 'text-mut'
                       }`}
                     >
-                      {isUser ? 'commandant' : 'stratège'}{m.time ? ` · ${m.time}s` : ''}
+                      {isUser ? _t('role_commander') : _t('role_strategist')}{m.time ? ` · ${m.time}s` : ''}
                     </span>
                     <button
                       type="button"
@@ -259,7 +260,7 @@ export default function WarRoom({
                       className="opacity-0 group-hover:opacity-100 transition-opacity text-[9.5px] text-faint hover:text-ink font-mono uppercase tracking-wider px-1 py-0.5 rounded"
                       title="Copier le message brut"
                     >
-                      {copiedIndex === i ? 'copié ✓' : 'copier'}
+                      {copiedIndex === i ? _t('copied') : _t('copy')}
                     </button>
                   </div>
                   <PayloadMessage text={m.text} />
@@ -273,7 +274,7 @@ export default function WarRoom({
               <div className="max-w-[92%] sm:max-w-[85%] rounded-2xl px-4 py-3 bg-inset/70 border border-line rounded-tl-md shadow-sm">
                 <div className="text-[9.5px] uppercase tracking-[.18em] mb-1.5 text-mut font-mono flex items-center gap-1.5 select-none">
                   <span className="w-1.5 h-1.5 rounded-full bg-volt animate-pulse" />
-                  <span>stratège{streaming ? ' · transmission' : ' · réflexion'}</span>
+                  <span>{_t('role_strategist')}{streaming ? ' · streaming' : ' · thinking'}</span>
                 </div>
                 {streaming ? (
                   <div className="relative">
@@ -331,7 +332,7 @@ export default function WarRoom({
           </h2>
           <p className="text-[12.5px] leading-relaxed text-ash mb-5 relative max-w-lg">
             {warMode ? (
-              <>Donne le contexte, la cible, ou sélectionne un protocole tactique ci-dessous pour lancer l'offensive autonome :</>
+              <>Give context, the target, or select a tactical protocol below to launch the automated offensive.</>
             ) : (
               <>L'agente est en campagne active. Tes ordres arrivent au prochain cycle.</>
             )}
@@ -396,7 +397,7 @@ export default function WarRoom({
             <div className="absolute bottom-full mb-2.5 left-0 right-0 rounded-card border border-line bg-paper/95 backdrop-blur-xl shadow-2xl p-2 z-40 animate-fadeIn space-y-1">
               <div className="px-2 py-1 border-b border-line/60 flex items-center justify-between text-[10px] uppercase font-mono text-faint select-none">
                 <span>commandes tactiques ({filteredCommands.length})</span>
-                <span>↑↓ naviguer · entrée choisir</span>
+                <span>↑↓ navigate · enter select</span>
               </div>
               <div className="max-h-[220px] overflow-y-auto space-y-0.5 py-1">
                 {filteredCommands.map((c, idx) => (
@@ -452,7 +453,7 @@ export default function WarRoom({
             <button
               type="button"
               onClick={() => fileRef.current?.click()}
-              title="Accrocher un fichier à l'ordre"
+              title="Attach a file to the order"
               className="shrink-0 my-[5px] ml-[5px] w-[42px] h-[42px] rounded-full flex items-center justify-center text-faint hover:text-cyan hover:bg-voltlite hover:border-volt/30 border border-transparent transition-colors"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
@@ -504,7 +505,7 @@ export default function WarRoom({
               spellCheck="false"
               placeholder={
                 warMode
-                  ? 'ton ordre au stratège (tape / pour les commandes rapides)…'
+                  ? 'your order to the strategist (type / for quick commands)…'
                   : "ordre pour l'agente…"
               }
               className="flex-1 min-w-0 bg-transparent my-[5px] py-[11px] px-2 text-[13.5px] leading-relaxed text-ink placeholder:text-faint focus:outline-none resize-none max-h-[160px]"
@@ -521,7 +522,7 @@ export default function WarRoom({
 
         {empty && (
           <p className="mt-3 text-[10.5px] text-faint text-center tracking-[.06em]">
-            tape <span className="font-mono text-cyan">/</span> pour voir les commandes rapides · entrée pour envoyer
+            type <span className="font-mono text-cyan">/</span> to see quick commands · enter to send
           </p>
         )}
       </form>

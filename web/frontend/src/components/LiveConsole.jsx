@@ -1,4 +1,5 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react'
+import { t as _t } from '../i18n.js';
 
 /* LA CONSOLE-DOCK — citoyenne de première classe du PONT UNIQUE.
    Elle ne disparaît JAMAIS : ni au sol, ni en campagne, ni après.
@@ -116,7 +117,7 @@ export default function LiveConsole({ logs, status, onClear, onClose }) {
             {lastLine ? `${lastLine.type === 'separator' ? '— ' : ''}${lastLine.text}` : 'en attente…'}
           </span>
           <span className="font-mono text-[10px] text-faint shrink-0">{logs.length} lignes</span>
-          <span className="text-[11px] text-faint group-hover:text-cyan transition-colors shrink-0">▲ déplier</span>
+          <span className="text-[11px] text-faint group-hover:text-cyan transition-colors shrink-0">▲ expand</span>
         </button>
       </div>
     )
@@ -165,9 +166,9 @@ export default function LiveConsole({ logs, status, onClear, onClose }) {
 
           {/* Actions & Contrôles de fenêtre */}
           <div className="flex items-center gap-1 border-l border-line/60 pl-2">
-            <button onClick={copyLogs} disabled={filtered.length === 0} title="Copier le journal filtré"
+            <button onClick={copyLogs} disabled={filtered.length === 0} title={_t('console_copy_log')}
               className="px-2 py-0.5 rounded-md text-[10px] uppercase tracking-[.08em] border border-line text-mut hover:text-ink hover:border-line2 transition-colors disabled:opacity-40">
-              {copied ? '✓ copié' : 'copier'}
+              {copied ? _t('copied') : _t('copy')}
             </button>
 
             {onClear && (
@@ -184,7 +185,7 @@ export default function LiveConsole({ logs, status, onClear, onClose }) {
               </svg>
             </button>
 
-            <button onClick={() => setIsExpanded(!isExpanded)} title={isExpanded ? 'Restaurer la taille' : 'Plein écran'}
+            <button onClick={() => setIsExpanded(!isExpanded)} title={isExpanded ? _t('console_restore') : _t('console_fullscreen')}
               className="p-1 rounded-md text-mut hover:text-ink hover:bg-hover border border-transparent hover:border-line transition-colors">
               {isExpanded ? (
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -222,7 +223,7 @@ export default function LiveConsole({ logs, status, onClear, onClose }) {
         {filtered.length === 0 && (
           <div className="text-center py-14 text-xs flex flex-col items-center gap-2 term-mut">
             <span className="font-disp text-2xl term-mut">◇</span>
-            <span>{status === 'idle' ? "» le journal est ouvert — un ordre de frappe l’animera." : 'aucune entrée pour ce filtre.'}</span>
+            <span>{status === 'idle' ? _t('console_open_idle') : 'no entry for this filter.'}</span>
           </div>
         )}
 

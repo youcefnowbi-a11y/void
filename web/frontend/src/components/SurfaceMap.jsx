@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { t as _t } from '../i18n.js';
 
 const TYPE_CONFIG = {
   domain: {
@@ -43,7 +44,7 @@ const TYPE_CONFIG = {
         <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
       </svg>
     ),
-    label: 'Vulnérabilité', border: 'border-danger/40', bg: 'bg-dangertint', text: 'text-danger'
+    label: _t('surface_vuln'), border: 'border-danger/40', bg: 'bg-dangertint', text: 'text-danger'
   },
   default: {
     icon: (
@@ -117,11 +118,10 @@ export default function SurfaceMap({ graph = { nodes: [], links: [] }, onSelectN
           <span className="eyebrow mb-1">radar tactique</span>
           <h3 className="text-[14px] font-medium text-ink mb-1">Surface d'Attaque Dormante</h3>
           <p className="text-[12px] text-ash max-w-sm leading-relaxed mb-4">
-            Les domaines, routes d'API, ports et technologies découverts par l'agente s'ordonneront ici en temps réel au fil de la campagne.
-          </p>
+            Domains, API routes, ports and technologies discovered by the agent will order themselves here in real time.</p>
           <div className="inline-flex items-center gap-2.5 px-3 py-1.5 rounded-full border border-line bg-inset font-mono text-[10.5px] text-faint shadow-xs">
             <span className="w-1.5 h-1.5 rounded-full bg-volt/60 animate-pulse" />
-            <span>0 surface cartographiée · écoute active</span>
+            <span>{_t('surface_empty_sub')}</span>
           </div>
         </div>
       </div>
@@ -138,7 +138,7 @@ export default function SurfaceMap({ graph = { nodes: [], links: [] }, onSelectN
               <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
               <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
             </svg>
-            <span className="text-[12px] font-medium text-ink tracking-tight">Surface d'Attaque Découverte</span>
+            <span className="text-[12px] font-medium text-ink tracking-tight">{_t('surface_title')}</span>
           </div>
           <span className="font-mono text-[10px] text-faint uppercase tracking-wider">
             {filteredNodes.length} / {nodes.length} nœud{nodes.length > 1 ? 's' : ''}
@@ -239,7 +239,7 @@ export default function SurfaceMap({ graph = { nodes: [], links: [] }, onSelectN
                   className="px-2 py-0.5 rounded-full text-[9.5px] font-mono border border-line bg-paper text-ash hover:text-ink hover:border-line2 uppercase"
                   title="Copier la valeur"
                 >
-                  {copiedKey === nodeKey ? 'copié ✓' : 'copier'}
+                  {copiedKey === nodeKey ? _t('copied') : _t('copy')}
                 </button>
               </div>
             </div>

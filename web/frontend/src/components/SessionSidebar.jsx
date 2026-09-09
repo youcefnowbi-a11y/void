@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { t as _t } from '../i18n.js';
 
 export default function SessionSidebar({
   open = false,
@@ -47,14 +48,14 @@ export default function SessionSidebar({
             </span>
             <div>
               <h2 className="text-[13px] font-medium text-ink tracking-tight">Missions & Sessions</h2>
-              <p className="text-[10px] text-faint uppercase tracking-wider font-mono">Historique des opérations</p>
+              <p className="text-[10px] text-faint uppercase tracking-wider font-mono">{_t('sidebar_title')}</p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
             className="w-7 h-7 rounded-full border border-line text-mut hover:text-danger hover:border-danger/40 flex items-center justify-center transition-colors text-xs"
-            title="Fermer (Échap)"
+            title={_t('sidebar_close')}
           >
             ✕
           </button>
@@ -95,7 +96,7 @@ export default function SessionSidebar({
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Rechercher une mission passée..."
+            placeholder={_t('sidebar_search')}
             className="w-full rounded-ui border border-line bg-inset px-2.5 py-1.5 text-[11.5px] font-mono text-ink placeholder:text-faint focus:outline-none focus:border-volt/60 transition-colors"
           />
         </div>
@@ -132,7 +133,7 @@ export default function SessionSidebar({
                     </span>
                   </div>
                   <span className="text-[9.5px] text-faint font-mono mt-0.5 block">
-                    {r.mtime || 'Mission archivée'}
+                    {r.mtime || _t('sidebar_archived')}
                   </span>
                 </div>
                 {r.size !== undefined && (
@@ -158,7 +159,7 @@ export default function SessionSidebar({
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
             </svg>
-            <span>Paramètres Opérationnels</span>
+            <span>{_t('sidebar_settings')}</span>
           </button>
         </div>
       </aside>

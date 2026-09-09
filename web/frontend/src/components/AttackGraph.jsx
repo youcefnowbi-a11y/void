@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from 'react';
+import { t as _t } from '../i18n.js';
 
 // Configuration des 4 phases de la Kill-Chain tactique
 const STAGES = [
   {
     id: 'recon',
     label: '1. Reconnaissance',
-    sub: 'Domaines & Hôtes',
+    sub: _t('node_domains'),
     color: 'cyan',
     badge: 'border-cyan/40 bg-cyan/10 text-cyan',
     kinds: ['domain', 'ip', 'cidr', 'host', 'dns', 'nameserver'],
@@ -18,7 +19,7 @@ const STAGES = [
   },
   {
     id: 'surface',
-    label: '2. Surface Exposée',
+    label: _t('phase_surface'),
     sub: 'Routes, Ports & Technos',
     color: 'volt',
     badge: 'border-volt/40 bg-voltlite text-volt',
@@ -32,7 +33,7 @@ const STAGES = [
   {
     id: 'secrets',
     label: '3. Secrets & Auth',
-    sub: 'Identités & Tokens',
+    sub: _t('node_identity'),
     color: 'warn',
     badge: 'border-warn/40 bg-warntint text-warn',
     kinds: ['key', 'identity', 'bucket', 'secret', 'credential', 'jwt', 'auth', 'env'],
@@ -93,7 +94,7 @@ export default function AttackGraph({ graph = { nodes: [], links: [] }, findings
         nodeMap.set(fid, {
           id: fid,
           k: 'finding',
-          v: f.title || f.poc || 'Vulnérabilité confirmée',
+          v: f.title || f.poc || _t('vuln_confirmed'),
           c: f.severity === 'critical' ? 1.0 : f.severity === 'high' ? 0.9 : 0.75,
           s: f.tool ? 2 : 1,
           finding: f,
@@ -202,14 +203,14 @@ export default function AttackGraph({ graph = { nodes: [], links: [] }, findings
               <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
             </svg>
           </div>
-          <span className="eyebrow mb-1">kill-chain vectorielle</span>
-          <h3 className="text-[14px] font-medium text-ink mb-1">Chaîne d'Attaque en Attente</h3>
+          <span className="eyebrow mb-1">vector kill-chain</span>
+          <h3 className="text-[14px] font-medium text-ink mb-1">{_t('chain_empty_title')}</h3>
           <p className="text-[12px] text-ash max-w-sm leading-relaxed mb-4">
-            Dès que l'agente entame sa reconnaissance, la chaîne d'attaque s'assemblera pas à pas depuis la cible jusqu'aux vecteurs d'exploitation confirmés.
+            As the agent begins reconnaissance, the attack chain assembles step by step from the target to the confirmed exploitation vectors.
           </p>
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-line bg-inset font-mono text-[10.5px] text-faint">
             <span className="w-1.5 h-1.5 rounded-full bg-cyan animate-pulse" />
-            <span>0 vecteur répertorié · écoute active</span>
+            <span>{_t('chain_empty_sub')}</span>
           </div>
         </div>
       </div>
@@ -223,7 +224,7 @@ export default function AttackGraph({ graph = { nodes: [], links: [] }, findings
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-1.5">
             <span className="w-2 h-2 rounded-full bg-volt animate-pulse" />
-            <span className="text-[12px] font-medium text-ink tracking-wide">Chaîne d'Attaque</span>
+            <span className="text-[12px] font-medium text-ink tracking-wide">{_t('chain_title')}</span>
           </div>
           <span className="font-mono text-[10.5px] text-faint border-l border-line pl-2">
             {allNodes.length} actifs · {activeLinks.length} liaisons
@@ -273,7 +274,7 @@ export default function AttackGraph({ graph = { nodes: [], links: [] }, findings
             <button
               type="button"
               onClick={() => setViewMode('topology')}
-              title="Vue Arbre & Liaisons Connectées"
+              title={_t('chain_tree_view')}
               className={`px-2.5 py-1 rounded-full text-[10px] font-mono uppercase tracking-wider transition-all ${
                 viewMode === 'topology'
                   ? 'pill-solid font-medium text-ink shadow-xs'
@@ -290,7 +291,7 @@ export default function AttackGraph({ graph = { nodes: [], links: [] }, findings
               type="button"
               onClick={() => setZoom(z => Math.max(0.7, z - 0.15))}
               className="w-5 h-5 flex items-center justify-center text-[11px] text-mut hover:text-ink transition-colors"
-              title="Zoom arrière"
+              title={_t('chain_zoom_out')}
             >
               −
             </button>
@@ -307,7 +308,7 @@ export default function AttackGraph({ graph = { nodes: [], links: [] }, findings
               type="button"
               onClick={() => setZoom(1)}
               className="text-[9px] font-mono text-faint hover:text-ink px-1 border-l border-line"
-              title="Réinitialiser zoom"
+              title={_t('chain_zoom_reset')}
             >
               1:1
             </button>
@@ -358,7 +359,7 @@ export default function AttackGraph({ graph = { nodes: [], links: [] }, findings
                   <div className="flex-1 overflow-y-auto p-2.5 space-y-2 min-h-[220px]">
                     {nodes.length === 0 ? (
                       <div className="h-full flex flex-col items-center justify-center text-center p-4 text-faint">
-                        <span className="text-[11px] font-mono">En attente de découverte...</span>
+                        <span className="text-[11px] font-mono">{_t('chain_waiting')}</span>
                       </div>
                     ) : (
                       nodes.map(node => {
@@ -413,7 +414,7 @@ export default function AttackGraph({ graph = { nodes: [], links: [] }, findings
                                 className="text-faint hover:text-ink px-1 rounded transition-colors"
                                 title="Copier la valeur"
                               >
-                                {copiedKey === node.id ? '✓ copié' : 'copier'}
+                                {copiedKey === node.id ? _t('copied') : _t('copy')}
                               </button>
                             </div>
                           </div>
@@ -432,10 +433,10 @@ export default function AttackGraph({ graph = { nodes: [], links: [] }, findings
               <div className="flex items-center gap-4">
                 <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-cyan" /> Cibles (Recon)</span>
                 <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-volt" /> Routes & Ports (Surface)</span>
-                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-warn" /> Clés & Auth (Secrets)</span>
+                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-warn" /> Keys & Auth (Secrets)</span>
                 <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-danger" /> Failles Exploitation (Impact)</span>
               </div>
-              <span>{activeLinks.length} chemins d'escalade cartographiés</span>
+              <span>{activeLinks.length} escalation paths mapped</span>
             </div>
 
             <div className="flex-1 py-4 flex items-center justify-between gap-6 overflow-x-auto">
@@ -485,13 +486,13 @@ export default function AttackGraph({ graph = { nodes: [], links: [] }, findings
             </div>
 
             <div className="pt-3 border-t border-line text-[10.5px] font-mono text-faint flex items-center justify-between shrink-0">
-              <span>Sélectionnez un actif pour déployer son vecteur et ses détails d'injection.</span>
+              <span>Select an asset to unfold its vector and injection details.</span>
               <button
                 type="button"
                 onClick={() => setViewMode('pipeline')}
                 className="text-volt hover:underline"
               >
-                Passer en vue colonnes complètes →
+                Switch to full column view →
               </button>
             </div>
           </div>
@@ -529,7 +530,7 @@ export default function AttackGraph({ graph = { nodes: [], links: [] }, findings
                 onClick={() => handleCopy(selectedNode.v, 'inspect-copy')}
                 className="pill-ghost btn-strike px-3 py-1 text-[11px] font-mono uppercase tracking-wider"
               >
-                {copiedKey === 'inspect-copy' ? '✓ Copié' : 'Copier Valeur'}
+                {copiedKey === 'inspect-copy' ? _t('copied') : 'Copy Value'}
               </button>
 
               {selectedNode.v.startsWith('http') && (
@@ -538,7 +539,7 @@ export default function AttackGraph({ graph = { nodes: [], links: [] }, findings
                   onClick={() => handleCopy(`curl -ik -s "${selectedNode.v}"`, 'inspect-curl')}
                   className="pill-cta btn-strike px-3 py-1 text-[11px] font-mono uppercase tracking-wider"
                 >
-                  {copiedKey === 'inspect-curl' ? '✓ cURL Copié' : 'Générer cURL'}
+                  {copiedKey === 'inspect-curl' ? '✓ cURL copied' : 'Generate cURL'}
                 </button>
               )}
             </div>
@@ -551,7 +552,7 @@ export default function AttackGraph({ graph = { nodes: [], links: [] }, findings
           {selectedNode.finding && (
             <div className="mt-2 p-2.5 rounded border border-danger/40 bg-dangertint text-[11.5px] space-y-1">
               <div className="flex items-center gap-2 text-danger font-semibold font-mono text-[11px] uppercase">
-                <span>⚠️ Preuve de Vulnérabilité ({selectedNode.finding.severity || 'HIGH'})</span>
+                <span>⚠️ Vulnerability Proof ({selectedNode.finding.severity || 'HIGH'})</span>
               </div>
               <p className="text-ink">{selectedNode.finding.detail || selectedNode.finding.poc}</p>
             </div>

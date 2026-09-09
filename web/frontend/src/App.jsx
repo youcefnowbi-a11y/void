@@ -13,6 +13,7 @@ import PersonaPanel from './components/PersonaPanel.jsx';
 import FreshSessionPanel from './components/FreshSessionPanel.jsx';
 import { useMissionSocket } from './hooks/useMissionSocket.js';
 import { API_BASE } from './api.js';
+import { t as _t, setLang as _setLang } from './i18n.js';
 
 const DOC_NO = `VF-${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}${String(new Date().getDate()).padStart(2, '0')}`;
 
@@ -141,6 +142,13 @@ function App() {
     return () => clearInterval(iv);
   }, [wsStatus, stats.startedAt]);
 
+  // i18n boot: the product language comes from the same knob the
+  // backend reads (provider.yaml). One fetch at mount, that's all.
+  useEffect(() => {
+    axios.get(`${API_BASE}/provider`)
+      .then(r => _setLang(r.data?.language || 'en')).catch(() => {});
+  }, []);
+
   useEffect(() => {
     if (wsStatus === 'complete') {
       fetchReports();
@@ -250,24 +258,24 @@ function App() {
           <div className="min-w-0 flex-1">
             {missionText
               ? <p className="text-[13px] text-ash truncate" title={missionText}>{missionText}</p>
-              : <p className="text-[13px] text-faint truncate">le cœur veille — un ordre l'éveillera</p>}
+              : <p className="text-[13px] text-faint truncate">{_t('app_idle_hint')}</p>}
           </div>
           <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[10px] uppercase tracking-[.14em] font-mono shrink-0
             ${wsStatus === 'running' ? 'border-volt/40 bg-voltlite text-cyan' : wsStatus === 'complete' ? 'border-gold/40 bg-goldtint text-gold' : wsStatus === 'error' ? 'border-danger/40 bg-dangertint text-danger' : 'border-line text-mut'}`}>
             <span className={`inline-block w-1.5 h-1.5 rounded-full ${wsStatus === 'running' ? 'bg-volt animate-pulse' : wsStatus === 'complete' ? 'bg-gold' : wsStatus === 'error' ? 'bg-danger' : 'bg-mut'}`} />
-            {wsStatus === 'running' ? 'campagne' : wsStatus === 'complete' ? 'terminée' : wsStatus === 'error' ? 'rompue' : 'veille'}
+            {wsStatus === 'running' ? _t('status_campaign') : wsStatus === 'complete' ? _t('status_complete') : wsStatus === 'error' ? _t('status_error') : _t('status_idle')}
           </span>
           {wsStatus === 'running' && (
             <span className="font-mono text-[11px] tabular-nums text-ash shrink-0">{mm}:{ss}</span>
           )}
           {wsStatus === 'running' && (
-            <button type="button" onClick={rompre} title="rompre la campagne"
+            <button type="button" onClick={rompre} title={_t('abort_campaign')}
               className="btn-strike rounded-full border border-danger/50 text-danger px-2.5 py-1.5 flex items-center hover:bg-dangertint shrink-0">
               <Ic.stop />
             </button>
           )}
           {(wsStatus === 'complete' || wsStatus === 'error') && (
-            <button type="button" onClick={nouvelleSession} title="nouvelle session"
+            <button type="button" onClick={nouvelleSession} title={_t('new_session')}
               className="pill-ghost btn-strike px-4 py-1.5 text-[11px] uppercase tracking-[.12em] shrink-0">
               reset
             </button>
@@ -278,14 +286,14 @@ function App() {
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M9 3v18"/></svg>
           </button>
           <button onClick={() => setConsolePinned(!consoleOpen)}
-            title={consoleOpen ? 'fermer la console' : 'ouvrir la console de campagne'}
+            title={consoleOpen ? _t('console_close') : _t('console_open')}
             className={`relative rounded-full px-2.5 py-1.5 border transition-colors shrink-0 ${consoleOpen ? 'bg-voltlite text-cyan border-volt/30' : 'bg-inset text-mut border-line hover:text-ink'}`}>
             <Ic.term />
             {!consoleOpen && hasActivity && (
-              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-volt" title="activité en cours" />
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-volt" title={_t('activity_live')} />
             )}
           </button>
-          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${connected ? 'bg-ok' : 'bg-danger animate-pulse'}`} title={connected ? 'flux live' : 'flux coupé'} />
+          <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${connected ? 'bg-ok' : 'bg-danger animate-pulse'}`} title={connected ? 'live stream' : 'stream down'} />
         </header>
       </div>
 
@@ -315,8 +323,8 @@ function App() {
                 spellCheck="false" />
               <div className="px-5 py-3 border-t border-line bg-hover flex items-center justify-between gap-3 shrink-0">
                 <span className="text-[11px] text-mut">
-                  corrige librement — ta version part à la frappe · mode {strikeMode.toLowerCase()}
-                  {strikeMode === 'Swarm' ? ' : subagents du plan' : ' : agent unique plan-guidé'}
+                  {_t('plan_edit_hint')} · mode {strikeMode.toLowerCase()}
+                  {strikeMode === 'Swarm' ? ' · ' + _t('mode_swarm') : ' · ' + _t('mode_solo')}
                 </span>
                 <div className="flex items-center gap-2">
                   <button onClick={() => approvePlan(false, '', '')}
@@ -371,7 +379,7 @@ function App() {
                       : 'text-mut hover:text-ink hover:bg-hover'
                   }`}
                 >
-                  <span>Console</span>
+                  <span>{_t('tab_console')}</span>
                   {logs.length > 0 && <span className="ml-1 opacity-75">({logs.length})</span>}
                 </button>
 
@@ -384,7 +392,7 @@ function App() {
                       : 'text-mut hover:text-ink hover:bg-hover'
                   }`}
                 >
-                  <span>Surface</span>
+                  <span>{_t('tab_surface')}</span>
                   {graph.nodes.length > 0 && <span className="ml-1 opacity-75">({graph.nodes.length})</span>}
                 </button>
 
@@ -397,7 +405,7 @@ function App() {
                       : 'text-mut hover:text-ink hover:bg-hover'
                   }`}
                 >
-                  <span>Chaîne</span>
+                  <span>{_t('tab_chain')}</span>
                   {(graph.nodes.length > 0 || findings.length > 0) && (
                     <span className="ml-1 opacity-75">({graph.nodes.length + findings.length})</span>
                   )}
@@ -424,7 +432,7 @@ function App() {
                       : 'text-mut hover:text-ink hover:bg-hover'
                   }`}
                 >
-                  <span>Failles</span>
+                  <span>{_t('tab_findings')}</span>
                   {findings.length > 0 && (
                     <span className="ml-1 px-1.5 py-0.2 rounded-full bg-danger text-white text-[9px] font-bold">
                       {findings.length}
@@ -440,7 +448,7 @@ function App() {
                   className="text-[10px] uppercase font-mono text-faint hover:text-danger px-2 py-0.5 rounded transition-colors"
                   title="Vider le journal console"
                 >
-                  vider
+                  {''+ _t('console_clear')}
                 </button>
               )}
             </div>
@@ -504,11 +512,11 @@ function App() {
 
       {/* ── PARAMÈTRES — Bouton flottant discret ── */}
       <button onClick={() => setShowParams(!showParams)}
-        title="Paramètres — cerveau, arsenal, masque, rapports, purge"
+        title="Settings — brain, arsenal, mask, reports, purge"
         className={`fixed bottom-4 left-4 z-30 btn-strike rounded-full border h-10 px-4 flex items-center gap-2 text-[11px] uppercase tracking-[.14em] transition-colors shadow-lg
           ${showParams ? 'pill-solid font-medium' : 'bg-paper text-ink border-line hover:border-line2'}`}>
         <Ic.gear />
-        <span className="hidden sm:inline">paramètres</span>
+        <span className="hidden sm:inline">settings</span>
       </button>
 
       {/* ── PARAMÈTRES — Le Slide-Over Drawer ergonomique ── */}
@@ -535,13 +543,13 @@ function App() {
                   <Ic.gear />
                 </span>
                 <div>
-                  <h2 id="params-drawer-title" className="text-[13px] font-medium text-ink tracking-tight">Paramètres Opérationnels</h2>
+                  <h2 id="params-drawer-title" className="text-[13px] font-medium text-ink tracking-tight">Operational Settings</h2>
                   <p className="text-[10px] text-faint uppercase tracking-[.14em]">Configuration et arsenal du pont</p>
                 </div>
               </div>
               <button
                 onClick={() => setShowParams(false)}
-                title="Fermer (Échap)"
+                title="Close (Esc)"
                 className="w-7 h-7 rounded-full border border-line text-mut hover:text-danger hover:border-danger/40 flex items-center justify-center transition-colors text-[13px]"
               >
                 ✕
@@ -580,8 +588,8 @@ function App() {
               {paramsTab === 'cerveau' && (
                 <div className="space-y-4 animate-fadeIn">
                   <div className="border-b border-line pb-2.5">
-                    <span className="eyebrow">fournisseur d'intelligence</span>
-                    <p className="text-[12px] text-ash mt-1">Configure le modèle et la passerelle d'API pour les missions autonomes et le stratège.</p>
+                    <span className="eyebrow">intelligence provider</span>
+                    <p className="text-[12px] text-ash mt-1">Configure the model and API gateway for autonomous missions and the strategist.</p>
                   </div>
 
                   <form onSubmit={saveProvider} className="space-y-4">
@@ -593,15 +601,15 @@ function App() {
                       </div>
 
                       <div className="space-y-1">
-                        <label className="text-[10px] uppercase tracking-[.14em] text-mut font-mono">Clé d'API secrète</label>
+                        <label className="text-[10px] uppercase tracking-[.14em] text-mut font-mono">Secret API key</label>
                         <input type="password" value={provForm.api_key} onChange={(e) => setProvForm(f => ({ ...f, api_key: e.target.value }))}
-                          placeholder={provider?.api_key_masked ? `${provider.api_key_masked} (inchangée)` : 'sk-…'}
+                          placeholder={provider?.api_key_masked ? `${provider.api_key_masked} (unchanged)` : 'sk-…'}
                           autoComplete="new-password" className={inputCls} />
                       </div>
 
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
-                          <label className="text-[10px] uppercase tracking-[.14em] text-mut font-mono">Modèle</label>
+                          <label className="text-[10px] uppercase tracking-[.14em] text-mut font-mono">Model</label>
                           <input value={provForm.model} onChange={(e) => setProvForm(f => ({ ...f, model: e.target.value }))}
                             placeholder="deepseek-chat" className={inputCls} />
                         </div>
@@ -622,7 +630,7 @@ function App() {
                       <span className={`text-[11px] font-mono break-words flex-1 ${
                         provMsg?.ok === true ? 'text-ok' : provMsg?.ok === false ? 'text-danger' :
                         isTestingProv ? 'text-warn animate-pulse' : provider?.api_key_set ? 'text-mut' : 'text-danger'}`}>
-                        {provMsg ? provMsg.text : provider?.api_key_set ? `✓ clé armée (${provider.api_key_masked})` : 'aucune clé configurée'}
+                        {provMsg ? provMsg.text : provider?.api_key_set ? `✓ key armed (${provider.api_key_masked})` : 'no key armed'}
                       </span>
                       <button type="submit" disabled={isTestingProv} className="pill-cta btn-strike px-5 py-2 text-[11px] uppercase tracking-[.1em] shrink-0">
                         {isTestingProv ? 'test en cours...' : 'armer le cerveau'}
@@ -635,8 +643,8 @@ function App() {
               {paramsTab === 'arsenal' && (
                 <div className="space-y-3 animate-fadeIn">
                   <div className="border-b border-line pb-2.5">
-                    <span className="eyebrow">arsenal & frappe directe</span>
-                    <p className="text-[12px] text-ash mt-1">Déclenchement manuel des outils forgés et vérification unitaire sans lancer de campagne complète.</p>
+                    <span className="eyebrow">arsenal & direct strike</span>
+                    <p className="text-[12px] text-ash mt-1">Manual trigger of forged tools and unit checks without launching a full campaign.</p>
                   </div>
                   <DirectToolRunner onToolExecuted={() => { fetchReports(); }} />
                 </div>
@@ -646,7 +654,7 @@ function App() {
                 <div className="space-y-3 animate-fadeIn">
                   <div className="border-b border-line pb-2.5">
                     <span className="eyebrow">masque & doctrine</span>
-                    <p className="text-[12px] text-ash mt-1">Personnalité, ton opérationnel, signatures verbales et directives libres transmises à l'agente.</p>
+                    <p className="text-[12px] text-ash mt-1">Personality, operational tone, verbal signatures and free directives engraved in the mask.</p>
                   </div>
                   <PersonaPanel />
                 </div>
@@ -656,16 +664,16 @@ function App() {
                 <div className="space-y-3 animate-fadeIn">
                   <div className="border-b border-line pb-2.5 flex items-center justify-between">
                     <div>
-                      <span className="eyebrow">registre des rapports</span>
-                      <p className="text-[12px] text-ash mt-1">Comptes-rendus de mission et synthèses de vulnérabilités archivés.</p>
+                      <span className="eyebrow">report registry</span>
+                      <p className="text-[12px] text-ash mt-1">Mission reports and vulnerability synopses archived locally.</p>
                     </div>
-                    <button onClick={fetchReports} title="Actualiser" className="pill-ghost text-[10px] px-2.5 py-1 uppercase tracking-[.1em]">
-                      rafraîchir
+                    <button onClick={fetchReports} title="Refresh" className="pill-ghost text-[10px] px-2.5 py-1 uppercase tracking-[.1em]">
+                      refresh
                     </button>
                   </div>
                   {reports.length === 0 ? (
                     <div className="text-center py-10 text-mut text-xs">
-                      <p>Aucun rapport archivé pour le moment.</p>
+                      <p>No archived reports yet.</p>
                     </div>
                   ) : (
                     <ul className="divide-y divide-line rounded-card border border-line overflow-hidden bg-inset/40">
@@ -687,8 +695,8 @@ function App() {
               {paramsTab === 'purge' && (
                 <div className="space-y-3 animate-fadeIn">
                   <div className="border-b border-line pb-2.5">
-                    <span className="eyebrow">purges mémoires & sessions</span>
-                    <p className="text-[12px] text-ash mt-1">Remise à zéro chirurgicale des différents modules de mémoire sans altérer les outils ni la base centrale.</p>
+                    <span className="eyebrow">memory & session purges</span>
+                    <p className="text-[12px] text-ash mt-1">Surgical reset of the memory modules without touching mission history or forged tools.</p>
                   </div>
                   <FreshSessionPanel
                     onPurge={() => { reset(); setMission(''); setWorkspace(null); setReading(null); }} />
@@ -699,7 +707,7 @@ function App() {
             {/* Footer du tiroir */}
             <div className="px-5 py-3 border-t border-line flex items-center justify-between text-[10px] text-faint uppercase tracking-[.14em] shrink-0 bg-paper/30 font-mono">
               <span>REDACTED · console</span>
-              <span className="text-ok">système prêt</span>
+              <span className="text-ok">system ready</span>
             </div>
           </aside>
         </div>
