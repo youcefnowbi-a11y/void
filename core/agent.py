@@ -2064,25 +2064,30 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                     # with the brain digest in context (WE4 chaining).
                     _offline_rounds = getattr(self, "_offline_fallback_rounds", 0) + 1
                     self._offline_fallback_rounds = _offline_rounds
-                    if _offline_rounds >= 12:
-                        # provider stayed dead a dozen bridges — this is
-                        # an outage, not a flap. Close honestly.
+                    # 48H LAW (LO, 2026-09-09): campaigns are marathon
+                    # runs — a multi-hour provider outage is survived by
+                    # bridging, not by euthanasia. 60 offline bridges
+                    # (~3h+ of dead provider) before honest closure.
+                    if _offline_rounds >= 60:
+                        # provider stayed dead across every bridge — this
+                        # is a sustained blackout, not a flap. Close honestly.
                         self.last_abort_reason = "llm_dead_extended_outage"
                         if on_event:
                             on_event({"type": "error",
-                                      "text": "✗ Provider mort à travers 12 ponts offline — fermeture honnête."})
+                                      "text": "✗ Provider mort à travers 60 ponts offline — fermeture honnête."})
                         break
                     if on_event:
                         on_event({"type": "error",
-                                  "text": f"🌉 offline brain round {_offline_rounds}/12 — provider re-testé au prochain round."})
+                                  "text": f"🌉 offline brain round {_offline_rounds}/60 — provider re-testé au prochain round."})
                     continue
 
-                # Mid-mission LLM death: if 2+ consecutive ROUNDS fail (each
-                # round already burned ~2m40s of retries = 5+ minutes of
-                # outage survived), give up — H2-OUTAGE: 3×10s was a knife
-                # against a provider-DB outage; the mission died at round 16
-                # with cryptanalysis mid-flight. 2 deep-fail rounds ≈ 6 min.
-                if consecutive_llm_fails >= 2:
+                # Mid-mission LLM death: 48H LAW (LO, 2026-09-09) — each
+                # failed round already burned ~2m40s of retries; the fleet
+                # failover (K5) rotates providers underneath us. A marathon
+                # campaign must survive a 30-minute outage without dying:
+                # 10 deep-fail rounds ≈ 30 min of sustained outage before
+                # honest closure (was 2 — a DB flap killed 10h of work).
+                if consecutive_llm_fails >= 10:
                     print(f"  ✗ {consecutive_llm_fails} consecutive LLM failures — aborting")
                     self.last_abort_reason = "llm_dead"
                     if on_event:
