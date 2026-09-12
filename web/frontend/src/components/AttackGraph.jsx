@@ -88,13 +88,16 @@ export default function AttackGraph({ graph = { nodes: [], links: [] }, findings
     });
 
     // 2. Transformer les findings confirmés en nœuds de phase 4 (Exploitation)
+    // C2b FIX (audit): socket findings carry {tool, severity
+    // (critical|high|info), summary, ts, raw} — never title/poc. Read the
+    // actual shape so the exploitation column shows real summaries.
     (findings || []).forEach((f, idx) => {
-      const fid = `finding:${f.id || idx}:${f.title || 'vuln'}`;
+      const fid = `finding:${f.id || idx}:${f.summary || f.tool || 'vuln'}`;
       if (!nodeMap.has(fid)) {
         nodeMap.set(fid, {
           id: fid,
           k: 'finding',
-          v: f.title || f.poc || _t('vuln_confirmed'),
+          v: f.summary || f.raw?.summary || `${f.tool || 'find'} ${_t('vuln_confirmed')}`,
           c: f.severity === 'critical' ? 1.0 : f.severity === 'high' ? 0.9 : 0.75,
           s: f.tool ? 2 : 1,
           finding: f,
@@ -185,7 +188,7 @@ export default function AttackGraph({ graph = { nodes: [], links: [] }, findings
 
   if (allNodes.length === 0) {
     return (
-      <div className="h-full flex flex-col items-center justify-center text-center p-6 panel select-none relative overflow-hidden">
+      <div className="h-full flex flex-col items-center justify-center text-center p-6 select-none relative overflow-hidden">
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
           <svg width="340" height="340" viewBox="0 0 340 340" fill="none" className="text-volt">
             <circle cx="170" cy="170" r="160" stroke="currentColor" strokeWidth="1" strokeDasharray="4 4" />
@@ -218,7 +221,7 @@ export default function AttackGraph({ graph = { nodes: [], links: [] }, findings
   }
 
   return (
-    <div className="h-full flex flex-col panel overflow-hidden select-none relative">
+    <div className="h-full flex flex-col overflow-hidden select-none relative">
       {/* ── BARRE SUPÉRIEURE DE COMMANDE TACTIQUE ── */}
       <div className="px-4 py-2.5 border-b border-line bg-wash/40 shrink-0 flex flex-wrap items-center justify-between gap-2.5">
         <div className="flex items-center gap-2">

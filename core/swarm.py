@@ -147,12 +147,16 @@ class SwarmCoordinator:
     verifier, then a final coordinator synthesis — one mission, one brain
     divided into senses."""
 
-    def __init__(self, cfg, target=None, specialist_rounds=14):
+    def __init__(self, cfg, target=None, specialist_rounds=14, inherit_ws=None):
         self.cfg = cfg
         # WD4 (audit-2 D4): 10 rounds starved exploitation — recon alone
         # ate 6-8, leaving 2-4 for strikes. 14 gives the chain room to
         # reach the payload after the map is drawn.
         self.specialist_rounds = specialist_rounds
+        # C1 FIX (audit): the launcher claims the campaign workspace —
+        # when inherited, the coordinator must NOT re-claim (the second
+        # claim saw the target busy and silently isolated run_<ts>/).
+        self.inherit_ws = inherit_ws
         self.target = target or _target_from_mission("")
         self.board = Blackboard(self.target)
         self.transcripts = {}
@@ -164,13 +168,17 @@ class SwarmCoordinator:
         # CP2 fleet fix: the campaign owns ONE workspace — every specialist
         # and chain banks evidence in the same missions/<target>/ dir instead
         # of untitled_<ts> orphans (evidence_pack/report_write live again).
+        # C1 FIX: inherit the launcher's claim when present.
         self.ws = None
-        try:
-            from core.mission_workspace import workspace_for
-            self.ws = workspace_for(mission if "http" in mission
-                                    else f"target https://{self.target}")
-        except Exception:
-            self.ws = None
+        if self.inherit_ws is not None:
+            self.ws = self.inherit_ws
+        else:
+            try:
+                from core.mission_workspace import workspace_for
+                self.ws = workspace_for(mission if "http" in mission
+                                        else f"target https://{self.target}")
+            except Exception:
+                self.ws = None
 
         def emit(t, text):
             if on_event:
@@ -308,14 +316,18 @@ class PlannedSwarm(SwarmCoordinator):
     the chain's own round budget, and the full chain text as its mission brief.
     Falls back to the classic 4-role swarm when the JSON block is absent."""
 
-    def __init__(self, cfg, plan_doc, target=None, max_subagents=4):
+    def __init__(self, cfg, plan_doc, target=None, max_subagents=4, inherit_ws=None):
         parsed = parse_plan_json(plan_doc) or {}
         self.plan_doc = plan_doc
         self.chains = parsed.get("chains") or []
         self.max_subagents = max(1, int(parsed.get("max_subagents") or max_subagents))
         self.recommended_mode = (parsed.get("mode") or "swarm").lower()
+        # C1 FIX: same law as SwarmCoordinator — inherit the launcher's
+        # campaign workspace, never re-claim.
+        self.inherit_ws = inherit_ws
         super().__init__(cfg, target=target,
-                         specialist_rounds=max(6, min(20, self._median_rounds())))
+                         specialist_rounds=max(6, min(20, self._median_rounds())),
+                         inherit_ws=inherit_ws)
 
     def _median_rounds(self):
         rounds = [c.get("rounds") for c in self.chains if isinstance(c.get("rounds"), int)]
@@ -352,13 +364,17 @@ class PlannedSwarm(SwarmCoordinator):
         # CP2 fleet fix: PlannedSwarm.run bypasses super().run (which owns
         # ws creation in the classic lane) — self.ws was ALWAYS None here,
         # so inherit_ws=None and every chain got an untitled_<ts> orphan.
+        # C1 FIX: inherit the launcher's claim when present.
         self.ws = None
-        try:
-            from core.mission_workspace import workspace_for
-            self.ws = workspace_for(mission if "http" in mission
-                                    else f"target https://{self.target}")
-        except Exception:
-            self.ws = None
+        if self.inherit_ws is not None:
+            self.ws = self.inherit_ws
+        else:
+            try:
+                from core.mission_workspace import workspace_for
+                self.ws = workspace_for(mission if "http" in mission
+                                        else f"target https://{self.target}")
+            except Exception:
+                self.ws = None
 
         def run_chain(i, chain):
             name = str(chain.get("name") or f"chain-{i+1}")[:40]

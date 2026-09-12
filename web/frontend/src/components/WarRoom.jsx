@@ -5,105 +5,6 @@ import { t as _t } from '../i18n.js';
 import MarkdownMessage from './MarkdownMessage.jsx';
 import PayloadMessage from './PayloadMessage.jsx';
 
-const STARTER_ICONS = {
-  recon: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-cyan">
-      <circle cx="12" cy="12" r="10" strokeDasharray="3 3"/>
-      <circle cx="12" cy="12" r="6"/>
-      <circle cx="12" cy="12" r="2" fill="currentColor"/>
-      <line x1="12" y1="2" x2="12" y2="5"/>
-      <line x1="12" y1="19" x2="12" y2="22"/>
-      <line x1="2" y1="12" x2="5" y2="12"/>
-      <line x1="19" y1="12" x2="22" y2="12"/>
-    </svg>
-  ),
-  auth: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-volt">
-      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-      <circle cx="12" cy="11" r="2.5" strokeWidth="1.8"/>
-      <path d="M12 13.5v3.5"/>
-      <path d="M10.5 15.5h3"/>
-    </svg>
-  ),
-  smash: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-warn">
-      <path d="m18 2 4 4-9 9H9v-4l9-9Z"/>
-      <path d="m15 5 4 4"/>
-      <path d="m7 17-4 4"/>
-      <path d="m2 19 3 3"/>
-      <path d="M9 22h4"/>
-    </svg>
-  ),
-  sqli: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-danger">
-      <ellipse cx="12" cy="5" rx="8" ry="3"/>
-      <path d="M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/>
-      <path d="M4 11v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/>
-    </svg>
-  ),
-  api: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-gold">
-      <rect x="3" y="3" width="7" height="7" rx="1.5"/>
-      <rect x="14" y="3" width="7" height="7" rx="1.5"/>
-      <rect x="3" y="14" width="7" height="7" rx="1.5"/>
-      <path d="M14 17.5h7"/>
-      <path d="M17.5 14v7"/>
-    </svg>
-  ),
-  bundle: (
-    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className="text-volt">
-      <path d="M4 7c0-1.1 3.6-2.5 8-2.5s8 1.4 8 2.5"/>
-      <path d="M4 7v10c0 1.1 3.6 2.5 8 2.5s8-1.4 8-2.5V7"/>
-      <path d="M4 12c0 1.1 3.6 2.5 8 2.5s8-1.4 8-2.5"/>
-    </svg>
-  ),
-};
-
-const STARTERS = [
-  {
-    id: 'recon',
-    tag: 'RECON',
-    title: 'Stealth Reconnaissance',
-    desc: _t('recon_desc'),
-    prompt: '/recon https://target.com map all subdomains and exposed endpoints'
-  },
-  {
-    id: 'auth',
-    tag: 'AUTH/IDOR',
-    title: 'Session & Auth Audit',
-    desc: _t('auth_desc'),
-    prompt: '/auth analyze session tokens and check access-control flaws'
-  },
-  {
-    id: 'smash',
-    tag: 'RACE/STRIKE',
-    title: 'Race Shock',
-    desc: _t('smash_desc'),
-    prompt: '/smash test race conditions on debit and grant endpoints'
-  },
-  {
-    id: 'sqli',
-    tag: 'INJECTION',
-    title: 'SQL Injection Deep',
-    desc: 'Full SQLi audit: union, blind, error-based and time-based vectors.',
-    prompt: '/sqli https://target.com deep injection audit — union, blind, error-based, time-based'
-  },
-  {
-    id: 'api',
-    tag: 'API/FUZZ',
-    title: 'API Surface Sweep',
-    desc: 'GraphQL introspection, endpoint discovery and parameter fuzzing.',
-    prompt: '/api-sweep https://target.com GraphQL introspection, endpoint discovery, param fuzzing'
-  },
-  {
-    id: 'bundle',
-    tag: 'JS/SECRETS',
-    title: 'JS Bundle Hunt',
-    desc: 'Mine JavaScript bundles for API keys, endpoints and secrets.',
-    prompt: '/bundle-hunt https://target.com mine JS bundles for API keys, endpoints, secrets'
-  }
-];
-
 const SLASH_COMMANDS = [
   { cmd: '/recon', desc: 'Stealth mapping & DNS/HTTP reconnaissance', example: '/recon https://target.com' },
   { cmd: '/auth', desc: 'Audit of Clerk auth flows & cookies', example: '/auth check sessions' },
@@ -124,33 +25,23 @@ export default function WarRoom({
   streaming = '',
   strikeMode = 'IA',
   setStrikeMode = () => {},
+  rightRail = null,
+  tools = {},
+  onFocusConsole = null,
 }) {
   const [draft, setDraft] = useState('');
   const [attachments, setAttachments] = useState([]);
   const [note, setNote] = useState(null);
   const [pinned, setPinned] = useState(true);
   const [copiedIndex, setCopiedIndex] = useState(null);
-  const [recentMissions, setRecentMissions] = useState([]);
+  const [transmitting, setTransmitting] = useState(false);
 
-  // Missions récentes — le fil de bataille au mount (5 dernières,
-  // findings count via le détail, mission par mission)
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      try {
-        const res = await axios.get(`${API_BASE}/missions`).catch(() => null);
-        const list = (res?.data || []).slice(0, 5);
-        if (!alive || list.length === 0) return;
-        const detailed = await Promise.all(list.map(m =>
-          axios.get(`${API_BASE}/missions/${m.id}`)
-            .then(r => ({ ...m, findings: (r.data?.findings || []).length }))
-            .catch(() => m)
-        ));
-        if (alive) setRecentMissions(detailed);
-      } catch { /* silencieux — pas de fil si l'API dort */ }
-    })();
-    return () => { alive = false; };
-  }, []);
+  // Active running tool from tools stream
+  const activeRunningTool = useMemo(() => {
+    const running = Object.entries(tools || {}).filter(([_, t]) => t?.status === 'running');
+    if (!running.length) return null;
+    return running[running.length - 1][0];
+  }, [tools]);
 
   const endRef = useRef(null);
   const chatContainerRef = useRef(null);
@@ -189,11 +80,16 @@ export default function WarRoom({
     const ext = '.' + (f.name.split('.').pop() || '').toLowerCase();
     const kb = (f.size / 1024).toFixed(1);
 
-    // Format texte autorisé ? (sinon rejet immédiat)
-    const isAllowed = ALLOWED_DOC_EXTS.has(ext) || f.type.startsWith('text/');
+    // Format texte autorisé ? (sinon rejet immédiat) — M6 FIX: the text/
+    // MIME escape hatch is gone; the extension whitelist is the single
+    // law, in exact sync with the backend DOC_EXTS.
+    const isAllowed = ALLOWED_DOC_EXTS.has(ext);
 
     try {
-      const head = new Uint8Array(await f.slice(0, 1024).arrayBuffer());
+      // M8 FIX (audit): a binary blob at offset 5000 dodged the 1KB
+      // sniff and got fully decoded as mojibake into the strategist's
+      // context — widen the window to 64KB, still one read.
+      const head = new Uint8Array(await f.slice(0, 65536).arrayBuffer());
       if (head.includes(0) || !isAllowed) {
         setNote(_t('upload_text_only', { name: f.name }));
         setTimeout(() => setNote(null), 4000);
@@ -202,8 +98,9 @@ export default function WarRoom({
 
       // BIG-FILE FIX (har & captures): read the FIRST 500KB via slice —
       // a 20MB .har no longer hits the wall, we just capture its head.
-      // Small files read whole, as before.
-      const isBig = f.size > 2 * 1024 * 1024;
+      // M7 FIX (audit): isBig threshold now matches the actual slice
+      // (500KB) so the truncation note reflects what really happened.
+      const isBig = f.size > 500_000;
       let text = isBig ? await f.slice(0, 500_000).text() : await f.text();
       let isTruncated = false;
       if (text.length > 60000) {
@@ -281,6 +178,15 @@ export default function WarRoom({
       textareaRef.current.style.height = 'auto';
     }
 
+    // Trigger subtle transmission energy wave toward the console
+    setTransmitting(true);
+    setTimeout(() => setTransmitting(false), 1100);
+
+    // If slash tactical command, immediately focus console
+    if (rawMsg.startsWith('/') && rawMsg !== '/clear' && onFocusConsole) {
+      onFocusConsole();
+    }
+
     if (warMode && onSend) await onSend(finalPayload);
     else if (!warMode && onSendOperator) {
       await onSendOperator(missionId, finalPayload);
@@ -288,8 +194,9 @@ export default function WarRoom({
   };
 
   return (
-    <div className="flex flex-col h-full min-h-0 panel-frost relative overflow-hidden">
-      {/* ── LE FIL DE CONVERSATION ── */}
+    <div className="flex h-full min-h-0 panel-frost relative overflow-hidden">
+      <div className="flex-1 min-w-0 flex flex-col h-full relative">
+        {/* ── LE FIL DE CONVERSATION ── */}
       {!empty && (
         <div
           ref={chatContainerRef}
@@ -308,23 +215,34 @@ export default function WarRoom({
 
           {chatLog.map((m, i) => {
             const isUser = m.role === 'user';
+            const isLive = m.isOperatorLive;
             return (
               <div key={i} className={`flex ${isUser ? 'justify-end' : 'justify-start'} group`}>
                 <div
                   className={`max-w-[92%] sm:max-w-[85%] rounded-2xl px-4 py-3 shadow-sm relative transition-all ${
                     isUser
-                      ? 'bg-wash/90 border border-line2 rounded-tr-md'
+                      ? isLive
+                        ? 'bg-wash/95 border border-volt/50 rounded-tr-md shadow-[0_0_14px_rgba(167,139,250,0.18)]'
+                        : 'bg-wash/90 border border-line2 rounded-tr-md'
                       : 'bg-inset/70 border border-line rounded-tl-md'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-3 mb-1.5 select-none">
-                    <span
-                      className={`text-[9.5px] uppercase tracking-[.18em] font-medium font-mono ${
-                        isUser ? 'text-cyan' : 'text-mut'
-                      }`}
-                    >
-                      {isUser ? _t('role_commander') : _t('role_strategist')}{m.time ? ` · ${m.time}s` : ''}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className={`text-[9.5px] uppercase tracking-[.18em] font-medium font-mono ${
+                          isUser ? 'text-cyan' : 'text-mut'
+                        }`}
+                      >
+                        {isUser ? _t('role_commander') : _t('role_strategist')}{m.time ? ` · ${m.time}s` : ''}
+                      </span>
+                      {isLive && (
+                        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[8.5px] uppercase tracking-wider font-mono font-bold bg-voltlite text-cyan border border-volt/30 animate-pulse">
+                          <span className="w-1 h-1 rounded-full bg-volt" />
+                          [ORDRE EN DIRECT]
+                        </span>
+                      )}
+                    </div>
                     <button
                       type="button"
                       onClick={() => copyMessage(m.text, i)}
@@ -380,11 +298,11 @@ export default function WarRoom({
         </div>
       )}
 
-      {/* ── ÉTAT VIDE (HUB D'ASSAUT & STARTERS) ── */}
+      {/* ── ÉTAT VIDE (WAR ROOM MINIMALISTE) ── */}
       {empty && (
-        <div className="flex-1 min-h-0 relative flex flex-col items-center justify-center text-center px-6 py-6 overflow-y-auto">
+        <div className="flex-1 min-h-0 relative flex flex-col items-center justify-center text-center px-6 py-6 overflow-y-auto select-none">
           <div aria-hidden className="spotlight pointer-events-none absolute -top-32 left-1/2 -translate-x-1/2 w-[560px] h-[280px] opacity-25" />
-          
+
           {/* Logo d'Obsidienne & Halo respirant */}
           <div
             className="relative mb-3 group cursor-pointer"
@@ -392,7 +310,7 @@ export default function WarRoom({
             title="Cliquer pour armer la saisie"
           >
             <div className="w-14 h-14 rounded-full border border-line2 bg-wash/90 p-2.5 flex items-center justify-center shadow-lg transition-transform group-hover:scale-105 duration-300">
-              <img src="/voidforge-white.png" alt="REDACTED Logo" className="w-full h-full object-contain drop-shadow-[0_0_16px_rgba(167,139,250,0.6)]" />
+              <img src="/redacted-white.png" alt="REDACTED Logo" className="w-full h-full object-contain drop-shadow-[0_0_16px_rgba(167,139,250,0.6)]" />
             </div>
             <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-volt border-2 border-paper animate-pulse" title="System ready for assault" />
           </div>
@@ -402,98 +320,8 @@ export default function WarRoom({
             One order, and the night goes to work.
           </h2>
           <p className="text-[12.5px] leading-relaxed text-ash mb-5 relative max-w-lg">
-            {warMode ? (
-              <>Give context, the target, or select a tactical protocol below to launch the automated offensive.</>
-            ) : (
-              <>The agent is on active campaign. Your orders arrive at the next cycle.</>
-            )}
+            State your target or mission objective. The autonomous strategist will plan the vectors and execute.
           </p>
-
-          {/* Cartes d'Assaut Rapide (Starters - 6 protocoles, 2x3) */}
-          {warMode && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 max-w-3xl w-full text-left mb-4 animate-fadeIn">
-              {STARTERS.map((s, idx) => (
-                <button
-                  key={idx}
-                  type="button"
-                  onClick={() => {
-                    setDraft(s.prompt);
-                    if (textareaRef.current) {
-                      textareaRef.current.focus();
-                      textareaRef.current.style.height = 'auto';
-                      textareaRef.current.style.height = '64px';
-                    }
-                  }}
-                  className="rounded-card border border-line hover:border-volt/50 bg-wash/50 hover:bg-wash p-3 space-y-1.5 transition-all group text-left shadow-xs hover:shadow-md hover:-translate-y-0.5"
-                >
-                  <div className="flex items-center justify-between gap-1">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className="w-6 h-6 rounded-md bg-wash border border-line flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                        {STARTER_ICONS[s.id]}
-                      </span>
-                      <span className="text-[11.5px] font-medium text-ink tracking-tight truncate">{s.title}</span>
-                    </div>
-                    {s.tag && (
-                      <span className="font-mono text-[8.5px] px-1.5 py-0.5 rounded bg-wash border border-line text-faint tracking-wider uppercase shrink-0">
-                        {s.tag}
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-[10.5px] text-ash leading-relaxed line-clamp-2 font-sans">
-                    {s.desc}
-                  </p>
-                  <span className="inline-flex items-center gap-1 text-[9.5px] font-mono text-cyan tracking-wider uppercase opacity-80 group-hover:opacity-100">
-                    launch <span>→</span>
-                  </span>
-                </button>
-              ))}
-            </div>
-          )}
-
-          {/* Missions Récentes — le fil de bataille sous les protocoles */}
-          {warMode && recentMissions.length > 0 && (
-            <div className="max-w-3xl w-full mb-4 animate-fadeIn">
-              <p className="eyebrow mb-2 flex items-center gap-2">
-                <span className="w-1 h-1 rounded-full bg-cyan inline-block" />
-                recent missions — click to re-arm the target
-              </p>
-              <div className="flex gap-2 overflow-x-auto pb-1.5">
-                {recentMissions.map(m => (
-                  <button
-                    key={m.id}
-                    type="button"
-                    onClick={() => {
-                      const tgt = (m.mission_text || '').split(/[\s—-]/).find(w => w.includes('.')) || m.mission_text || '';
-                      setDraft(`/recon ${tgt} map the surface and compare with last intel`);
-                      if (textareaRef.current) {
-                        textareaRef.current.focus();
-                        textareaRef.current.style.height = 'auto';
-                        textareaRef.current.style.height = '64px';
-                      }
-                    }}
-                    className="shrink-0 rounded-card border border-line bg-wash/40 hover:border-volt/50 hover:bg-wash px-3 py-2 text-left transition-all group"
-                  >
-                    <div className="flex items-center gap-2 mb-0.5">
-                      <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-                        m.status === 'running' ? 'bg-volt animate-pulse' :
-                        m.status === 'complete' ? 'bg-ok' :
-                        m.status === 'error' || m.status === 'interrupted' ? 'bg-danger' : 'bg-mut'}`} />
-                      <span className="text-[10.5px] font-mono text-ink truncate max-w-[130px]">
-                        {(m.mission_text || '').split(/[\s—-]/).find(w => w.includes('.')) || m.mission_text?.slice(0, 22) || '?'}
-                      </span>
-                      <span className="font-mono text-[8.5px] uppercase tracking-wider text-faint shrink-0">
-                        {m.status}
-                      </span>
-                    </div>
-                    <span className="text-[9px] font-mono text-faint">
-                      {(m.started_at || '').substring(0, 16)}
-                      {m.findings ? ` · ${m.findings} finding${m.findings > 1 ? 's' : ''}` : ''}
-                    </span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
 
           <div aria-hidden className="horizon h-[2px] w-44 mx-auto rounded-full opacity-80 relative" />
         </div>
@@ -564,7 +392,33 @@ export default function WarRoom({
             </div>
           )}
 
+          {/* Interactive Status Capsule (Chat ↔ Console coordination) */}
+          {(activeRunningTool || streaming || (busy && !streaming)) && (
+            <div className="flex items-center justify-center mb-2 animate-fadeIn">
+              <button
+                type="button"
+                onClick={() => onFocusConsole && onFocusConsole()}
+                title="Voir l'exécution en direct dans la console"
+                className="group inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-volt/40 bg-voltlite/85 hover:bg-voltlite text-cyan text-[11px] font-mono tracking-wider transition-all shadow-[0_0_12px_rgba(167,139,250,0.2)] hover:shadow-[0_0_16px_rgba(167,139,250,0.35)] cursor-pointer"
+              >
+                <span className="text-volt animate-pulse">⚡</span>
+                <span className="font-semibold text-ink">
+                  {activeRunningTool
+                    ? `${activeRunningTool} en cours...`
+                    : streaming
+                    ? 'rédaction en cours...'
+                    : 'réflexion en cours...'}
+                </span>
+                <span className="text-[10px] text-mut group-hover:text-cyan flex items-center gap-1 ml-1 transition-colors">
+                  <span>console</span>
+                  <span className="transition-transform group-hover:translate-x-0.5">→</span>
+                </span>
+              </button>
+            </div>
+          )}
+
           <div className="relative flex items-center rounded-[28px] border border-line2 bg-insetstrong backdrop-blur focus-within:border-volt/60 transition-colors shadow-sm px-1.5 py-1">
+            {transmitting && <div className="transmission-wave" aria-hidden />}
             <input ref={fileRef} type="file" className="hidden" onChange={attach} />
             <button
               type="button"
@@ -649,6 +503,8 @@ export default function WarRoom({
           </p>
         )}
       </form>
+      </div>
+      {rightRail}
     </div>
   );
 }

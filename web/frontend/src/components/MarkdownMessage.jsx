@@ -1,5 +1,6 @@
-﻿import React, { useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { marked } from 'marked';
+import DOMPurify from 'dompurify';
 
 function escapeHtml(str) {
   return String(str)
@@ -122,7 +123,17 @@ export default function MarkdownMessage({ content = '', isStreaming = false }) {
       }
     }
     try {
-      return marked.parse(textToParse);
+      // SÉCURITÉ VENTE (LO, 2026-09-10) : le produit traite du contenu
+      // HOSTILE par design — bundles JS, headers et réponses de cibles
+      // scannées remontent dans le feed. Sans sanitization, une cible
+      // malicieuse exécute du HTML/JS dans l'origin de l'app (accès aux
+      // routes API locales). DOMPurify avant toute injection.
+      return DOMPurify.sanitize(marked.parse(textToParse), {
+        USE_PROFILES: { html: true },
+        FORBID_TAGS: ['script', 'style', 'iframe', 'object', 'embed', 'form', 'input', 'button'],
+        FORBID_ATTR: ['onerror', 'onclick', 'onload', 'onmouseover', 'onfocus', 'formaction', 'srcset'],
+        ALLOWED_URI_REGEXP: /^(?:(?:https?|mailto):|[^a-z]|[a-z+.\-]+(?:[^a-z+.\-:]|$))/i,
+      });
     } catch {
       return `<p class="text-[12.5px] leading-relaxed text-ash whitespace-pre-wrap break-words">${escapeHtml(content)}</p>`;
     }

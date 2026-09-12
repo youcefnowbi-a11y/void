@@ -1,8 +1,8 @@
-/* VOIDFORGE service worker — la coquille survit au réseau.
-   Shell : network-first avec repli cache (l'app s'ouvre toujours).
-   Assets hashés Vite : stale-while-revalidate.
-   /api et /ws : JAMAIS interceptés — la guerre est live ou n'est pas. */
-const SHELL = 'vf-shell-v2';
+/* REDACTED service worker — the shell survives the network.
+   Shell: network-first with cache fallback (the app always opens).
+   Hashed Vite assets: stale-while-revalidate.
+   /api and /ws: NEVER intercepted — the war is live or it is not. */
+const SHELL = 'vf-shell-v3';
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -25,6 +25,10 @@ self.addEventListener('fetch', (event) => {
   // opérations vivantes → jamais de cache
   if (url.pathname.startsWith('/api') || url.pathname.startsWith('/ws')) return;
   if (event.request.method !== 'GET') return;
+  // C3 FIX (audit): in prod the API is SAME-ORIGIN (no /api prefix) —
+  // every backend GET route must bypass the SWR branch or the app
+  // renders days-stale state (provider chip, mission status, plans).
+  if (/^\/(provider|health|reports|report|workspace|mission|missions|chat|tools|tool|dashboard|persona|snapshots|skills|admin|license|graph)\b/.test(url.pathname)) return;
 
   // navigation : réseau d'abord, repli shell (mode avion → l'app s'ouvre quand même)
   if (event.request.mode === 'navigate') {

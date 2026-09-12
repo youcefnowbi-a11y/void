@@ -1,4 +1,4 @@
-﻿import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { t as _t } from '../i18n.js';
 
 const SEV_CONFIG = {
@@ -36,7 +36,7 @@ export default function FindingsVault({ findings = [] }) {
 
   if (findings.length === 0) {
     return (
-      <div className="h-full flex flex-col items-center justify-center text-center p-6 panel select-none">
+      <div className="h-full flex flex-col items-center justify-center text-center p-6 select-none">
         <div className="w-12 h-12 rounded-full border border-line bg-wash/80 flex items-center justify-center text-ok mb-3 shadow-xs">
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
@@ -55,7 +55,7 @@ export default function FindingsVault({ findings = [] }) {
   }
 
   return (
-    <div className="h-full flex flex-col panel overflow-hidden">
+    <div className="h-full flex flex-col overflow-hidden">
       {/* Header & Filtres */}
       <div className="px-4 py-3 border-b border-line bg-wash/40 shrink-0 space-y-2.5">
         <div className="flex items-center justify-between gap-2">

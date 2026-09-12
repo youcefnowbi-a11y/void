@@ -93,7 +93,7 @@ export default function SurfaceMap({ graph = { nodes: [], links: [] }, onSelectN
 
   if (nodes.length === 0) {
     return (
-      <div className="h-full flex flex-col items-center justify-center text-center p-6 panel select-none relative overflow-hidden">
+      <div className="h-full flex flex-col items-center justify-center text-center p-6 select-none relative overflow-hidden">
         {/* Grille radar tactique d'arrière-plan */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-20">
           <svg width="340" height="340" viewBox="0 0 340 340" fill="none" className="text-volt">
@@ -129,7 +129,7 @@ export default function SurfaceMap({ graph = { nodes: [], links: [] }, onSelectN
   }
 
   return (
-    <div className="h-full flex flex-col panel overflow-hidden">
+    <div className="h-full flex flex-col overflow-hidden">
       {/* En-tête avec compteurs et filtre de recherche */}
       <div className="px-4 py-3 border-b border-line bg-wash/40 shrink-0 space-y-2.5">
         <div className="flex items-center justify-between gap-2">

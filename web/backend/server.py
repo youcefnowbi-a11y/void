@@ -251,6 +251,65 @@ async def test_provider(req: ProviderRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+def _rewrite_config_preserving_comments(path: str, cfg: dict):
+    """Réécrit provider.yaml en éditant chirurgicalement les lignes des
+    clés provider/* — commentaires, sections et ordre préservés (le
+    safe_dump les écrasait, subi 2x en prod). Les clés absentes du
+    fichier d'origine sont ajoutées à la fin de leur section."""
+    with open(path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+    prov = cfg.get("provider") or {}
+    out, seen, in_prov = [], set(), False
+    for ln in lines:
+        stripped = ln.rstrip("\n")
+        if re.match(r"^provider:\s*$", stripped):
+            in_prov = True
+            out.append(stripped + "\n")
+            continue
+        if in_prov:
+            m = re.match(r"^(\s*)([A-Za-z0-9_]+):\s*(.*?)(\s+#.*)?$", stripped)
+            if m and not m.group(1):          # nouvelle section racine
+                in_prov = False
+            elif m:
+                key = m.group(2)
+                if key in prov:
+                    # le commentaire inline (ex: « language: en  # knob i18n»)
+                    # survit à la réécriture de la valeur
+                    tail = m.group(4) or ""
+                    out.append(f"{m.group(1)}{key}: {_yaml_inline(prov[key])}{tail}\n")
+                    seen.add(key)
+                    continue
+        out.append(stripped + "\n")
+    # clés armées absentes du fichier d'origine → append en FIN de section
+    # provider (AVANT la première section racine suivante — insérer après
+    # « operator: » les placerait dans la mauvaise section)
+    missing = [k for k in prov if k not in seen]
+    if missing:
+        res = []
+        for ln in out:
+            if re.match(r"^(operator|security|framing):", ln):
+                for k in missing:
+                    res.append(f"  {k}: {_yaml_inline(prov[k])}\n")
+                missing = []          # une seule fois
+            res.append(ln)
+        for k in missing:              # aucune section suivante → fin de fichier
+            res.append(f"  {k}: {_yaml_inline(prov[k])}\n")
+        out = res
+    tmp = path + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as f:
+        f.writelines(out)
+    os.replace(tmp, path)                     # atomique : pas de demi-écriture
+
+
+def _yaml_inline(v) -> str:
+    """Valeur scalaire → inline YAML sûr (str en simple-quotes échappées)."""
+    if isinstance(v, bool):
+        return "true" if v else "false"
+    if isinstance(v, (int, float)):
+        return str(v)
+    return "'" + str(v).replace("'", "''") + "'"
+
+
 @app.post("/provider")
 async def set_provider(req: ProviderRequest):
     """Teste d'abord le modèle, puis réécrit config/provider.yaml avec les nouvelles valeurs."""
@@ -280,16 +339,19 @@ async def set_provider(req: ProviderRequest):
             )
 
         # ── Sauvegarde si le test est OK ──
-        prov = cfg.setdefault("provider", {})
-        prov["base_url"] = req.base_url.strip()
-        prov["api_key"] = target_key
-        prov["model"] = req.model.strip()
-        prov["temperature"] = float(req.temperature)
-        prov["max_tool_rounds"] = int(req.max_tool_rounds)
+        # FIX (LO, 2026-09-10) : yaml.safe_dump écrase les commentaires et
+        # reformate — subi 2 fois en prod. On réécrit CHIRURGICALEMENT les
+        # lignes armées en préservant le reste du fichier (commentaires,
+        # sections operator/security/framing, ordre des clés).
+        _prov = cfg.setdefault("provider", {})
+        _prov["base_url"] = req.base_url.strip()
+        _prov["api_key"] = target_key
+        _prov["model"] = req.model.strip()
+        _prov["temperature"] = float(req.temperature)
+        _prov["max_tool_rounds"] = int(req.max_tool_rounds)
         if req.chat_max_tokens is not None:
-            prov["max_tokens"] = max(256, int(req.chat_max_tokens))
-        with open(CONFIG_PATH, "w", encoding="utf-8") as f:
-            yaml.safe_dump(cfg, f, allow_unicode=True, sort_keys=False)
+            _prov["max_tokens"] = max(256, int(req.chat_max_tokens))
+        _rewrite_config_preserving_comments(CONFIG_PATH, cfg)
             
         reply_preview = content.strip()[:50]
         return {
@@ -621,7 +683,7 @@ async def run_mission(req: MissionRequest):
         # war-room context (he talked to the strategist, launched from the
         # UI, and the strike agent never heard a word of it). Both modes
         # carry the commander's pre-mission voice now.
-        if req_mode in ("Plan", "IA") and _CHAT.get("session") is not None:
+        if (req.mode in ("Plan", "IA") or req_mode in ("Plan", "IA")) and _CHAT.get("session") is not None:
             chat_context = _CHAT["session"].get_context()
         loop = asyncio.get_running_loop()
         loop.create_task(_launch_mission(
@@ -706,6 +768,12 @@ async def mission_message(req: OperatorMessage):
     inbox = RUNNING_INBOXES.get(req.mission_id) if req.mission_id else None
     if inbox is not None:
         inbox.put(msg)
+        if _CHAT.get("session") is not None:
+            try:
+                _CHAT["session"].history.append({"role": "user", "content": f"[ORDRE EN DIRECT] {msg}"})
+                _save_chat_log()
+            except Exception:
+                pass
         await manager.broadcast({"type": "ops", "direction": "to-agent",
                                  "text": msg, "mode": "live",
                                  "timestamp": datetime.now().isoformat()})
@@ -790,6 +858,11 @@ async def get_snapshot(filename: str):
     if '..' in filename or '/' in filename or '\\' in filename:
         raise HTTPException(status_code=400, detail="Invalid filename")
     path = os.path.join(VOIDFORGE_ROOT, filename)
+    # m4 FIX (audit): drive-relative names (C:x) survive the character
+    # blacklist on Windows — the _contained parity check used by
+    # /reports closes the same hole here.
+    if not _contained(VOIDFORGE_ROOT, path):
+        raise HTTPException(status_code=400, detail="Invalid filename")
     if not os.path.exists(path):
         raise HTTPException(status_code=404, detail="Snapshot not found")
     with open(path, "r", encoding="utf-8") as f:
@@ -843,9 +916,23 @@ _LOOP = {"loop": None}            # main event loop, for thread→loop bridges
 _RUN_STATE = {"running": False}   # one campaign at a time
 _RUN_LOCK = threading.Lock()      # atomic check-and-set — no TOCTOU
 _CHAT_TURN_LOCK = threading.Lock()  # R4-16: un turn chat à la fois (non-bloquant)
-_CHAT_EVENTS = []                 # tool events drained by the route each turn
+_CHAT_EVENTS = []                 # tool events fallback buffer
 _CHAT_LOG_PATH = os.path.join(VOIDFORGE_ROOT, "missions", "_chat", "history.json")
 _PENDING_PLAN_PATH = os.path.join(VOIDFORGE_ROOT, "missions", "_pending_plan.json")
+
+def _broadcast_chat_event(ev: dict):
+    """Real-time broadcast of chat tool events (tool_start, tool_result) to WebSockets."""
+    if not isinstance(ev, dict):
+        return
+    # M4 FIX (audit): tag the origin — chat-turn tool frames must NOT
+    # pollute the mission HUD's stats/tools when no campaign is live.
+    ev.setdefault("origin", "chat")
+    ev.setdefault("timestamp", datetime.now().isoformat())
+    loop = _LOOP.get("loop")
+    if loop and loop.is_running():
+        asyncio.run_coroutine_threadsafe(manager.broadcast(ev), loop)
+    else:
+        _CHAT_EVENTS.append(ev)
 
 
 async def _launch_mission(mission: str, mode: str, ws=None, **kw):
@@ -971,7 +1058,7 @@ def _chat_session():
             cfg = _yaml.safe_load(f)
         sess = ChatSession(
             cfg, persona_prompt=pp,
-            on_event=lambda ev: _CHAT_EVENTS.append(ev),
+            on_event=_broadcast_chat_event,
             bridge={"request_plan": request_plan, "execute_plan": execute_plan})
         if old is not None:
             sess.history = old.history  # persona swap — la conversation survit
@@ -1049,6 +1136,7 @@ async def chat_message(req: ChatMessage):
     try:
         cs = _chat_session()
         _LOOP["loop"] = asyncio.get_running_loop()
+        cs.on_event = _broadcast_chat_event
 
         def stream_cb(piece):
             """Relay each content delta to the operator in real time.
@@ -1070,12 +1158,13 @@ async def chat_message(req: ChatMessage):
         except Exception as e:
             raise HTTPException(status_code=500, detail=str(e))
         elapsed = round((datetime.now() - t0).total_seconds(), 1)
-        # drain the strategist's tool events → the live console
-        drained = list(_CHAT_EVENTS)
-        _CHAT_EVENTS.clear()
-        for ev in drained:
-            ev.setdefault("timestamp", datetime.now().isoformat())
-            await manager.broadcast(ev)
+        # Drain any fallback buffered events if any (real-time broadcast already sent tool_start/tool_result)
+        if _CHAT_EVENTS:
+            drained = list(_CHAT_EVENTS)
+            _CHAT_EVENTS.clear()
+            for ev in drained:
+                ev.setdefault("timestamp", datetime.now().isoformat())
+                await manager.broadcast(ev)
         _save_chat_log()
         return {"status": "ok", "answer": answer, "turns": cs.count(), "elapsed": elapsed}
     finally:
@@ -1085,8 +1174,20 @@ async def chat_message(req: ChatMessage):
 async def chat_log():
     """The full conversation, served on page reload — bubbles are never lost."""
     cs = _chat_session()
-    log = [{"role": "user" if m["role"] == "user" else "strategist",
-            "text": m.get("content", "")} for m in cs.history]
+    log = []
+    for m in cs.history:
+        content = m.get("content", "")
+        is_live = False
+        if isinstance(content, str) and content.startswith("[ORDRE EN DIRECT] "):
+            is_live = True
+            content = content[len("[ORDRE EN DIRECT] "):]
+        entry = {
+            "role": "user" if m.get("role") == "user" else "strategist",
+            "text": content,
+        }
+        if is_live:
+            entry["isOperatorLive"] = True
+        log.append(entry)
     return {"status": "ok", "log": log, "turns": cs.count()}
 
 @app.post("/chat/clear")
@@ -1298,16 +1399,21 @@ async def _run_mission_streaming(mission: str, mode: str, ws: WebSocket,
 
     def _graph_snapshot(board):
         """Compact Living Graph snapshot for the tactical map."""
+        # m3 FIX (audit): swarm specialists mutate assets/edges while this
+        # snapshots — a bare list() copy can raise mid-iteration and the
+        # swallowed RuntimeError renders blank map frames. Snapshot under
+        # the board's own RLock.
         try:
-            nodes = [{"k": a["kind"], "v": a["value"][:90],
-                      "c": round(a.get("confidence", 0.5), 2),
-                      "s": len(a.get("sources", []))}
-                     for k, a in list(board.assets.items())[:180]]
-            links = []
-            for (src, rel, dst), e in list(board.edges.items())[:260]:
-                if src in board.assets and dst in board.assets:
-                    links.append({"s": src, "r": rel, "d": dst,
-                                  "c": round(e.get("confidence", 0.5), 2)})
+            with board.lock:
+                nodes = [{"k": a["kind"], "v": a["value"][:90],
+                          "c": round(a.get("confidence", 0.5), 2),
+                          "s": len(a.get("sources", []))}
+                         for k, a in list(board.assets.items())[:180]]
+                links = []
+                for (src, rel, dst), e in list(board.edges.items())[:260]:
+                    if src in board.assets and dst in board.assets:
+                        links.append({"s": src, "r": rel, "d": dst,
+                                      "c": round(e.get("confidence", 0.5), 2)})
             return {"nodes": nodes, "links": links}
         except Exception:
             return {"nodes": [], "links": []}
@@ -1492,9 +1598,13 @@ async def _run_mission_streaming(mission: str, mode: str, ws: WebSocket,
                 RUNNING_INBOXES[mid] = inbox
                 try:
                     agent = Agent(cfg, blackboard=board, plan_mode=True)
+                    # C1 FIX (audit): inherit the launcher's workspace claim —
+                    # the agent's own workspace_for() re-claim saw the target
+                    # busy and silently isolated every banked evidence into
+                    # run_<ts>/ dirs the dashboards never read.
                     transcript = agent.run(mission, on_event=sync_emit, mission_id=mid,
                                            prior_intel=prior_intel, operator_inbox=inbox,
-                                           commander_orders=chat_context)
+                                           commander_orders=chat_context, inherit_ws=_ws)
                     # B-S4 (famille) : le mode Plan a une inbox sentinel mais ne
                     # récoltait jamais last_abort_reason — un abort plan-mode
                     # s'enregistrait « complete » comme pour Swarm/Offline.
@@ -1540,10 +1650,12 @@ async def _run_mission_streaming(mission: str, mode: str, ws: WebSocket,
                 sync_emit({"type": "system", "text": "🕸 MODE SWARM — spécialistes + vérificateur"})
                 if plan_doc:
                     from core.swarm import PlannedSwarm
-                    coordinator = PlannedSwarm(cfg, plan_doc, target=board.target)
+                    coordinator = PlannedSwarm(cfg, plan_doc, target=board.target,
+                                              inherit_ws=_ws)
                 else:
                     from core.swarm import SwarmCoordinator
-                    coordinator = SwarmCoordinator(cfg, target=board.target)
+                    coordinator = SwarmCoordinator(cfg, target=board.target,
+                                                   inherit_ws=_ws)
                 transcript = coordinator.run(mission, on_event=sync_emit, mission_id=mid)
                 board = coordinator.board
             else:
@@ -1553,9 +1665,12 @@ async def _run_mission_streaming(mission: str, mode: str, ws: WebSocket,
                 RUNNING_INBOXES[mid] = inbox
                 try:
                     agent = Agent(cfg, blackboard=board)
+                    # C1 FIX (audit): same inheritance law as Plan mode —
+                    # ONE campaign workspace, never a re-claimed isolate.
                     transcript = agent.run(mission, on_event=sync_emit, mission_id=mid,
                                            prior_intel=prior_intel, operator_inbox=inbox,
-                                           commander_orders=chat_context, plan_doc=plan_doc)
+                                           commander_orders=chat_context, plan_doc=plan_doc,
+                                           inherit_ws=_ws)
                     _agent_reason["v"] = getattr(agent, "last_abort_reason", "")
                 finally:
                     RUNNING_INBOXES.pop(mid, None)
@@ -1626,8 +1741,11 @@ async def _run_mission_streaming(mission: str, mode: str, ws: WebSocket,
         _reason = (_agent_reason.get("v")
                    or _PENDING_ABORTS.pop(mid, None) or "").strip()
         if _reason and _reason != "complete":
+            # M3 FIX (audit): "timeout" n'existe pas dans l'enum frontend
+            # (complete/error/aborted/interrupted/running) — un wall-clock
+            # abort est un abort, l'état DB et le chip UI restent alignés.
             _status = {"operator_abort": "aborted", "llm_dead": "aborted",
-                       "timeout": "timeout"}.get(_reason, "aborted")
+                       "timeout": "aborted"}.get(_reason, "aborted")
             mission_state.finish_mission(mid, f"{_reason} after {duration}s",
                                          report_path=report_path, status=_status)
             await manager.broadcast({
@@ -1855,10 +1973,12 @@ except Exception:
 
 if __name__ == "__main__":
     import uvicorn
-    host = "127.0.0.1"
-    port = 8000
-    # R4-19 : la posture localhost est du code, pas une convention — un bind
-    # non-loopback sans token n'expose pas 104 tools offensifs au LAN.
+    # m1 FIX (audit): the guard was dead code — host was a hardcoded
+    # literal, the branch could never fire. The knob is real now: set
+    # REDACTED_BIND (or VOIDFORGE_BIND) to expose beyond loopback, and
+    # doing so without OPERATOR_TOKEN is refused.
+    host = os.environ.get("REDACTED_BIND") or os.environ.get("VOIDFORGE_BIND") or "127.0.0.1"
+    port = int(os.environ.get("PORT") or 8000)
     if host not in ("127.0.0.1", "localhost") and not OPERATOR_TOKEN:
         print("✗ bind non-loopback refusé : définis VOIDFORGE_TOKEN avant d'exposer l'API")
         sys.exit(1)

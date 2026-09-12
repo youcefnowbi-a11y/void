@@ -13,7 +13,7 @@
    "used": 10,
    "worked": 10,
    "failed": 0,
-   "times_re_minted": 16,
+   "times_re_minted": 20,
    "ts": 1788540935.317
   },
   {
@@ -25,11 +25,11 @@
    "evidence": {
     "signature": "X-Admin-Token|X-Api-Token|admin.{0,20}header.{0,40}single shared"
    },
-   "score": 0.997,
-   "used": 368,
-   "worked": 368,
+   "score": 1.0,
+   "used": 390,
+   "worked": 390,
    "failed": 0,
-   "times_re_minted": 9,
+   "times_re_minted": 12,
    "ts": 1788540935.319
   },
   {
@@ -42,10 +42,10 @@
     "signature": "forge_tool.{0,200}(ok|ARMÉ|live)"
    },
    "score": 1.0,
-   "used": 61,
-   "worked": 61,
+   "used": 65,
+   "worked": 65,
    "failed": 0,
-   "times_re_minted": 16,
+   "times_re_minted": 17,
    "ts": 1788540935.32
   },
   {
@@ -65,6 +65,24 @@
    "failed": 0,
    "times_re_minted": 2,
    "ts": 1788653289.482
+  },
+  {
+   "predicate": "a stop rail forced a pivot — the wall was real; do not re-attack the same surface with the same vector",
+   "context": "any-target",
+   "where": "wall-avoidance",
+   "expected": "skips of this class cost 1 calls last mission",
+   "origin": "skip-autopsy",
+   "evidence": {
+    "category": "rail_pivot",
+    "count": 1,
+    "example": "differential_sweep: wall_403 at 96%"
+   },
+   "score": 0.6,
+   "used": 0,
+   "worked": 0,
+   "failed": 0,
+   "times_re_minted": 1,
+   "ts": 1788998336.702
   }
  ],
  "graveyard": []

@@ -6,7 +6,11 @@
 
 let LANG = 'en'
 
-export function setLang(l) { LANG = (l === 'fr') ? 'fr' : 'en' }
+export function setLang(l) {
+  LANG = (l === 'fr') ? 'fr' : 'en'
+  // m5 FIX: expose for non-React helpers (console clock locale)
+  try { if (typeof window !== 'undefined') window.__vf_lang = LANG } catch {}
+}
 export function getLang() { return LANG }
 
 const S = {
@@ -98,6 +102,13 @@ const S = {
   sidebar_close: { en: 'Close (Esc)', fr: 'Fermer (Échap)' },
   sidebar_search: { en: 'Search a past mission…', fr: 'Rechercher une mission passée...' },
   sidebar_archived: { en: 'Archived mission', fr: 'Mission archivée' },
+  final_report: { en: 'final report', fr: 'rapport final' },
+  filter_all: { en: 'all', fr: 'tout' },
+  filter_tools: { en: 'tools', fr: 'outils' },
+  filter_findings: { en: 'findings', fr: 'alertes' },
+  filter_ai: { en: 'ai', fr: 'ia' },
+  filter_errors: { en: 'errors', fr: 'erreurs' },
+  strike_blocked: { en: 'strike blocked — a campaign is already running', fr: 'frappe bloquée — une campagne est déjà en cours' },
   sidebar_settings: { en: 'Operational Settings', fr: 'Paramètres Opérationnels' },
 
   // ── LiveConsole ────────────────────────────────────────────

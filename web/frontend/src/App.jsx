@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import LiveConsole from './components/LiveConsole.jsx';
 import WarRoom from './components/WarRoom.jsx';
-import FindingsLive from './components/FindingsLive.jsx';
+// (audit m5): FindingsLive was imported but never rendered — dead module, removed.
 import SurfaceMap from './components/SurfaceMap.jsx';
 import AttackGraph from './components/AttackGraph.jsx';
 import FindingsVault from './components/FindingsVault.jsx';
@@ -73,22 +73,77 @@ function App() {
   const [elapsed, setElapsed] = useState(0);
   const [showParams, setShowParams] = useState(false);
   const [paramsTab, setParamsTab] = useState('cerveau');
+  /* ── commercial license lock (dev build lifts it via TEST_MODE) ── */
+  const [licenseLocked, setLicenseLocked] = useState(false);
+  const [licenseKey, setLicenseKey] = useState('');
+  const [licenseBusy, setLicenseBusy] = useState(false);
+  const [licenseMsg, setLicenseMsg] = useState(null);
 
   const {
-    logs, findings, graph, stats,
+    logs, findings, graph, stats, tools,
     status: wsStatus, missionId, missionText, connected,
     reset, clearConsole, abortMission, sendOperatorMessage,
     pendingPlan, sendChatMessage, clearChat, chatLog, chatBusy, chatStreaming, approvePlan,
   } = useMissionSocket();
   const [editedPlan, setEditedPlan] = useState('');
   const [strikeMode, setStrikeMode] = useState('IA');
+  const [activePlan, setActivePlan] = useState(pendingPlan);
+  const [planExiting, setPlanExiting] = useState(false);
 
   /* ── panneaux & établi ── */
   const [consolePinned, setConsolePinned] = useState(null); // null = auto (l'activité décide)
-  const hasActivity = logs.length > 0 || chatLog.length > 0 || wsStatus !== 'idle';
-  const consoleOpen = consolePinned !== null ? consolePinned : hasActivity;
+  const hasConsoleActivity = logs.length > 0 || wsStatus !== 'idle';
+  const consoleOpen = consolePinned !== null ? consolePinned : hasConsoleActivity;
   const [workbenchTab, setWorkbenchTab] = useState('console'); // 'console' | 'surface' | 'findings'
+  const [consoleFullscreen, setConsoleFullscreen] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
+
+  // Smooth exit transition for pendingPlan
+  useEffect(() => {
+    if (pendingPlan) {
+      setActivePlan(pendingPlan);
+      setPlanExiting(false);
+    } else if (activePlan) {
+      setPlanExiting(true);
+      const timer = setTimeout(() => {
+        setActivePlan(null);
+        setPlanExiting(false);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [pendingPlan]);
+
+  // Operational strike launch -> automatically open console and switch to console tab
+  useEffect(() => {
+    if (wsStatus === 'running') {
+      setWorkbenchTab('console');
+      setConsolePinned(true);
+    }
+  }, [wsStatus]);
+
+  const handleApprovePlan = async (approved, plan, mode) => {
+    if (approved) {
+      setWorkbenchTab('console');
+      setConsolePinned(true);
+    }
+    return await approvePlan(approved, plan, mode);
+  };
+
+  const handleSendChatMessage = async (msg) => {
+    if (msg && msg.trim().startsWith('/')) {
+      setWorkbenchTab('console');
+      setConsolePinned(true);
+    }
+    return await sendChatMessage(msg);
+  };
+
+  const handleSendOperatorMessage = async (mid, msg) => {
+    if (msg && msg.trim().startsWith('/')) {
+      setWorkbenchTab('console');
+      setConsolePinned(true);
+    }
+    return await sendOperatorMessage(mid, msg);
+  };
 
   // Raccourci Ctrl+B / Cmd+B pour ouvrir/fermer la barre latérale des sessions
   useEffect(() => {
@@ -113,8 +168,8 @@ function App() {
 
   // le plan arrive → le textarea s'arme pour l'édition (Option B)
   useEffect(() => {
-    if (pendingPlan?.plan) setEditedPlan(pendingPlan.plan);
-  }, [pendingPlan?.plan]);
+    if (activePlan?.plan) setEditedPlan(activePlan.plan);
+  }, [activePlan?.plan]);
 
   const fetchReports = () => axios.get(`${API_BASE}/reports`).then(r => setReports(r.data)).catch(() => {});
   const fetchHealth = () => axios.get(`${API_BASE}/health`).then(r => setHealth(r.data)).catch(() => setHealth(null));
@@ -149,6 +204,32 @@ function App() {
       .then(r => _setLang(r.data?.language || 'en')).catch(() => {});
   }, []);
 
+  /* ── license lock check at boot (commercial build) ── */
+  useEffect(() => {
+    axios.get(`${API_BASE}/license/status`)
+      .then(r => setLicenseLocked(!r.data?.licensed))
+      .catch((err) => {
+        // 403 with LICENSE_LOCKED = the /license/status itself is fine
+        // (unlock trio) but something else — default to locked on any
+        // strange failure so the activation screen shows.
+        if (err?.response?.status === 403) setLicenseLocked(true);
+      });
+  }, []);
+
+  const activateLicense = () => {
+    if (!licenseKey.trim() || licenseBusy) return;
+    setLicenseBusy(true); setLicenseMsg(null);
+    axios.post(`${API_BASE}/license/activate`, { key: licenseKey.trim() })
+      .then(() => {
+        setLicenseMsg({ ok: true, text: '✓ unlocked — welcome to the war room' });
+        setTimeout(() => setLicenseLocked(false), 900);
+      })
+      .catch((err) => {
+        setLicenseMsg({ ok: false, text: err?.response?.data?.detail || 'activation failed' });
+      })
+      .finally(() => setLicenseBusy(false));
+  };
+
   useEffect(() => {
     if (wsStatus === 'complete') {
       fetchReports();
@@ -159,14 +240,23 @@ function App() {
 
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key === 'Escape') {
-        if (reading) setReading(null);
-        else if (showParams) setShowParams(false);
+      if (e.key === 'Escape' && !e.defaultPrevented) {
+        if (reading) {
+          setReading(null);
+        } else if (consoleFullscreen) {
+          setConsoleFullscreen(false);
+        } else if (showParams) {
+          setShowParams(false);
+        } else if (showSidebar) {
+          setShowSidebar(false);
+        } else if (consoleOpen) {
+          setConsolePinned(false);
+        }
       }
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [reading, showParams]);
+  }, [reading, consoleFullscreen, showParams, showSidebar, consoleOpen]);
 
   const rompre = async () => {
     if (!missionId) return;
@@ -188,9 +278,13 @@ function App() {
     try {
       const cleanKey = provForm.api_key?.trim() || null;
       const mt = parseInt(provForm.max_tokens, 10);
+      // M1 FIX (audit): send back the fetched temperature/max_tool_rounds
+      // or the backend resets them to defaults on every UI save.
       const r = await axios.post(`${API_BASE}/provider`, {
         base_url: provForm.base_url.trim(), api_key: cleanKey, model: provForm.model.trim(),
         chat_max_tokens: Number.isFinite(mt) ? mt : null,
+        temperature: provider?.temperature ?? 0.3,
+        max_tool_rounds: provider?.max_tool_rounds ?? 0,
       });
       setProvMsg({ ok: true, text: r.data.message });
       setProvForm(f => ({ ...f, api_key: '' }));
@@ -220,6 +314,51 @@ function App() {
     <div className="h-screen flex flex-col overflow-hidden relative">
       <div className={`heartbeat ${hbClass}`} aria-hidden />
 
+      {/* ── commercial license gate — the activation veil ── */}
+      {licenseLocked && (
+        <div className="fixed inset-0 z-[999] bg-[#070708] flex items-center justify-center px-6">
+          <div className="w-full max-w-sm">
+            <div className="text-center mb-8">
+              <div className="inline-block mb-5 px-3 py-1.5 border border-danger/40 bg-danger/10 rounded-full">
+                <span className="text-[10px] font-mono uppercase tracking-[.25em] text-danger">license locked</span>
+              </div>
+              <h1 className="text-2xl font-semibold text-ink tracking-tight">REDACTED</h1>
+              <p className="mt-3 text-[13px] text-mut leading-relaxed">
+                Enter your activation key to unlock the autonomous campaign console.
+              </p>
+            </div>
+            <div className="terminal-bg border border-line rounded-lg p-5">
+              <label className="block text-[10px] font-mono uppercase tracking-[.2em] text-faint mb-2">
+                activation key
+              </label>
+              <input
+                value={licenseKey}
+                onChange={(e) => setLicenseKey(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && activateLicense()}
+                placeholder="RC-XXXX-XXXX-XXXX-XXXX"
+                className="w-full bg-transparent border border-line/60 rounded px-3 py-2.5 font-mono text-[13px] text-ink placeholder:text-faint/50 focus:outline-none focus:border-cta/60"
+                autoFocus
+              />
+              <button
+                onClick={activateLicense}
+                disabled={licenseBusy || !licenseKey.trim()}
+                className="btn-strike w-full mt-4 px-4 py-2.5 rounded text-[11px] font-mono uppercase tracking-[.2em]"
+              >
+                {licenseBusy ? 'binding…' : 'activate'}
+              </button>
+              {licenseMsg && (
+                <p className={`mt-3 text-[11px] font-mono ${licenseMsg.ok ? 'text-ok' : 'text-danger'}`}>
+                  {licenseMsg.text}
+                </p>
+              )}
+              <p className="mt-4 text-[10px] text-faint leading-relaxed">
+                The key binds to this machine on first activation. Lost your key? Contact your vendor with the machine fingerprint shown in the launcher console.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── Fond immersif Matrix Cyber Corridor ── */}
       <div
         aria-hidden
@@ -245,7 +384,7 @@ function App() {
         <header className="nav-float h-12 px-5 flex items-center gap-3.5">
           <div className="flex items-center gap-2.5 shrink-0">
             <img
-              src="/voidforge-white.png"
+              src="/redacted-white.png"
               alt="REDACTED Logo"
               className="w-7 h-7 object-contain transition-transform duration-300 hover:scale-110 drop-shadow-[0_0_8px_rgba(167,139,250,0.35)]"
             />
@@ -312,7 +451,7 @@ function App() {
             title={consoleOpen ? _t('console_close') : _t('console_open')}
             className={`relative rounded-full px-2.5 py-1.5 border transition-colors shrink-0 ${consoleOpen ? 'bg-voltlite text-cyan border-volt/30' : 'bg-inset text-mut border-line hover:text-ink'}`}>
             <Ic.term />
-            {!consoleOpen && hasActivity && (
+            {!consoleOpen && hasConsoleActivity && (
               <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-volt" title={_t('activity_live')} />
             )}
           </button>
@@ -324,9 +463,19 @@ function App() {
       <div className="relative z-10 flex flex-1 min-h-0 gap-3 px-4 pb-16">
 
         {/* ══ CENTRE — LA SALLE DE GUERRE ══ */}
-        <main className="flex-1 min-w-0 flex flex-col gap-3 min-h-0">
-          {pendingPlan && (
-            <div className="panel overflow-hidden animate-fadeIn shrink-0 max-h-[46%] flex flex-col">
+        <main className={`min-w-0 flex flex-col gap-3 min-h-0 transition-all duration-300 ease-[cubic-bezier(.22,1,.36,1)] ${
+          consoleFullscreen
+            ? 'hidden pointer-events-none'
+            : consoleOpen
+            ? 'flex-1 basis-0'
+            : 'flex-1'
+        }`}>
+          {activePlan && (
+            <div className={`panel overflow-hidden shrink-0 flex flex-col transition-all duration-300 ease-[cubic-bezier(.22,1,.36,1)] ${
+              planExiting
+                ? 'opacity-0 max-h-0 -translate-y-2 mb-0 py-0 border-transparent pointer-events-none'
+                : 'opacity-100 max-h-[46%] translate-y-0 animate-fadeIn'
+            }`}>
               <div className="relative px-5 py-3 border-b border-line flex items-center justify-between gap-3 shrink-0">
                 <span aria-hidden className="wash-violet absolute inset-x-0 top-0 h-[2px]" />
                 <span className="text-[13px] font-medium text-ink">Plan d'attaque — approbation requise</span>
@@ -350,11 +499,19 @@ function App() {
                   {strikeMode === 'Swarm' ? ' · ' + _t('mode_swarm') : ' · ' + _t('mode_solo')}
                 </span>
                 <div className="flex items-center gap-2">
-                  <button onClick={() => approvePlan(false, '', '')}
+                  <button onClick={() => handleApprovePlan(false, '', '')}
                     className="pill-ghost btn-strike px-4 py-1.5 text-[11px] uppercase tracking-[.1em] hover:!border-danger hover:!text-danger">
                     rejeter
                   </button>
-                  <button onClick={() => approvePlan(true, editedPlan, strikeMode)}
+                  <button onClick={async () => {
+                    // M5 FIX (audit): a 409 (campaign already running) used to
+                    // be a silent dead button — surface the reason now.
+                    const r = await handleApprovePlan(true, editedPlan, strikeMode);
+                    if (r && r.status === 'error') {
+                      setProvMsg({ ok: false, text: `✗ ${r.detail || _t('strike_blocked')}` });
+                      setShowParams(true);
+                    }
+                  }}
                     disabled={!editedPlan.trim()}
                     className="pill-cta btn-strike px-5 py-1.5 text-[11px] uppercase tracking-[.1em]">
                     approuver — lancer la frappe
@@ -364,167 +521,164 @@ function App() {
             </div>
           )}
 
-          <div className="flex-1 min-h-0">
+          <div className="flex-1 min-h-0 relative">
             <WarRoom
               chatLog={chatLog}
-              onSend={sendChatMessage}
+              onSend={handleSendChatMessage}
               busy={chatBusy}
               wsStatus={wsStatus}
               missionId={missionId}
-              onSendOperator={sendOperatorMessage}
+              onSendOperator={handleSendOperatorMessage}
               onClear={clearChat}
               streaming={chatStreaming}
               strikeMode={strikeMode}
               setStrikeMode={setStrikeMode}
+              tools={tools}
+              onFocusConsole={() => {
+                setWorkbenchTab('console');
+                setConsolePinned(true);
+              }}
+              rightRail={!consoleOpen ? (
+                <div className="hidden lg:flex flex-col items-center justify-center gap-2.5 w-11 py-4 border-l border-[rgba(255,255,255,0.06)] bg-[rgba(255,255,255,0.015)] shrink-0">
+                  {[
+                    { tab: 'console', title: 'Console', icon: <Ic.term /> },
+                    { tab: 'surface', title: 'Surface', icon: (
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20"/></svg>
+                    ) },
+                    { tab: 'chain', title: 'Chain', icon: (
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="m15 7h2a5 5 0 0 1 0 10h-2"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                    ) },
+                    { tab: 'findings', title: 'Findings', icon: (
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+                    ) },
+                    { tab: 'dashboard', title: 'Dashboard', icon: (
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+                    ) },
+                  ].map(({ tab, title, icon }) => (
+                    <button
+                      key={tab}
+                      type="button"
+                      onClick={() => { setWorkbenchTab(tab); setConsolePinned(true); }}
+                      title={`${title} — open workbench`}
+                      className="relative w-7 h-7 rounded-xl border border-transparent hover:border-line bg-transparent hover:bg-wash text-mut hover:text-ink transition-all flex items-center justify-center shrink-0 group"
+                    >
+                      <span className="transition-transform group-hover:scale-110">{icon}</span>
+                      {tab === 'findings' && findings.length > 0 && (
+                        <span className="absolute -top-1 -right-1 min-w-[13px] h-[13px] px-0.5 rounded-full bg-danger text-white text-[7.5px] font-bold flex items-center justify-center shadow-xs">
+                          {findings.length > 99 ? '99+' : findings.length}
+                        </span>
+                      )}
+                      {tab === 'console' && logs.length > 0 && (
+                        <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 rounded-full bg-volt animate-pulse" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              ) : null}
             />
           </div>
         </main>
 
-        {/* ══ DROITE — LA CONSOLE DE CAMPAGNE ══
-            Sur desktop (lg+), partage harmonieux (42-46%).
-            Sur mobile/tablette (<lg), dock/overlay fluide plein format sans écraser la salle de guerre. */}
-        {/* ── DROITE — LA CONSOLE DE CAMPAGNE ──
-            Ouvert (lg+) : partage harmonieux (42-46%).
-            Fermé : une barre d'icônes 40px reste VISIBLE — le workbench
-            se découvre, un clic ouvre l'onglet voulu. Plus de panneau
-            fantôme que personne ne sait exister. */}
-        {!consoleOpen && (
-          <div className="hidden lg:flex w-10 shrink-0 flex-col items-center gap-1.5 py-2 border-l border-line/60 bg-wash/30">
-            {[
-              { tab: 'console', title: 'Console', icon: <Ic.term /> },
-              { tab: 'surface', title: 'Surface', icon: (
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15 15 0 0 1 0 20 15 15 0 0 1 0-20"/></svg>
-              ) },
-              { tab: 'chain', title: 'Chain', icon: (
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M9 17H7A5 5 0 0 1 7 7h2"/><path d="m15 7h2a5 5 0 0 1 0 10h-2"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
-              ) },
-              { tab: 'findings', title: 'Findings', icon: (
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m21 2-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
-              ) },
-              { tab: 'dashboard', title: 'Dashboard', icon: (
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
-              ) },
-            ].map(({ tab, title, icon }) => (
-              <button
-                key={tab}
-                type="button"
-                onClick={() => { setWorkbenchTab(tab); setConsolePinned(true); }}
-                title={`${title} — open workbench`}
-                className="relative w-8 h-8 rounded-lg border border-line bg-inset text-mut hover:text-ink hover:border-volt/50 hover:bg-wash transition-all flex items-center justify-center shrink-0"
-              >
-                {icon}
-                {tab === 'findings' && findings.length > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[14px] h-[14px] px-0.5 rounded-full bg-danger text-white text-[8px] font-bold flex items-center justify-center">
-                    {findings.length > 99 ? '99+' : findings.length}
-                  </span>
-                )}
-                {tab === 'console' && logs.length > 0 && (
-                  <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-volt animate-pulse" />
-                )}
-              </button>
-            ))}
-          </div>
-        )}
+        {/* ══ DROITE — LA CONSOLE DE CAMPAGNE (ÉQUILIBRE 50% / 50% OU 100% PLEIN ÉCRAN) ══ */}
         <aside
           aria-hidden={!consoleOpen}
-          className={`shrink-0 min-h-0 flex flex-col transition-all duration-300 ease-[cubic-bezier(.22,1,.36,1)] ${
-            consoleOpen
-              ? 'w-[46%] xl:w-[42%] opacity-100'
-              : 'w-0 opacity-0 overflow-hidden pointer-events-none'
+          className={`min-h-0 flex flex-col transition-all duration-300 ease-[cubic-bezier(.22,1,.36,1)] ${
+            !consoleOpen
+              ? 'w-0 opacity-0 overflow-hidden pointer-events-none'
+              : consoleFullscreen
+              ? 'flex-1 basis-full opacity-100'
+              : 'flex-1 basis-0 opacity-100'
           }`}
         >
-          <div className="h-full w-full flex flex-col gap-2.5 min-w-0">
-            {/* Sélecteur de vue de l'établi droit (Workbench Multi-Vues) */}
-            <div className="flex items-center justify-between gap-2 px-1 shrink-0 select-none">
-              <div className="flex items-center gap-1 p-1 rounded-full border border-line bg-wash/60">
-                <button
-                  type="button"
-                  onClick={() => setWorkbenchTab('console')}
-                  className={`px-3 py-1 rounded-full text-[10.5px] uppercase font-mono tracking-wider transition-all ${
-                    workbenchTab === 'console'
-                      ? 'pill-solid font-medium shadow-xs'
-                      : 'text-mut hover:text-ink hover:bg-hover'
-                  }`}
-                >
-                  <span>{_t('tab_console')}</span>
-                  {logs.length > 0 && <span className="ml-1 opacity-75">({logs.length})</span>}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setWorkbenchTab('surface')}
-                  className={`px-3 py-1 rounded-full text-[10.5px] uppercase font-mono tracking-wider transition-all ${
-                    workbenchTab === 'surface'
-                      ? 'pill-solid font-medium shadow-xs'
-                      : 'text-mut hover:text-ink hover:bg-hover'
-                  }`}
-                >
-                  <span>{_t('tab_surface')}</span>
-                  {graph.nodes.length > 0 && <span className="ml-1 opacity-75">({graph.nodes.length})</span>}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setWorkbenchTab('chain')}
-                  className={`px-3 py-1 rounded-full text-[10.5px] uppercase font-mono tracking-wider transition-all ${
-                    workbenchTab === 'chain'
-                      ? 'pill-solid font-medium shadow-xs'
-                      : 'text-mut hover:text-ink hover:bg-hover'
-                  }`}
-                >
-                  <span>{_t('tab_chain')}</span>
-                  {(graph.nodes.length > 0 || findings.length > 0) && (
-                    <span className="ml-1 opacity-75">({graph.nodes.length + findings.length})</span>
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setWorkbenchTab('dashboard')}
-                  className={`px-3 py-1 rounded-full text-[10.5px] uppercase font-mono tracking-wider transition-all ${
-                    workbenchTab === 'dashboard'
-                      ? 'pill-solid font-medium shadow-xs'
-                      : 'text-mut hover:text-ink hover:bg-hover'
-                  }`}
-                >
-                  <span>Dashboard</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setWorkbenchTab('findings')}
-                  className={`px-3 py-1 rounded-full text-[10.5px] uppercase font-mono tracking-wider transition-all ${
-                    workbenchTab === 'findings'
-                      ? 'pill-solid font-medium shadow-xs'
-                      : 'text-mut hover:text-ink hover:bg-hover'
-                  }`}
-                >
-                  <span>{_t('tab_findings')}</span>
-                  {findings.length > 0 && (
-                    <span className="ml-1 px-1.5 py-0.2 rounded-full bg-danger text-white text-[9px] font-bold">
-                      {findings.length}
-                    </span>
-                  )}
-                </button>
+          <div className="h-full min-h-0 panel-frost flex flex-col overflow-hidden">
+            {/* En-tête intégré du workbench — Même niveau que WarRoom */}
+            <div className="h-11 px-3 border-b border-line/50 flex items-center justify-between gap-3 shrink-0 select-none bg-wash/20">
+              <div className="flex items-center gap-1">
+                {[
+                  { tab: 'console', label: _t('tab_console'), count: logs.length },
+                  { tab: 'surface', label: _t('tab_surface'), count: graph.nodes?.length },
+                  { tab: 'chain', label: _t('tab_chain'), count: (graph.nodes?.length || 0) + (findings.length || 0) },
+                  { tab: 'dashboard', label: 'Dashboard' },
+                  { tab: 'findings', label: _t('tab_findings'), count: findings.length, isDanger: true },
+                ].map(({ tab, label, count, isDanger }) => (
+                  <button
+                    key={tab}
+                    type="button"
+                    onClick={() => setWorkbenchTab(tab)}
+                    className={`relative px-3 py-1 rounded-full text-[10.5px] uppercase font-mono tracking-wider transition-all flex items-center gap-1.5 ${
+                      workbenchTab === tab ? 'pill-solid font-medium shadow-xs' : 'text-mut hover:text-ink hover:bg-hover'
+                    }`}
+                  >
+                    <span>{label}</span>
+                    {count > 0 && (
+                      <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-bold ${
+                        isDanger ? 'bg-danger text-white' : workbenchTab === tab ? 'bg-black/25 text-white' : 'bg-inset text-faint'
+                      }`}>
+                        {count > 99 ? '99+' : count}
+                      </span>
+                    )}
+                  </button>
+                ))}
               </div>
 
-              {workbenchTab === 'console' && logs.length > 0 && (
+              {/* Contrôles du volet latéral — Plein écran + Fermer */}
+              <div className="flex items-center gap-1.5 shrink-0">
+                {workbenchTab === 'console' && (
+                  <button
+                    type="button"
+                    onClick={() => setConsoleFullscreen(!consoleFullscreen)}
+                    title={consoleFullscreen ? (_t('console_restore') || "Restaurer (Esc)") : (_t('console_fullscreen') || "Console plein écran")}
+                    className={`w-7 h-7 rounded-full border transition-all shadow-xs shrink-0 flex items-center justify-center group ${
+                      consoleFullscreen
+                        ? 'bg-voltlite text-cyan border-volt/40'
+                        : 'border-line/60 bg-wash/60 hover:bg-hover text-mut hover:text-cyan'
+                    }`}
+                  >
+                    {consoleFullscreen ? (
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:scale-110">
+                        <polyline points="4 14 10 14 10 20" />
+                        <polyline points="20 10 14 10 14 4" />
+                        <line x1="14" y1="10" x2="21" y2="3" />
+                        <line x1="3" y1="21" x2="10" y2="14" />
+                      </svg>
+                    ) : (
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:scale-110">
+                        <polyline points="15 3 21 3 21 9" />
+                        <polyline points="9 21 3 21 3 15" />
+                        <line x1="21" y1="3" x2="14" y2="10" />
+                        <line x1="3" y1="21" x2="10" y2="14" />
+                      </svg>
+                    )}
+                  </button>
+                )}
+
+                {/* Bouton fermer le volet latéral — style Apple minimaliste */}
                 <button
                   type="button"
-                  onClick={clearConsole}
-                  className="text-[10px] uppercase font-mono text-faint hover:text-danger px-2 py-0.5 rounded transition-colors"
-                  title="Vider le journal console"
+                  onClick={() => { setConsolePinned(false); setConsoleFullscreen(false); }}
+                  title="Fermer le volet (Esc)"
+                  className="w-7 h-7 rounded-full border border-line/60 bg-wash/60 hover:bg-dangertint/40 hover:border-danger/40 text-mut hover:text-danger flex items-center justify-center transition-all shadow-xs shrink-0 group"
                 >
-                  {''+ _t('console_clear')}
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform group-hover:scale-110">
+                    <line x1="18" y1="6" x2="6" y2="18" />
+                    <line x1="6" y1="6" x2="18" y2="18" />
+                  </svg>
                 </button>
-              )}
+              </div>
             </div>
 
             {/* Corps de l'établi actif */}
-            <div className="flex-1 min-h-[220px] overflow-hidden">
+            <div className="flex-1 min-h-0 overflow-hidden relative">
               {workbenchTab === 'console' && (
-                <LiveConsole logs={logs} status={wsStatus} onClear={clearConsole}
-                  onClose={() => setConsolePinned(false)} />
+                <LiveConsole
+                  logs={logs}
+                  status={wsStatus}
+                  onClear={clearConsole}
+                  embedded={true}
+                  chatBusy={chatBusy}
+                  isExpanded={consoleFullscreen}
+                  onToggleExpand={setConsoleFullscreen}
+                />
               )}
               {workbenchTab === 'surface' && (
                 <SurfaceMap graph={graph} />
@@ -533,7 +687,7 @@ function App() {
                 <AttackGraph graph={graph} findings={findings} />
               )}
               {workbenchTab === 'dashboard' && (
-                <Dashboard mission={missionText} />
+                <div className="h-full p-4 overflow-y-auto"><Dashboard mission={missionText} /></div>
               )}
               {workbenchTab === 'findings' && (
                 <FindingsVault findings={findings} />
@@ -541,17 +695,17 @@ function App() {
             </div>
 
             {wsStatus === 'complete' && workspace?.exists && (
-              <div className="panel overflow-hidden shrink-0 animate-fadeIn flex flex-col">
+              <div className="border-t border-line/50 overflow-hidden shrink-0 animate-fadeIn flex flex-col bg-wash/30">
                 <div aria-hidden className="horizon h-[2px] w-full shrink-0" />
-                <div className="px-4 py-2.5 border-b border-line flex items-center justify-between gap-2 shrink-0">
+                <div className="px-4 py-2 border-b border-line/50 flex items-center justify-between gap-2 shrink-0">
                   <span className="text-[12px] font-medium text-ink">rapport de puissance</span>
-                  <span className="font-mono text-[10px] text-mut shrink-0">{workspace.findings.length}F · {workspace.extractions.length}X</span>
+                  <span className="font-mono text-[10px] text-mut shrink-0">{workspace.findings?.length ?? 0}F · {workspace.extractions?.length ?? 0}X</span>
                 </div>
                 <pre className="terminal-bg p-3 m-0 whitespace-pre-wrap break-words text-[11.5px] max-h-[160px] overflow-y-auto">{workspace.power_report || '⏳'}</pre>
-                <div className="px-4 py-2.5 border-t border-line flex items-center justify-between gap-2 shrink-0">
+                <div className="px-4 py-2 border-t border-line/50 flex items-center justify-between gap-2 shrink-0">
                   <span className="text-[10px] font-mono text-faint truncate">missions/{workspace.target}/ · {workspace.ledger_lines} entrées</span>
                   {workspace.final_report && (
-                    <button onClick={() => setReading({ name: 'rapport final', content: workspace.final_report })}
+                    <button onClick={() => setReading({ name: _t('final_report'), content: workspace.final_report })}
                       className="pill-cta btn-strike px-3 py-1 text-[10px] uppercase tracking-[.1em] shrink-0">
                       final
                     </button>
@@ -562,68 +716,6 @@ function App() {
           </div>
         </aside>
 
-        {/* Rail vertical d'accès rapide au workbench quand la console est repliée */}
-        {!consoleOpen && (
-          <aside className="shrink-0 flex flex-col items-center py-2.5 px-1 rounded-card border border-line bg-paper/60 backdrop-blur-md gap-2 z-20 animate-fadeIn select-none self-start shadow-sm">
-            <button
-              type="button"
-              onClick={() => { setWorkbenchTab('console'); setConsolePinned(true); }}
-              title="Ouvrir la Console de campagne"
-              className={`w-7 h-7 rounded-md flex items-center justify-center transition-all relative ${
-                workbenchTab === 'console' ? 'text-cyan bg-voltlite border border-volt/40' : 'text-mut hover:text-ink hover:bg-hover border border-transparent'
-              }`}
-            >
-              <Ic.term />
-              {logs.length > 0 && <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-volt" />}
-            </button>
-            <button
-              type="button"
-              onClick={() => { setWorkbenchTab('surface'); setConsolePinned(true); }}
-              title="Surface d'attaque découverte"
-              className={`w-7 h-7 rounded-md flex items-center justify-center transition-all relative ${
-                workbenchTab === 'surface' ? 'text-cyan bg-voltlite border border-volt/40' : 'text-mut hover:text-ink hover:bg-hover border border-transparent'
-              }`}
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-              {graph.nodes?.length > 0 && <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-cyan" />}
-            </button>
-            <button
-              type="button"
-              onClick={() => { setWorkbenchTab('chain'); setConsolePinned(true); }}
-              title="Chaîne d'attaque tactique"
-              className={`w-7 h-7 rounded-md flex items-center justify-center transition-all ${
-                workbenchTab === 'chain' ? 'text-cyan bg-voltlite border border-volt/40' : 'text-mut hover:text-ink hover:bg-hover border border-transparent'
-              }`}
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-            </button>
-            <button
-              type="button"
-              onClick={() => { setWorkbenchTab('dashboard'); setConsolePinned(true); }}
-              title="Dashboard & KPIs"
-              className={`w-7 h-7 rounded-md flex items-center justify-center transition-all ${
-                workbenchTab === 'dashboard' ? 'text-cyan bg-voltlite border border-volt/40' : 'text-mut hover:text-ink hover:bg-hover border border-transparent'
-              }`}
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
-            </button>
-            <button
-              type="button"
-              onClick={() => { setWorkbenchTab('findings'); setConsolePinned(true); }}
-              title="Failles & Vulnérabilités"
-              className={`w-7 h-7 rounded-md flex items-center justify-center transition-all relative ${
-                workbenchTab === 'findings' ? 'text-danger bg-dangertint border border-danger/40' : 'text-mut hover:text-danger hover:bg-hover border border-transparent'
-              }`}
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              {findings.length > 0 && (
-                <span className="absolute -top-1 -right-1 px-1 rounded-full bg-danger text-white text-[8px] font-bold">
-                  {findings.length}
-                </span>
-              )}
-            </button>
-          </aside>
-        )}
       </div>
 
       {/* ── BARRE LATÉRALE DES MISSIONS & SESSIONS (Ctrl+B) ── */}

@@ -51,9 +51,12 @@ export function useMissionSocket() {
 
   const applyGraph = useCallback((g) => {
     if (!g || !Array.isArray(g.nodes)) return;
-    const prevKeys = new Set(graphRef.current.nodes.map(n => n.k + n.v));
-    const nodes = g.nodes.map(n => ({ ...n, born: prevKeys.has(n.k + n.v) ? false : Date.now() }));
-    const nodeSet = new Set(nodes.map(n => n.k + n.v));
+    // C2 FIX (audit): backend asset keys are "kind:value" — the key join
+    // MUST carry the colon or every real edge gets filtered out and the
+    // map only ever renders guessed links.
+    const prevKeys = new Set(graphRef.current.nodes.map(n => n.k + ':' + n.v));
+    const nodes = g.nodes.map(n => ({ ...n, born: prevKeys.has(n.k + ':' + n.v) ? false : Date.now() }));
+    const nodeSet = new Set(nodes.map(n => n.k + ':' + n.v));
     const links = (g.links || []).filter(l => nodeSet.has(l.s) && nodeSet.has(l.d));
     graphRef.current = { nodes, links };
     setGraph({ nodes, links });
@@ -69,7 +72,11 @@ export function useMissionSocket() {
           setStatus('running');
           setMissionId(d.mission_id);
           setMissionText(d.mission_text || '');
-          setStats(s => ({ ...s, startedAt: d.started_at || new Date().toISOString() }));
+          // M2 FIX (audit): the backend sends `elapsed` seconds, not
+          // started_at — recompute the birth so a mid-campaign refresh
+          // doesn't restart the clock at 00:00.
+          const elapsed = Number(d.elapsed) || 0;
+          setStats(s => ({ ...s, startedAt: new Date(Date.now() - elapsed * 1000).toISOString() }));
         } else if (!d.running) {
           setStatus(prev => (prev === 'running' ? 'complete' : prev));
         }
@@ -132,7 +139,9 @@ export function useMissionSocket() {
 
             case 'tool_start':
               setTools(prev => ({ ...prev, [ev.tool]: { status: 'running', startedAt: ev.timestamp } }));
-              setStats(s => ({ ...s, toolsFired: s.toolsFired + 1 }));
+              // M4 FIX (audit): chat-origin frames keep the capsule light
+              // but never pollute the mission HUD counters.
+              if (ev.origin !== 'chat') setStats(s => ({ ...s, toolsFired: s.toolsFired + 1 }));
               push({ type: 'tool', tool: ev.tool, text: `⚙ ${ev.tool} — ${ev.args ? JSON.stringify(ev.args).substring(0, 90) : ''}`, ts: ev.timestamp });
               break;
 
@@ -143,7 +152,10 @@ export function useMissionSocket() {
                 const r = typeof ev.result === 'string' ? JSON.parse(ev.result) : ev.result;
                 if (r && typeof r === 'object' && 'exploitable' in r) {
                   verdict = r.exploitable;
-                  const sev = verdict === true ? 'CONFIRMED' : verdict === 'partial' ? 'PARTIAL' : 'NEGATIVE';
+                  // C4 FIX (audit): consumers (vault filters, attack graph)
+                  // speak lowercase critical/high/medium/low — normalize at
+                  // the construction site, not in three renderers.
+                  const sev = verdict === true ? 'critical' : verdict === 'partial' ? 'high' : 'info';
                   if (verdict !== false && verdict !== null) {
                     const fp = `${ev.tool}|${sev}|${r.summary || ''}`;
                     setFindings(prev => {
@@ -156,7 +168,7 @@ export function useMissionSocket() {
                       }, ...prev].slice(0, 80);
                     });
                     setStats(s => ({ ...s, findings: s.findings + 1 }));
-                    push({ type: 'finding', text: `◆ [${sev}] ${ev.tool} — ${r.summary || ''}`, ts: ev.timestamp });
+                    push({ type: 'finding', text: `◆ [${sev.toUpperCase()}] ${ev.tool} — ${r.summary || ''}`, ts: ev.timestamp });
                   } else {
                     push({ type: 'ok', text: _t('feed_negative', { tool: ev.tool, d: ev.duration }), ts: ev.timestamp });
                   }
@@ -188,10 +200,8 @@ export function useMissionSocket() {
               push({ type: 'ops', text: `» ${ev.mode === 'continuation' ? '[continuation] ' : '[live] '}${ev.text || ''}`, ts: ev.timestamp });
               break;
 
-            case 'chat':
-              // la conversation vit UNIQUEMENT dans les bulles de la ligne
-              // sécurisée (panneau gauche) — jamais dupliquée en console
-              break;
+            // M4 FIX (audit): 'chat' never existed as a backend frame —
+            // the dead case is gone; chat lives in chat_event/chat_stream.
 
             case 'chat_stream':
               // les mots de la stratège arrivent PENDANT qu'elle écrit
@@ -229,13 +239,56 @@ export function useMissionSocket() {
 
             case 'mission_complete':
               setStatus('complete');
+              setTools(prev => {
+                const next = { ...prev };
+                let changed = false;
+                for (const k of Object.keys(next)) {
+                  if (next[k]?.status === 'running') {
+                    next[k] = { ...next[k], status: 'done' };
+                    changed = true;
+                  }
+                }
+                return changed ? next : prev;
+              });
               push({ type: 'system', text: _t('feed_complete', { r: ev.rounds || '?', t: ev.tools_used || '?' }), ts: ev.timestamp });
               flushBatch();
               break;
 
             case 'mission_error':
               setStatus('error');
+              setTools(prev => {
+                const next = { ...prev };
+                let changed = false;
+                for (const k of Object.keys(next)) {
+                  if (next[k]?.status === 'running') {
+                    next[k] = { ...next[k], status: 'error' };
+                    changed = true;
+                  }
+                }
+                return changed ? next : prev;
+              });
               push({ type: 'error', text: `✗ ${ev.error || 'mission error'}`, ts: ev.timestamp });
+              flushBatch();
+              break;
+
+            // C1 FIX (audit): the backend broadcasts mission_aborted AFTER
+            // the teardown mission_complete — without this case the kill
+            // gesture reported as "complete". The operator must see the
+            // truth: the campaign was stopped, not finished.
+            case 'mission_aborted':
+              setStatus('error');
+              setTools(prev => {
+                const next = { ...prev };
+                let changed = false;
+                for (const k of Object.keys(next)) {
+                  if (next[k]?.status === 'running') {
+                    next[k] = { ...next[k], status: 'error' };
+                    changed = true;
+                  }
+                }
+                return changed ? next : prev;
+              });
+              push({ type: 'error', text: `⏹ ${ev.reason || 'campaign aborted'} (${ev.status || 'aborted'})`, ts: ev.timestamp });
               flushBatch();
               break;
 
@@ -253,7 +306,7 @@ export function useMissionSocket() {
       };
       ws.onerror = () => ws.close && ws.close();
     } catch (err) {
-      console.error('[VOIDFORGE] WS error', err);
+      console.error('[REDACTED] WS error', err);
     }
   }, [applyGraph, flushBatch, push]);
 
@@ -303,15 +356,21 @@ export function useMissionSocket() {
   }, [flushBatch, push]);
 
   const sendOperatorMessage = useCallback(async (missionId, message) => {
+    const msg = (message || '').trim();
+    if (!msg) return { status: 'error', error: 'message vide' };
+    setChatLog(p => [...p, { role: 'user', text: msg, isOperatorLive: true }]);
     try {
       const res = await axios.post(`${API_BASE}/mission/message`, {
-        mission_id: missionId || null, message,
+        mission_id: missionId || null, message: msg,
       });
       return res.data; // {status: 'queued'} live | {status: 'continued'} new mission
     } catch (err) {
-      return { status: 'error', error: err.response?.data?.detail || err.message };
+      const detail = err.response?.data?.detail || err.message;
+      push({ type: 'error', text: `✗ operator message: ${detail}` });
+      flushBatch();
+      return { status: 'error', error: detail };
     }
-  }, []);
+  }, [push, flushBatch]);
 
   // ── la conversation survit au reload : le backend sert le log complet ──
   useEffect(() => {
@@ -346,6 +405,17 @@ export function useMissionSocket() {
       return { status: 'error', error: detail };
     } finally {
       setChatBusy(false);
+      setTools(prev => {
+        const next = { ...prev };
+        let changed = false;
+        for (const k of Object.keys(next)) {
+          if (next[k]?.status === 'running') {
+            next[k] = { ...next[k], status: 'done' };
+            changed = true;
+          }
+        }
+        return changed ? next : prev;
+      });
     }
   }, [chatBusy, push, flushBatch]);
 

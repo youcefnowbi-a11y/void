@@ -133,7 +133,8 @@ export default function SessionSidebar({
                     </span>
                   </div>
                   <span className="text-[9.5px] text-faint font-mono mt-0.5 block">
-                    {r.mtime || _t('sidebar_archived')}
+                    {/* M9 FIX (audit): backend sends `modified`, not mtime */}
+                    {(r.modified || '').substring(5, 16) || _t('sidebar_archived')}
                   </span>
                 </div>
                 {r.size !== undefined && (

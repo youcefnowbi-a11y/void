@@ -41,12 +41,14 @@ export default function PayloadMessage({ text }) {
   const [expanded, setExpanded] = useState(false);
   const [showDecoded, setShowDecoded] = useState(false);
   const [copied, setCopied] = useState(false);
+  // m3 FIX (audit): hooks must run unconditionally — this useMemo used to
+  // sit after the early return (Rules of Hooks violation, latent crash).
+  const decodedText = useMemo(() => tryDecodePayload(text), [text]);
 
   if (!isPayload) {
     return <MarkdownMessage content={text} />;
   }
 
-  const decodedText = useMemo(() => tryDecodePayload(text), [text]);
   const displayText = showDecoded ? decodedText : text;
   const byteLength = new Blob([text]).size;
 

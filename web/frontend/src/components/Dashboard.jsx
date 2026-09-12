@@ -21,7 +21,7 @@ const fmt = ts => (ts || '').substring(5, 16) // MM-DD HH:MM
 function Donut({ counts }) {
   const entries = Object.entries(counts).filter(([, n]) => n > 0)
   const total = entries.reduce((a, [, n]) => a + n, 0)
-  if (!total) return <div className="text-mut text-[11px] font-mono">_t('dash_none_exploitable')</div>
+  if (!total) return <div className="text-mut text-[11px] font-mono">{_t('dash_none_exploitable')}</div>
   const R = 44, C = 2 * Math.PI * R
   let off = 0
   const segs = entries.map(([sev, n]) => {
@@ -70,7 +70,10 @@ function Timeline({ events }) {
   const cells = shown.map((e, i) => {
     const x = (i % cols) * 9
     const y = Math.floor(i / cols) * 9
-    const fill = e.status === _t('dash_legend_ok') || e.status == null
+    // m2 FIX (audit): compare against the RAW ledger value — a localized
+    // comparison flips every healthy cell failure-red the day the
+    // translation changes.
+    const fill = e.status === 'ok' || e.status == null
       ? (e.exploitable ? '#f76b15' : '#2f4f46')
       : '#5b2430'
     return <rect key={i} x={x} y={y} width="6" height="6" rx="1" fill={fill}>
@@ -124,14 +127,14 @@ export default function Dashboard({ mission }) {
   if (err && !tl) {
     return (
       <div className="h-full flex items-center justify-center text-mut font-mono text-[11px]">
-        dashboard unavailable — backend unreachable
+        {_t('dash_unavailable')}
       </div>
     )
   }
   if (!tl || !sum) {
     return (
       <div className="h-full flex items-center justify-center text-mut font-mono text-[11px]">
-        reading the ledger…
+        {_t('dash_reading')}
       </div>
     )
   }
@@ -159,12 +162,12 @@ export default function Dashboard({ mission }) {
 
       {/* Timeline de vie */}
       <div className="panel px-3 py-2.5">
-        <div className="eyebrow mb-2">timeline — vie de la mission</div>
+        <div className="eyebrow mb-2">{_t('dash_timeline')}</div>
         <Timeline events={tl.events || []} />
         <div className="flex gap-3 mt-2 text-[9px] font-mono text-mut uppercase tracking-wider">
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm" style={{ background: '#2f4f46' }} /> ok</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm" style={{ background: '#f76b15' }} /> exploitable</span>
-          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm" style={{ background: '#5b2430' }} /> failure</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm" style={{ background: '#2f4f46' }} /> {_t('dash_legend_ok')}</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm" style={{ background: '#f76b15' }} /> {_t('dash_legend_exploit')}</span>
+          <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-sm" style={{ background: '#5b2430' }} /> {_t('dash_legend_fail')}</span>
         </div>
       </div>
 
@@ -175,7 +178,7 @@ export default function Dashboard({ mission }) {
           <Donut counts={sum.severity_mix || {}} />
         </div>
         <div className="panel px-3 py-2.5">
-          <div className="eyebrow mb-2">outils les plus productifs</div>
+          <div className="eyebrow mb-2">{_t('dash_top_tools')}</div>
           <ToolBars topTools={sum.top_tools} />
         </div>
       </div>

@@ -12,16 +12,20 @@ _BACKOFF_S = [2, 4, 8]  # short ladder — long sleeps here stack with the agent
 # answers wins; the last known-good is memoized and tried first on
 # the next call. Defined as a module constant so the config loader
 # (and only it) can rewrite the primary in flight.
-FAILOVER_PROVIDERS = [
-    # (base_url, api_key, model)
-    # K5 (LO's arsenal, 2026-09-06): tokenrouter as the standing
-    # second brain — proven FORGE-OK before mounting. The primary
-    # (api.b.ai glm-5.3-flash) flapped for ~40 min across missions
-    # H/I/K with its routing-DB outages; this one answered clean.
-    ("https://api.tokenrouter.com/v1",
-     "sk-Sjm2794mPacYSOie2UtKA4BWTawaRxyP90f8yIhaqla2Pwt2",
-     "z-ai/glm-5.3-free"),
-]
+# C2 FIX (audit): the standing failover key was hardcoded here — this
+# repo is PUBLIC. The fleet now comes from the operator's environment
+# only (same law as the commercial tree): REDACTED_FAILOVER with the
+# format "url1|key1|model1;;url2|key2|model2". A leaked key is a burned
+# key; mount yours via env, never in source.
+import os as _os
+
+FAILOVER_PROVIDERS = []
+_fleet_env = _os.environ.get("REDACTED_FAILOVER", "").strip()
+if _fleet_env:
+    for _entry in _fleet_env.split(";;"):
+        parts = [p.strip() for p in _entry.split("|")]
+        if len(parts) == 3 and all(parts):
+            FAILOVER_PROVIDERS.append(tuple(parts))
 
 
 class LLM:
