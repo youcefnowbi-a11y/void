@@ -2263,7 +2263,17 @@ du markdown. Ne frappe JAMAIS : ton arme ici est la précision du plan."""
                 # ⚒️ Vague 3: exploit_arm re-forges a banked weapon through
                 # the same hot-register path — the trigger catches BOTH
                 # forges (fresh forge_tool + banked exploit_arm).
-                if name == "forge_tool" and '"ok": true' in str(out)[:200]:
+                # ⚒️ duskyr mission autopsy: forge_tool called INSIDE
+                # batch_execute left forged_find_files armed at the
+                # registry but UNCALLABLE by the agent (SCOPE_TOOL block,
+                # 111-tools snapshot) — the trigger never fired because
+                # `name` was batch_execute. The batch lane must re-sync too:
+                # any forge_tool ok inside a batch result set counts.
+                _batch_forged = (name == "batch_execute"
+                                 and '"tool": "forge_tool"' in str(out)[:4000]
+                                 and '"ok": true' in str(out)[:4000])
+                if ((name == "forge_tool" and '"ok": true' in str(out)[:200])
+                        or _batch_forged):
                     try:
                         _live = reg.all_tools()
                         if len(_live) > len(self.tools):

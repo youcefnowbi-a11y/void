@@ -19,8 +19,14 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 def test_w7_forge_resyncs_llm_schema():
     src = open(os.path.join(os.path.dirname(__file__), "..", "core",
                             "agent.py"), encoding="utf-8").read()
-    assert 'if name == "forge_tool"' in src
+    # W7 v1: the direct forge lane (mission-77)
+    assert 'name == "forge_tool"' in src
     assert "Arsenal étendu en vol" in src       # the live-extension event
+    # W7 duskyr-fix: the BATCH lane — forge_tool called INSIDE batch_execute
+    # must re-sync too (forged_find_files died SCOPE-blocked with the
+    # trigger blind to the batch wrapper)
+    assert '_batch_forged' in src
+    assert 'name == "batch_execute"' in src
 
 
 def test_w8_triage_default_is_mission_scoped():

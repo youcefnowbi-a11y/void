@@ -236,6 +236,22 @@ def data_extract(url, method="GET", headers=None, body=None, content_type=None,
         "size": r["size"],
         "content_type": r["headers"].get("Content-Type", r["headers"].get("content-type", "unknown")),
     }
+    # ── duskyr mission autopsy: the SILENT 200. A POST body sent as
+    # json to a FORM-binding endpoint (FastAPI Form(...)) returns
+    # 200 with a stereotyped ACK and IGNORES every field — the mission
+    # nearly reported "SSRF blocked" from 5 successful no-ops. When a
+    # body was sent as JSON and the answer is a 200 whose text carries
+    # form-ACK markers (or non-JSON), surface the negotiation hint.
+    if (body is not None and (content_type or "json").lower() == "json"
+            and r["status"] == 200 and parsed is None):
+        _b = (r["body"] or "")[:200]
+        if any(_m in _b for _m in ("Сохранено", "Saved", "saved", "OK",
+                                   "ok", "Success", "success", "Done")):
+            out["encoding_hint"] = (
+                "body sent as JSON but response is a plain-text ACK — the "
+                "endpoint may bind FORM fields (FastAPI Form(...)) and "
+                "silently ignore JSON. Retry with content_type='form' "
+                "before concluding anything was rejected or blocked.")
     if use_jar or jar_clear:
         # the jar's live state rides the response — she sees what she holds
         host_state = _jar_state().get(_host_of(url), [])

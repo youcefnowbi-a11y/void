@@ -154,6 +154,18 @@ def forge_tool(name, desc="", code="", params=None, danger="active",
     if schema.get("type") != "object":
         schema = {"type": "object", "properties": {}}
     props = schema.setdefault("properties", {})
+    # duskyr mission autopsy: 3 forged tools DIED on the 180s watchdog
+    # with "[_healed: TIMEOUT: paced retry (no timeout knob)]" — the
+    # forged code loops over a slow host with no way to bound itself.
+    # Every forged tool gets a budget knob by default; the harness
+    # passes it through, the code MAY honor it (documented in desc).
+    if "timeout_s" not in props:
+        props["timeout_s"] = {
+            "type": "integer",
+            "description": "optional wall-clock budget for THIS call — "
+                           "honor it in your loop (break and return "
+                           "partial) or the 180s watchdog kills the tool",
+        }
     sig = ", ".join(f"{k}=None" for k in props) or "**kwargs"
 
     import datetime

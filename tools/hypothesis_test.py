@@ -212,11 +212,20 @@ def _one_request(req, timeout=30):
     },
     danger="network",
 )
-def run(hypothesis, baseline, mutation, oracle=None, direction="violated"):
+def run(hypothesis, baseline, mutation, oracle=None, direction="violated",
+        **flat):
     if not hypothesis or not isinstance(baseline, dict) or not baseline.get("url"):
         return {"ok": False,
                 "error": "hypothesis + baseline.url are mandatory"}
     direction = "held" if str(direction).lower() == "held" else "violated"
+    # duskyr mission autopsy: the LLM sometimes flattens the mutation
+    # (path/type/value as top-level kwargs) → TypeError killed the call
+    # and cost 2 rounds. Fold flat keys into the mutation spec instead of
+    # dying — the intent is unambiguous.
+    if flat and isinstance(mutation, dict):
+        for k in ("path", "type", "value", "name"):
+            if k in flat and k not in mutation:
+                mutation[k] = flat[k]
 
     try:
         base_resp = _one_request(baseline)
