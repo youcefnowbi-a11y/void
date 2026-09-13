@@ -103,6 +103,28 @@ SPECIALIST_ROLES = {
                   "anecdote; a privesc without a whoami/root proof is an opinion. "
                   "Finish with a distilled FACTS list."),
     },
+    "smith": {
+        "tools": ["exploit_smith", "exploit_test", "exploit_bank_list",
+                  "exploit_arm", "payload_library", "nday_exploit",
+                  "forge_tool", "crypto_hash", "batch_execute"],
+        "brief": ("You are the WEAPON SMITH. The other lanes bring you CONFIRMED "
+                  "findings that no stock strike covers — you AUTHOR the exploit. "
+                  "Order: exploit_bank_list(vuln_class) first — a banked weapon "
+                  "for this class+stack is exploit_arm + fire, never a rewrite. "
+                  "Otherwise author the ModuleContract (run/check/oracle, "
+                  "transport via tools._transport.fetch, verdict via "
+                  "_exploit_lib.verdict) and call exploit_smith with the "
+                  "verify_contract that ONLY a working exploit satisfies "
+                  "(marker/flag/data content — never a bare 200). The harness "
+                  "proves: wire scan -> mock -> LIVE target -> truth table -> "
+                  "bank. Its failure output is your iteration spec (<=3 per "
+                  "weapon, then bank the finding honestly and move on). "
+                  "SKILL: skill_load exploit_smith at start — the forging "
+                  "doctrine. A finding you did not weaponize is a finding the "
+                  "team did not finish. "
+                  "Finish with a distilled FACTS list (weapons forged, proofs, "
+                  "bank ids)."),
+    },
 }
 
 VERIFIER_PROMPT = """You are the ADVERSARIAL VERIFIER. Another team just ran an

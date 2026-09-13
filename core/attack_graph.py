@@ -149,6 +149,44 @@ ACTIONS = {
                                                 "robots.txt", "api/user", "graphql",
                                                 "config", "backup", "api.php/me"]},
     },
+    # -- SMITH (Vague 3): the offline brain knows the forge, but the
+    # forge is NEVER the value-model's favorite on raw states — it
+    # only enters plans when a finding is already on the board (its
+    # pre is strict), and its yield stays below the top strike chains
+    # so plan orderings that the doctrine depends on do not reshuffle.
+    "exploit_bank_list": {
+        # pre strict: reading the catalog only matters once a finding is
+        # on the board — a always-True pre polluted EVERY MCTS rollout
+        # state (extra branch diluting visit counts, supabase chain lost
+        # its top-1 slot). Reachability = key membership, not pre-fire.
+        "pre": lambda s: (s.has("verdict") or s.has("finding")),
+        "targets": lambda s: _targets_kinds(s),
+        "kinds": ("weapon",), "yield": 0.5,
+        "args": lambda t: {},
+    },
+    "exploit_smith": {
+        # STRICT pre: a confirmed finding (verdict/finding node) on a
+        # target is the forge's raw material — never fires on raw urls
+        "pre": lambda s: (s.has("verdict") or s.has("finding"))
+                         and s.has("url"),
+        "targets": lambda s: [x for x in _targets_kinds(s)
+                              if isinstance(x, str)],
+        "kinds": ("weapon", "verdict"), "yield": 2.0,
+        "args": lambda t: {"target_url": t},
+    },
+    "exploit_arm": {
+        # banked weapon exists and a live target is in play
+        "pre": lambda s: s.has("weapon") and s.has("url"),
+        "targets": lambda s: _targets_kinds(s),
+        "kinds": ("verdict",), "yield": 1.5,
+        "args": lambda t: {"bank_id": t} if isinstance(t, str) else {},
+    },
+    "exploit_test": {
+        "pre": lambda s: s.has("weapon") or s.has("verdict"),
+        "targets": lambda s: _targets_kinds(s),
+        "kinds": ("verdict",), "yield": 1.0,
+        "args": lambda t: {"target_url": t},
+    },
     "spa_crawl": {
         "pre": lambda s: s.has("url"),
         "targets": lambda s: s.kinds("url"),

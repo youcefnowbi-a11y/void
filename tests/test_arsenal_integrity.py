@@ -176,7 +176,11 @@ def test_skills_parse_and_reference_real_tools():
         "send_email", "search_news", "generate_report", "detect_attack",
         "query_portfolio", "query_db",
         # oauth_oidc_chain: OAuth protocol parameter
-        "response_type"})
+        "response_type",
+        # exploit_smith: verify_contract keys (the harness's proof shape)
+        "expect_contains", "expect_marker", "expect_regex", "expect_status",
+        # skills loader header key (skills.py parses it — not a tool)
+        "not_when"})
     for s in skills:
         # ghost check applies to AUTHORED doctrine (the header we write).
         # Grafted verbatim source material (after "## SOURCE:") IS code —

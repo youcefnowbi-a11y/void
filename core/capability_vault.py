@@ -25,7 +25,7 @@ import time
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 META = os.path.join(ROOT, "data", "learned", "vault_meta.json")
-KINDS = ("play", "skill", "forged")
+KINDS = ("play", "skill", "forged", "exploit")
 _META_LOCK = None  # late-bound threading.Lock (cheap, import-safe)
 _MAX_VERSIONS = 8       # per capability
 _MAX_BLOCK_CHARS = 2200
@@ -126,6 +126,20 @@ def recall(kind=None):
                                 "payload": {"desc": t.get("desc", "")}})
         except Exception:
             pass
+    if kind in (None, "exploit"):
+        # ⚒️ Vague 3 — banked weapons are capabilities too: the block shows
+        # PROVEN weapons (score = bank uses) so the agent reaches for
+        # exploit_arm before authoring a fresh one.
+        try:
+            from core import exploit_bank
+            for e in exploit_bank.list_bank():
+                out.append({"kind": "exploit", "id": e.get("id", "?"),
+                            "score": int(e.get("uses", 0) or 0),
+                            "payload": {"vuln_class": e.get("vuln_class"),
+                                        "stack_match": e.get("stack_match"),
+                                        "danger": e.get("danger")}})
+        except Exception:
+            pass
     return out
 
 
@@ -173,6 +187,10 @@ def deposit(kind, payload, provenance=""):
             return {"ok": True, "kind": kind, "merged": int(added)}
         except Exception as e:
             return {"error": f"play merge failed: {e}"}
+    # ⚒️ Vague 3 — exploit deposits: a banked weapon's vault version entry
+    # (hash + provenance) makes the bank auditable from the vault layer.
+    # The bank itself stays the single source of truth (law: loader +
+    # vault, never monolith) — deposit() just records history.
     cap_id = (payload.get("id") if isinstance(payload, dict)
               else str(payload))[:80]
     with _lock():

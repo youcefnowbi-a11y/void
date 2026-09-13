@@ -173,6 +173,19 @@ def _plays_from_rows(rows, ts_default=None):
                                 "", ts, kind="verdict")
             if p:
                 out.append(p)
+        # ⚒️ Vague 3 — EXPLOIT plays (GUI lane): a banked weapon's
+        # TARGET PASS mints kind="exploit" so the doctrine learns which
+        # weapon kills which host profile. Same honesty guards: only
+        # exploit_smith rows carrying a banked id in the summary.
+        if tool == "exploit_smith":
+            _bid = re.search(r'banked":\s*"([a-z0-9_]+)"', item_res)
+            if _bid:
+                p = _play_from_call(tool, a,
+                                    f"weapon banked {_bid.group(1)}"[:160],
+                                    "", ts, kind="exploit")
+                if p:
+                    p["bank_id"] = _bid.group(1)
+                    out.append(p)
 
     for r in rows:
         ts = (r.get("started_at") or ts_default or "")[:19]
@@ -314,8 +327,23 @@ def harvest_from_ledger(ws, final_text=None, store=STORE):
             if isinstance(v, dict) and v.get("exploitable") in (True, "partial", "true"):
                 m = (r.get("method") or
                      (a.get("method") or "GET"))
-                p = _play_from_call(tool, a, str(v.get("summary") or
-                                                  "verdict exploitable")[:160],
+                # ⚒️ Vague 3 — EXPLOIT plays (lab/campaign lane): a banked
+                # weapon that just proved itself mints kind="exploit" —
+                # the doctrine learns WHICH weapon kills WHICH host
+                # profile; the bank id rides the play for exploit_arm.
+                _outcome = str(v.get("summary") or "verdict exploitable")[:160]
+                if tool == "exploit_smith" and "BANQUÉE" in _outcome:
+                    _bid = ""
+                    _m = re.search(r"BANQUÉE:\s*([a-z0-9_]+)", _outcome)
+                    if _m:
+                        _bid = _m.group(1)
+                    p = _play_from_call(tool, a,
+                                        f"weapon banked {_bid}".strip()[:160],
+                                        "", ts, kind="exploit")
+                    if p:
+                        p["bank_id"] = _bid
+                        incoming.append(p)
+                p = _play_from_call(tool, a, _outcome,
                                     "", ts, kind="verdict")
                 if p:
                     incoming.append(p)
