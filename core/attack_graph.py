@@ -164,6 +164,14 @@ ACTIONS = {
         "kinds": ("weapon",), "yield": 0.5,
         "args": lambda t: {},
     },
+    "exploit_scaffold": {
+        # the cold-start authoring aid: same strict pre as the forge —
+        # scaffolding without a finding is noise
+        "pre": lambda s: (s.has("verdict") or s.has("finding")),
+        "targets": lambda s: _targets_kinds(s),
+        "kinds": ("weapon",), "yield": 0.5,
+        "args": lambda t: {},
+    },
     "exploit_smith": {
         # STRICT pre: a confirmed finding (verdict/finding node) on a
         # target is the forge's raw material — never fires on raw urls

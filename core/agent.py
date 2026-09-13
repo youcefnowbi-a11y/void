@@ -886,7 +886,11 @@ finding has no dedicated strike tool - or the stock strike cannot express
 this target's specific shape - AUTHOR THE WEAPON YOURSELF:
 
 - exploit_bank_list FIRST: a banked weapon matching this vuln class + stack
-  is arm-and-fire (exploit_arm), never a rewrite.
+  is arm-and-fire (exploit_arm), never a rewrite. Arming a loud/strike
+  weapon is deliberate ordnance handling: confirm='YES' (the nday law).
+- exploit_scaffold COLD-STARTS the authoring: a wire-clean skeleton for
+  the class (sqli/lfi/ssti/cmdi/ssrf) with TODO slots - adapt them to
+  the finding's shape, never author from a blank page.
 - exploit_smith FORGES: you write the candidate code (ModuleContract: def
   run(url, **kw) returning the standard verdict JSON; optional check() for
   detection-only; optional oracle() for boolean classes). The harness runs
