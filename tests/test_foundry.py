@@ -207,3 +207,57 @@ def test_harness_cleans_up_targets():
         _cleanup()
     live = json.loads(vuln_synth(action="list"))
     assert (live.get("targets") or {}) == {}, live
+
+
+# ── AUDIT REGRESSION (foundry power review) ────────────────────────────
+
+def test_cmdi_semicolon_fires_and_filter_blocks_it():
+    """REGRESSION: the cmdi injector had an operator-precedence bug
+    (`... and sent != raw or ...`) that was ALWAYS False on base/post, so
+    a `;`-separated payload never fired -- only |/&/backtick/$. The
+    semicolon is the most common cmdi separator (and what the scaffold
+    emits). This test pins the fix at the ORACLE level:
+      base      + ';echo MARKER'  -> oracle fires
+      filtered  + ';echo MARKER'  -> filter strips ';' -> oracle stays clean
+      filtered  + '|echo MARKER'  -> bypass -> oracle fires
+    """
+    from urllib.parse import quote
+    def _fire(variant, payload):
+        s = json.loads(vuln_synth(action="start", vuln_class="cmdi",
+                                  variant=variant))
+        assert s["exploitable"], s
+        try:
+            probe = s["probe_url"] + "?host=" + quote(payload, safe="")
+            fetch(probe, timeout=8)
+            body = fetch(s["oracle_url"], timeout=8)["body"]
+            return json.loads(body)["exploited"]
+        finally:
+            vuln_synth(action="stop", target_id=s["target_id"])
+
+    assert _fire("base", ";echo VFXMARK") is True, \
+        "cmdi base did not fire on a ';'-separated payload (precedence bug)"
+    assert _fire("filtered", ";echo VFXMARK") is False, \
+        "cmdi filtered failed to strip ';' (no filter)"
+    assert _fire("filtered", "|echo VFXMARK") is True, \
+        "cmdi filtered blocked the intended bypass (|)"
+
+
+def test_synth_classes_smoke_ground_truth():
+    """Every synth class must start, expose a working oracle, and stop —
+    not just sqli. The cmdi bug proved a one-class test suite is a blind
+    spot, so this smoke-checks the WHOLE catalog's lifecycle + oracle
+    contract (benign request must leave exploited=False)."""
+    for cls in ("sqli", "lfi", "ssti", "cmdi", "ssrf", "idor", "bola",
+                "jwt_alg", "race", "desync"):
+        try:
+            s = json.loads(vuln_synth(action="start", vuln_class=cls,
+                                      variant="base"))
+            assert s.get("exploitable") is True, f"{cls}: {s}"
+            # the oracle answers JSON with the exploited flag on a clean state
+            o = fetch(s["oracle_url"], timeout=8)
+            st = json.loads(o["body"])
+            assert st.get("class") == cls, f"{cls}: oracle says {st.get('class')}"
+            assert "exploited" in st, f"{cls}: oracle missing the exploited flag"
+        finally:
+            _cleanup()
+    assert (json.loads(vuln_synth(action="list")).get("targets") or {}) == {}

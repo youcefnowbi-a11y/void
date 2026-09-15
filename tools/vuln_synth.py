@@ -278,8 +278,14 @@ class H(Base):
             return self._send(405, "method not allowed")
         raw = p.get(PARAM, "")
         sent = raw.replace(";", "") if VARIANT == "filtered" else raw
-        injected = bool(re.search(r"[|`&$]|;", sent)) and sent != raw or (
-            VARIANT == "filtered" and bool(re.search(r"[|`&$]", sent)))
+        # AUDIT FIX (foundry power review): the old guard mixed an
+        # `and sent != raw` clause that was ALWAYS False on base/post
+        # (sent == raw there), so a `;`-separated payload never fired --
+        # only |/&/backtick/$. The correct test is simply: does the
+        # string the shell actually receives carry a metachar? On
+        # filtered the `;` is already stripped (that IS the filter), so
+        # `|id` still fires (bypass) while `;id` does not (blocked).
+        injected = bool(re.search(r"[|`&$;]", sent))
         cmds = _shell(sent)
         if injected and cmds:
             self._prove({"payload": raw, "out": cmds})
