@@ -82,6 +82,9 @@ def test_doctrine_names_exactly_the_registry():
     allowed = param_names | set(ag.ACTIONS.keys()) | {
         "cve_id", "verify_url", "url_template", "url_template_cmd", "__proto__",
         "tool_count",  # template placeholder {tool_count}, remplacé au runtime
+        # Vague 4 FOUNDRY: the learning ledger file the doctrine cites
+        # (data/learned/foundry_novel.json) — a path component, not a tool
+        "foundry_novel",
         # valeurs op= de crypto_hash citées dans la doctrine (vocabulaire légitime,
         # pas des tools): signature Heleket/Cryptomus, webhooks, JWT, payloads b64
         "helmer_sign", "hmac_sha256", "jwt_decode", "base64_encode",
@@ -180,7 +183,10 @@ def test_skills_parse_and_reference_real_tools():
         # exploit_smith: verify_contract keys (the harness's proof shape)
         "expect_contains", "expect_marker", "expect_regex", "expect_status",
         # skills loader header key (skills.py parses it — not a tool)
-        "not_when"})
+        "not_when",
+        # Vague 4 FOUNDRY: the learning-ledger path the smith skill cites
+        # (data/learned/foundry_novel.json) — a path component, not a tool
+        "foundry_novel"})
     for s in skills:
         # ghost check applies to AUTHORED doctrine (the header we write).
         # Grafted verbatim source material (after "## SOURCE:") IS code —

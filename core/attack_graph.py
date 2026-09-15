@@ -182,6 +182,23 @@ ACTIONS = {
         "kinds": ("weapon", "verdict"), "yield": 2.0,
         "args": lambda t: {"target_url": t},
     },
+    # Vague 4 FOUNDRY — same STRICT pre as the forge (the foundry needs
+    # a proven weapon or a finding to synthesize against), yields BELOW
+    # the top strike chains so plan orderings the doctrine depends on
+    # (supabase top-1) do not reshuffle. Reachability = key membership.
+    "vuln_synth": {
+        "pre": lambda s: s.has("finding") or s.has("weapon")
+                         or s.has("verdict"),
+        "targets": lambda s: _targets_kinds(s),
+        "kinds": ("endpoint",), "yield": 0.5,
+        "args": lambda t: {"action": "start"},
+    },
+    "repro_harness": {
+        "pre": lambda s: s.has("weapon") or s.has("verdict"),
+        "targets": lambda s: _targets_kinds(s),
+        "kinds": ("weapon",), "yield": 1.0,
+        "args": lambda t: {},
+    },
     "exploit_arm": {
         # banked weapon exists and a live target is in play
         "pre": lambda s: s.has("weapon") and s.has("url"),

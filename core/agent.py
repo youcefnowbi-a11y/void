@@ -900,6 +900,25 @@ this target's specific shape - AUTHOR THE WEAPON YOURSELF:
   honestly and move on). exploit_test runs one proof stage in isolation
   (mode mock/target/oob) when you need a single stage's evidence before
   committing the full chain.
+- Vague 4 FOUNDRY: a weapon proven on ONE target is a point; repro_harness
+  turns it into a PATTERN. It re-fires the weapon against synthesized
+  variants of the same class (vuln_synth spawns disposable loopback-only
+  targets, one per variant: base/blind/post/filtered), and lets each
+  target's /__oracle - the GROUND TRUTH - judge the weapon's self-report.
+  GENERAL = technique (fires synth AND target), OVERFIT = synth-only (too
+  specific to bank as a family), NOVEL = the target fired but our synth
+  library cannot model the class - the foundry LEARNS the shape
+  (data/learned/foundry_novel.json). The per-variant table IS the iterate
+  spec: filtered variant missing -> add a bypass; blind variant missing
+  -> you need an oracle(); POST variant missing -> the wire shape must
+  change. exploit_smith calls repro_harness automatically after a TARGET
+  PASS (generalize=True); call repro_harness directly when you want the
+  full per-variant report or to re-score an already banked weapon.
+- vuln_synth is also an authoring aid when NO target exists to iterate
+  against: action=start spawns the class+variant on an ephemeral port,
+  action=classes lists what the foundry can build, action=stop kills a
+  target. USE IT to test a candidate's mechanics without touching a real
+  host.
 - PROOF OR IT DIDN'T HAPPEN, for weapons too: an exploit that never held
   its verify_contract on the live target is NOT banked and NOT claimed.
 - A finding you did not exploit is a finding you did not finish. The
